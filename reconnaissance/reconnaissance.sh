@@ -1,13 +1,11 @@
 #!/bin/bash
 # Reconnaissance
 
-
 ####################
 # Global variables #
 ####################
 
 DEPENDENCIES="toilet"
-
 
 #############
 # Functions #
@@ -43,8 +41,6 @@ function fuGET_DEPS {
   echo
   apt -y install $DEPENDENCIES
 }
-
-
 
 
 ####################################
@@ -89,8 +85,6 @@ for i in "$@"
     esac
   done
 
-
-
 # Validate command line arguments and load config
 # If a valid config file exists, set deployment type to "auto" and load the configuration
 if [ "$myEXEC_TYPE" == "auto" ] && [ "$myCONF_FILE" == "" ]; then
@@ -110,17 +104,12 @@ elif ! [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
   exit
 fi
 
-
-
-
 ################################
 # Installation of Dependencies #
 ################################
 
 fuGOT_ROOT
 fuGET_DEPS
-
-
 
 ###############################
 # Gather Identity Information #
@@ -131,8 +120,6 @@ if [ "$IDENTITY" == true ]; then
   source ./identity-information.sh
 fi
 
-
-
 ##############################
 # Gather Network Information #
 ##############################
@@ -142,11 +129,12 @@ if [ "$NETWORK" == true ]; then
   source ./network-information.sh
 fi
 
-
-
 ###########################
 # Gather Host Information #
 ###########################
 
 
+####################################
+# Gather Vulnerability Information #
+####################################
 
