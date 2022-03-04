@@ -133,6 +133,10 @@ fi
 # Gather Host Information #
 ###########################
 
+if [ "$HOST" == true ]; then
+  fuBANNER "Gather Host Information ..."
+  source ./host-information.sh
+fi
 
 ####################################
 # Gather Vulnerability Information #
