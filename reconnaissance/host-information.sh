@@ -11,18 +11,11 @@ DEPENDENCIES="nmap"
 # Functions #
 #############
 
-function fuNmapSoftwareScanIP {
+function fuNmapSoftwareScan {
   echo
-  echo "SYN scan with OS detection, version detection, script scanning, and traceroute of IP $1 and the top most common 1000 ports ..."
+  echo "SYN scan with OS detection, version detection, script scanning, and traceroute of $1, $2 ..."
   echo
-  nmap -A -oN software-stats.txt $1
-}
-
-function fuNmapSoftwareScanPort {
-  echo
-  echo "SYN scan with OS detection, version detection, script scanning, and traceroute of IP $1 and port $2 ..."
-  echo
-  nmap -A -oN software-stats.txt $1 -p$2
+  nmap -A -oN software-stats.txt $1 $2
 }
 
 ################################
@@ -31,27 +24,49 @@ function fuNmapSoftwareScanPort {
 
 fuGET_DEPS
 
-############
-# Software #
-############
+####################
+# Software Versions#
+####################
 
 # Host detection
 # nmap 
 #-A: Enable OS detection, version detection, script scanning, and traceroute
 
 if [ "$IP" != "" ] && [ "$TCPPORT" != "" ] && [ "$UDPPORT" != "" ]; then
-  fuNmapSoftwareScanPort $IP $TCPPORT,$UDPPORT
+  fuNmapSoftwareScan $IP -p$TCPPORT,$UDPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" != "" ] && [ "$UDPPORT" == "" ]; then
-  fuNmapSoftwareScanPort $IP $TCPPORT
+  fuNmapSoftwareScan $IP -p$TCPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" != "" ]; then
-  fuNmapSoftwareScanPort $IP $UDPPORT
+  fuNmapSoftwareScan $IP -p$UDPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
-  fuNmapSoftwareScanIP $IP
+  fuNmapSoftwareScan $IP
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapSoftwareScanPort $IP $PORTRANGE
+  fuNmapSoftwareScan $IP -p$PORTRANGE
 
 fi
+
+
+
+################
+# SMB Analysis #
+################
+
+
+#################
+# SMTP Analysis #
+#################
+
+
+#################
+# SNMP Analysis #
+#################
+
+
+
+################
+# SSL Analysis #
+################

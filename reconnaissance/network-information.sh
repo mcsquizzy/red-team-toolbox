@@ -11,14 +11,49 @@ DEPENDENCIES="whois dnsenum amass python3-dnspython fping netdiscover nmap"
 # Functions #
 #############
 
-function fuNmapSynScanIP {
+function fuWhois {
   echo
-  echo "SYN (Half-open) scan of IP $1 and the top most common 1000 ports ..."
+  echo "Searching for whois information of $1 ..."
   echo
-  nmap -oN port-stats.txt $1
+  whois $1 | tee -a dns-stats.txt
+}
+
+function fuArpScan {
+  echo
+  echo "Discover network addresses using ARP requests ..."
+  echo
+  netdiscover -P $1 $2 | tee -a arp-stats.txt
 }
 
 
+# NMAP Scans
+function fuNmapSynScan {
+  echo
+  echo "SYN (Half-open) scan of $1 ..."
+  echo
+  nmap -oN port-stats.txt $1 $2 $3
+}
+
+function fuNmapSynScanIPRANGE {
+  echo
+  echo "SYN (Half-open) scan of $1 ... (might take some time)"
+  echo
+  nmap -oG port-stats.txt --min-hostgroup=64 $1 $2 $3
+}
+
+function fuNmapUDPScan {
+  echo
+  echo "UDP Scan of $1 ..."
+  echo
+  nmap -sU -oN uport-stats.txt $1 $2
+}
+
+function fuNmapUDPScanIPRANGE {
+  echo
+  echo "UDP scan of IP Range $IPRANGE and Port $UDPPORT ..."
+  echo
+  nmap -sU -oG port-stats.txt --append-output
+}
 
 
 # Print scan result to usable list
@@ -44,13 +79,12 @@ function fuPrepareTargetUPort {
 }
 
 
-
-
 ################################
 # Installation of Dependencies #
 ################################
 
 fuGET_DEPS
+
 
 ###########################
 # Domain / DNS Properties #
@@ -59,15 +93,11 @@ fuGET_DEPS
 # Passive Reconnaissance
 # WHOIS
 if [ "$DOMAIN" != "" ]; then
-  echo
-  echo "Searching for whois information of $DOMAIN ..."
-  echo
-  whois $DOMAIN | tee -a dns-stats.txt
+  fuWhois $DOMAIN
+
 elif [ "$IP" != "" ]; then
-  echo
-  echo "Searching for whois information of $IP ..."
-  echo
-  whois $IP | tee -a dns-stats.txt
+  fuWhois $IP
+
 fi
 
 # Active Reconnaissance
@@ -77,7 +107,7 @@ if [ "$DOMAIN" != "" ]; then
   echo
   echo "Searching information (host addresses, nameservers, subdomains, ...) about $DOMAIN ..."
   echo
-  dnsenum $DOMAIN --noreverse | tee -a dns-stats.txt
+  dnsenum $DOMAIN --nocolor | tee -a dns-stats.txt
 fi
 
 # AMASS
@@ -88,6 +118,11 @@ if [ "$DOMAIN" != "" ]; then
   amass enum -ip -brute -d $DOMAIN | tee -a dns-stats.txt
 fi
 
+# check if needed
+#Dirbuster
+#Gobuster
+ 
+
 
 #######################
 # Link Layer Scanning #
@@ -96,24 +131,18 @@ fi
 # ARP scan (Link Layer)
 # netdiscover !!!Network range must be 0.0.0.0/8 , /16 or /24 !!!
 if [ "$IPRANGE" != "" ] && [ "$NETDEVICE" == "" ]; then
-  echo
-  echo "Discover network addresses using ARP requests from $IPRANGE ..."
-  echo
-  netdiscover -P -r $IPRANGE | tee -a arp-stats.txt
+  fuArpScan -r$IPRANGE
+
 elif [ "$IPRANGE" != "" ] && [ "$NETDEVICE" != "" ]; then
-  echo
-  echo "Discover network addresses using ARP requests from $IPRANGE out of $NETDEVICE ..."
-  echo
-  netdiscover -P -i $NETDEVICE -r $IPRANGE | tee -a arp-stats.txt
+  fuArpScan -r$IPRANGE -i$NETDEVICE
+
 elif [ "$NETDEVICE" != "" ] && [ "$IPRANGE" == "" ] ; then
-  echo
-  echo "Discover network addresses using ARP requests out of $NETDEVICE ..."
-  echo
-  netdiscover -P -i $NETDEVICE | tee -a arp-stats.txt
+  fuArpScan -i$NETDEVICE
+
 fi
 
 # traceroute
-# todo, check if needed?
+# check if needed?
 
 
 ################
@@ -160,85 +189,55 @@ fi
 
 # TCP SYN scan (default scan) (Transport Layer)
 # nmap
+# Syn scan IP
 if [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
-  fuNmapSynScanIP $IP
+  fuNmapSynScan $IP
   fuPrepareTargetPort
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-  echo
-  echo "SYN (Half-open) scan of IP $IP and all ports ..."
-  echo
-  nmap $IP -p- -oN port-stats.txt
+  fuNmapSynScan $IP -p-
   fuPrepareTargetPort
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" != "" ]; then
-  echo
-  echo "SYN (Half-open) scan of IP $IP and port $TCPPORT ..."
-  echo
-  nmap $IP -p $TCPPORT -oN port-stats.txt
+  fuNmapSynScan $IP -p$TCPPORT
   fuPrepareTargetPort
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  echo
-  echo "SYN (Half-open) scan of IP $IP and port range $PORTRANGE ..."
-  echo
-  nmap $IP -p $PORTRANGE -oN port-stats.txt
+  fuNmapSynScan $IP -p$PORTRANGE
   fuPrepareTargetPort
 
+# Syn Scan IP range
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == false ]; then
-  echo
-  echo "SYN (Half-open) scan of IP range $IPRANGE and the top most common 1000 ports ... (might take some time)"
-  echo
-  nmap $IPRANGE --min-hostgroup=64 -oG port-stats.txt
+  fuNmapSynScanIPRANGE $IPRANGE
   fuPrepareTargetIP
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-  echo
-  echo "SYN (Half-open) scan of IP range $IPRANGE and all ports ... (might take some time)"
-  echo
-  nmap $IPRANGE -p- -T5 -oG port-stats.txt
+  fuNmapSynScanIPRANGE $IPRANGE -p- -T5
   fuPrepareTargetIP
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" != "" ]; then
-  echo
-  echo "SYN (Half-open) scan of IP range $IPRANGE and port $TCPPORT ..."
-  echo
-  nmap $IPRANGE -p $TCPPORT --min-hostgroup=64 -oG port-stats.txt
+  fuNmapSynScanIPRANGE $IPRANGE -p$TCPPORT
   fuPrepareTargetIP
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  echo
-  echo "SYN (Half-open) scan of IP range $IPRANGE and port range $PORTRANGE ... (might take some time)"
-  echo
-  nmap $IPRANGE -p $PORTRANGE --min-hostgroup=64 oG port-stats.txt
+  fuNmapSynScanIPRANGE $IPRANGE -p$PORTRANGE
   fuPrepareTargetIP
 
+# Syn Scan Domain
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == false ]; then
-  echo
-  echo "SYN (Half-open) scan of domain $DOMAIN and the top most common 1000 ports ..."
-  echo
-  nmap $DOMAIN -oN port-stats.txt
+  fuNmapSynScan $DOMAIN
   fuPrepareTargetPort
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-  echo
-  echo "SYN (Half-open) scan of domain $DOMAIN and all ports ... (might take some time)"
-  echo
-  nmap $DOMAIN -p- -oN port-stats.txt
+  fuNmapSynScan $DOMAIN -p-
   fuPrepareTargetPort
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" != "" ]; then
-  echo
-  echo "SYN (Half-open) scan of domain $DOMAIN and port $TCPPORT ..."
-  echo
-  nmap $DOMAIN -p $TCPPORT -oN port-stats.txt
+  fuNmapSynScan $DOMAIN -p$TCPPORT
   fuPrepareTargetPort
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  echo
-  echo "SYN (Half-open) scan of domain $DOMAIN and port range $PORTRANGE ..."
-  echo
-  nmap $DOMAIN -p $PORTRANGE -oN port-stats.txt
+  fuNmapSynScan $DOMAIN -p$PORTRANGE
   fuPrepareTargetPort
 
 fi
@@ -253,45 +252,27 @@ fi
 # UDP scan
 # nmap
 if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
-  echo
-  echo "UDP Scan of IP $IP and Port $UDPPORT ..."
-  echo
-  nmap -sU -p $UDPPORT $IP -oN uport-stats.txt
+  fuNmapUDPScan $IP -p$UDPPORT
   fuPrepareTargetUPort
 
 elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
-  echo
-  echo "UDP Scan of IP $IP and the top most common 1000 ports ..."
-  echo
-  nmap -sU $IP -oN uport-stats.txt
+  fuNmapUDPScan $IP
   fuPrepareTargetUPort
 
 elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  echo
-  echo "UDP scan of IP $IP and Portrange $PORTRANGE ..."
-  echo
-  nmap -sU -p $PORTRANGE $IP -oN uport-stats.txt
+  fuNmapUDPScan $IP -p$PORTRANGE
   fuPrepareTargetUPort
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$UDPPORT" != "" ]; then
-  echo
-  echo "UDP scan of IP Range $IPRANGE and Port $UDPPORT ..."
-  echo
-  nmap -sU -p $UDPPORT $IPRANGE -oG port-stats.txt --append-output
+  fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
   fuPrepareTargetIP
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
-  echo
-  echo "UDP scan of Domain $DOMAIN and Port $UDPPORT ..."
-  echo
-  nmap -sU -p $UDPPORT $DOMAIN -oN uport-stats.txt
+  fuNmapUDPScan $DOMAIN -p$UDPPORT
   fuPrepareTargetUPort
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  echo
-  echo "UDP scan of Domain $DOMAIN and Portrange $PORTRANGE ..."
-  echo
-  nmap -sU -p $PORTRANGE $DOMAIN -oN uport-stats.txt
+  fuNmapUDPScan $DOMAIN -p$PORTRANGE
   fuPrepareTargetUPort
 
 fi
