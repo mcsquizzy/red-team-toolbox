@@ -31,51 +31,51 @@ function fuNmapSynScan {
   echo
   echo "SYN (Half-open) scan of $1 ..."
   echo
-  nmap -oN port-stats.txt $1 $2 $3
+  nmap -Pn -oN port-stats.txt $1 $2 $3
 }
 
 function fuNmapSynScanIPRANGE {
   echo
   echo "SYN (Half-open) scan of $1 ... (might take some time)"
   echo
-  nmap -oG port-stats.txt --min-hostgroup=64 $1 $2 $3
+  nmap -Pn -oG port-stats.txt --min-hostgroup=64 $1 $2 $3
 }
 
 function fuNmapUDPScan {
   echo
   echo "UDP Scan of $1 ..."
   echo
-  nmap -sU -oN uport-stats.txt $1 $2
+  nmap -sU -Pn -T5 -oN uport-stats.txt $1 $2
 }
 
 function fuNmapUDPScanIPRANGE {
   echo
-  echo "UDP scan of IP Range $IPRANGE and Port $UDPPORT ..."
+  echo "UDP scan of $1 ..."
   echo
-  nmap -sU -oG port-stats.txt --append-output
+  nmap -sU -Pn -T5 -oG port-stats.txt --append-output $1 $2
 }
 
 
 # Print scan result to usable list
 function fuPrepareTargetIP {
   echo
-  echo "print ip list of result to targetIP.txt"
+  echo "print ip list of result to targetIP.txt ..."
   echo
   cat port-stats.txt | awk '/Up/ {print $2}' | cat >> targetIP.txt
 }
 
 function fuPrepareTargetPort {
   echo
-  echo "print port list of result to targetPort.txt"
+  echo "print port list of result to targetPort.txt ..."
   echo
-  cat port-stats.txt | awk '/open/ {print $1}' | awk -F\/ '{print $1}' | tr '\n' , | cat >> targetPort.txt
+  cat port-stats.txt | awk '/open/ {print $1}' | awk -F\/ '{print $1}' | cat >> targetPort.txt
 }
 
 function fuPrepareTargetUPort {
   echo
-  echo "print port list of result to targetPort.txt"
+  echo "print port list of result to targetPort.txt ..."
   echo
-  cat uport-stats.txt | awk '/open/ {print $1}' | awk -F\/ '{print $1}' | tr '\n' , | cat >> targetPort.txt
+  cat uport-stats.txt | awk '/open/ {print $1}' | awk -F\/ '{print $1}' | cat >> targetPort.txt
 }
 
 
@@ -119,9 +119,9 @@ if [ "$DOMAIN" != "" ]; then
 fi
 
 # check if needed
-#Dirbuster
-#Gobuster
- 
+# Gobuster
+# gobuster dir -u $DOMAIN oder $URL -w wordlist -x?
+
 
 
 #######################
@@ -136,9 +136,8 @@ if [ "$IPRANGE" != "" ] && [ "$NETDEVICE" == "" ]; then
 elif [ "$IPRANGE" != "" ] && [ "$NETDEVICE" != "" ]; then
   fuArpScan -r$IPRANGE -i$NETDEVICE
 
-elif [ "$NETDEVICE" != "" ] && [ "$IPRANGE" == "" ] ; then
-  fuArpScan -i$NETDEVICE
-
+#elif [ "$NETDEVICE" != "" ] && [ "$IPRANGE" == "" ] ; then
+#  fuArpScan -i$NETDEVICE
 fi
 
 # traceroute
@@ -190,7 +189,7 @@ fi
 # TCP SYN scan (default scan) (Transport Layer)
 # nmap
 # Syn scan IP
-if [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
+if [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == false ]; then
   fuNmapSynScan $IP
   fuPrepareTargetPort
 
@@ -255,7 +254,7 @@ if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
   fuNmapUDPScan $IP -p$UDPPORT
   fuPrepareTargetUPort
 
-elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
+elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$TCPPORT" == "" ]; then
   fuNmapUDPScan $IP
   fuPrepareTargetUPort
 

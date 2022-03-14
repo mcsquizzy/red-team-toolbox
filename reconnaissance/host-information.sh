@@ -6,6 +6,8 @@
 ####################
 
 DEPENDENCIES="nmap"
+SMBPORTS="445 139 137 138"
+
 
 #############
 # Functions #
@@ -15,7 +17,13 @@ function fuNmapSoftwareScan {
   echo
   echo "SYN scan with OS detection, version detection, script scanning, and traceroute of $1, $2 ..."
   echo
-  nmap -A -oN software-stats.txt $1 $2
+  nmap -A -Pn -oN software-stats.txt $1 $2
+}
+
+function fuSambaShareEnumerate {
+  echo
+  echo "Enumerate Samba Shares of $IP and Port $1"
+  smbmap -H $IP -P $1
 }
 
 ################################
@@ -30,7 +38,7 @@ fuGET_DEPS
 
 # Host detection
 # nmap 
-#-A: Enable OS detection, version detection, script scanning, and traceroute
+# OS detection, version detection, script scanning, and traceroute
 
 if [ "$IP" != "" ] && [ "$TCPPORT" != "" ] && [ "$UDPPORT" != "" ]; then
   fuNmapSoftwareScan $IP -p$TCPPORT,$UDPPORT
@@ -50,15 +58,24 @@ elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORT
 fi
 
 
-
 ################
 # SMB Analysis #
 ################
+
+# smbmap
+for i in $SMBPORTS;
+  do
+    if grep -q -w $i "targetPort.txt"; then
+      fuSambaShareEnumerate $i
+    fi
+done
+
 
 
 #################
 # SMTP Analysis #
 #################
+
 
 
 #################
