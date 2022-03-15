@@ -126,7 +126,7 @@ fi
 
 if [ "$NETWORK" == true ]; then
   fuBANNER "Gather Network Information ..."
-  source ./network-information.sh
+  source ./network-scanning.sh
 fi
 
 ###########################
@@ -135,10 +135,14 @@ fi
 
 if [ "$HOST" == true ]; then
   fuBANNER "Gather Host Information ..."
-  source ./host-information.sh
+  source ./host-scanning.sh
 fi
 
 ####################################
 # Gather Vulnerability Information #
 ####################################
 
+if [ "$VULN" == true ]; then
+  fuBANNER "Gather Vulnerability Information ..."
+  source ./vulnerability-scanning.sh
+fi
