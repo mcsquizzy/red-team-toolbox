@@ -7,6 +7,14 @@
 
 DEPENDENCIES="toilet"
 
+# colors and text
+RED="\033[0;31m"
+ORANGE="\033[0;33m"
+PURPLE="\033[0;35m"
+NC="\033[0m" # No Color
+BOLD=$(tput bold)
+NORMAL=$(tput sgr0)
+
 #############
 # Functions #
 #############
@@ -14,6 +22,14 @@ DEPENDENCIES="toilet"
 # Create banners
 function fuBANNER {
   toilet -tf standard "$1"
+}
+
+# Create output messages
+function fuMESSAGE {
+  echo
+  echo -e "${NC}======================================================================="
+  echo -e "${RED}${BOLD}$1${NC}${NORMAL}"
+  echo -e "=======================================================================${NC}"
 }
 
 # Check for root permissions
@@ -111,6 +127,7 @@ fi
 fuGOT_ROOT
 fuGET_DEPS
 
+
 ###############################
 # Gather Identity Information #
 ###############################
@@ -118,6 +135,7 @@ fuGET_DEPS
 if [ "$IDENTITY" == true ]; then
   fuBANNER "Gather Identity Information ..."
   source ./identity-information.sh
+  fuMESSAGE "Finish message todo ..."
 fi
 
 ##############################
@@ -127,6 +145,7 @@ fi
 if [ "$NETWORK" == true ]; then
   fuBANNER "Gather Network Information ..."
   source ./network-scanning.sh
+  fuMESSAGE "Finish message todo ..."
 fi
 
 ###########################
@@ -136,6 +155,7 @@ fi
 if [ "$HOST" == true ]; then
   fuBANNER "Gather Host Information ..."
   source ./host-scanning.sh
+  fuMESSAGE "Finish message todo ..."
 fi
 
 ####################################
@@ -145,4 +165,5 @@ fi
 if [ "$VULN" == true ]; then
   fuBANNER "Gather Vulnerability Information ..."
   source ./vulnerability-scanning.sh
+  fuMESSAGE "Finish message todo ..."
 fi
