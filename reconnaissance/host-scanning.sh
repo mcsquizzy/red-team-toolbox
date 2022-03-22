@@ -6,8 +6,11 @@
 ####################
 
 DEPENDENCIES="nmap whatweb wpscan gobuster smbmap"
+mySOFTWAREFILE="software-findings.txt"
+myWEBFILE="web-findings.txt"
 SMBPORTS="445 139"
-NMAPSMBSCRIPTS="smb-enum-domains.nse,smb-enum-groups.nse,smb-enum-processes.nse,smb-enum-services.nse,smb-enum-sessions.nse,smb-enum-shares.nse,smb-enum-users.nse"
+WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
+NMAPSMBSCRIPTS="smb-enum-shares.nse"
 #SMTPPORTS="25 465 587"
 
 
@@ -16,18 +19,18 @@ NMAPSMBSCRIPTS="smb-enum-domains.nse,smb-enum-groups.nse,smb-enum-processes.nse,
 #############
 
 function fuNmapSoftwareScan {
-  fuMESSAGE "SYN scan with OS and version detection of $1 and port $2 $3 ..."
-  nmap -A -Pn -oN software-stats.txt $1 -p$2,$3
+  fuMESSAGE "SYN scan with OS and version detection of $1 ..."
+  nmap -A -Pn -oN $mySOFTWAREFILE $1 $2
 }
 
 function fuSambaShareEnumerate {
   fuMESSAGE "Enumerate Samba Shares of $1 and port $2 ..."
-  smbmap -q -H $1 -P $2 | tee -a software-stats.txt
+  smbmap -H $1 -P $2 | tee -a $mySOFTWAREFILE
 }
 
 function fuNmapSMBScan {
   fuMESSAGE "Nmap SMB Scan of $1 and port $2 ..."
-  nmap -Pn -T4 -oN software-stats.txt --append-output --script $NMAPSMBSCRIPTS $1 -p$2
+  nmap -Pn -T4 -oN $mySOFTWAREFILE --append-output --script $NMAPSMBSCRIPTS $1 -p$2
 }
 
 ################################
@@ -45,19 +48,19 @@ fuGET_DEPS
 # OS detection, version detection, script scanning, and traceroute
 
 if [ "$IP" != "" ] && [ "$TCPPORT" != "" ] && [ "$UDPPORT" != "" ]; then
-  fuNmapSoftwareScan $IP $TCPPORT $UDPPORT
+  fuNmapSoftwareScan $IP -p$TCPPORT,$UDPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" != "" ] && [ "$UDPPORT" == "" ]; then
-  fuNmapSoftwareScan $IP $TCPPORT
+  fuNmapSoftwareScan $IP -p$TCPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" != "" ]; then
-  fuNmapSoftwareScan $IP $UDPPORT
+  fuNmapSoftwareScan $IP -p$UDPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
   fuNmapSoftwareScan $IP
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapSoftwareScan $IP $PORTRANGE
+  fuNmapSoftwareScan $IP -p$PORTRANGE
 
 fi
 
@@ -68,13 +71,18 @@ fi
 # whatweb
 if [ "$DOMAIN" != "" ] && (grep -q -w 80 "targetPort.txt" || grep -q -w 443 "targetPort.txt"); then
   fuMESSAGE "Scan $DOMAIN and recognise web technologies ..."
-  whatweb $DOMAIN -v --color=never | tee web-stats.txt
+  whatweb $DOMAIN -v -q --no-errors --color=never | tee $myWEBFILE
+fi
+
+if [ "$IP" != "" ] && (grep -q -w 80 "targetPort.txt" || grep -q -w 443 "targetPort.txt"); then
+  fuMESSAGE "Scan $IP and recognise web technologies ..."
+  whatweb $IP -v -q --no-errors --color=never | tee $myWEBFILE
 fi
 
 # wpscan
-if [ "$DOMAIN" != "" ] && grep -q WordPress "web-stats.txt"; then
+if [ "$DOMAIN" != "" ] && grep -q WordPress "$myWEBFILE"; then
   fuMESSAGE "WordPress Security Scan of $DOMAIN ..."
-  wpscan --url $DOMAIN | tee -a web-stats.txt
+  wpscan --url $DOMAIN | tee -a $myWEBFILE
 fi
 
 
@@ -85,14 +93,13 @@ fi
 # Gobuster
 if [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
   fuMESSAGE "Directory/file enumeration on website $DOMAIN ..."
-  gobuster dir -u https://$DOMAIN -q -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt | tee -a web-stats.txt
+  gobuster dir -u https://$DOMAIN -q -w $WORDLIST | tee -a $myWEBFILE
 
 elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
   fuMESSAGE "Directory/file enumeration on website $DOMAIN ..."
-  gobuster dir -u http://$DOMAIN -q -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt | tee -a web-stats.txt
+  gobuster dir -u http://$DOMAIN -q -w $WORDLIST | tee -a $myWEBFILE
 
 fi
-
 
 
 ################
@@ -118,12 +125,12 @@ for i in $SMBPORTS;
 done
 
 # nmap
-for i in $SMBPORTS;
-  do
-    if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
-      fuNmapSMBScan $IP $i
-    fi
-done
+#for i in $SMBPORTS;
+#  do
+#    if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
+#      fuNmapSMBScan $IP $i
+#    fi
+#done
 
 
 #################

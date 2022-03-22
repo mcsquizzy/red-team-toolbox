@@ -145,8 +145,15 @@ fi
 if [ "$NETWORK" == true ]; then
   fuBANNER "Gather Network Information ..."
   source ./network-scanning.sh
-  fuMESSAGE "Finish message todo ..."
+  fuMESSAGE "Findings in following files: \n
+  DNS information: $myDNSFILE \n
+  Network address information: $myNETADDRFILE \n
+  Security Appliances information: $mySECAPPLFILE \n
+  Port information: $myPORTFILE \n
+  List of all open ports: targetPort.txt \n
+  List of all ip addresses with open ports: targetIP.txt"
 fi
+
 
 ###########################
 # Gather Host Information #
