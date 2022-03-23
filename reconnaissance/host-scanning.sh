@@ -10,7 +10,7 @@ mySOFTWAREFILE="software-findings.txt"
 myWEBFILE="web-findings.txt"
 SMBPORTS="445 139"
 WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
-NMAPSMBSCRIPTS="smb-enum-shares.nse"
+NMAPSMBSCRIPTS="smb-enum-shares"
 #SMTPPORTS="25 465 587"
 
 
@@ -20,7 +20,7 @@ NMAPSMBSCRIPTS="smb-enum-shares.nse"
 
 function fuNmapSoftwareScan {
   fuMESSAGE "SYN scan with OS and version detection of $1 ..."
-  nmap -A -Pn -oN $mySOFTWAREFILE $1 $2
+  nmap -A -oN $mySOFTWAREFILE $1 $2
 }
 
 function fuSambaShareEnumerate {
@@ -30,7 +30,7 @@ function fuSambaShareEnumerate {
 
 function fuNmapSMBScan {
   fuMESSAGE "Nmap SMB Scan of $1 and port $2 ..."
-  nmap -Pn -T4 -oN $mySOFTWAREFILE --append-output --script $NMAPSMBSCRIPTS $1 -p$2
+  nmap -T4 -oN $mySOFTWAREFILE --append-output --script $NMAPSMBSCRIPTS $1 -p$2
 }
 
 ################################
@@ -98,6 +98,17 @@ if [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort
 elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
   fuMESSAGE "Directory/file enumeration on website $DOMAIN ..."
   gobuster dir -u http://$DOMAIN -q -w $WORDLIST | tee -a $myWEBFILE
+
+fi
+
+# nmap
+if [ "$IP" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
+  fuMESSAGE "Directory/file enumeration on webserver $IP ..."
+  nmap $IP -p443 --script http-enum -oN $myWEBFILE --append-output
+  
+elif [ "$IP" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
+  fuMESSAGE "Directory/file enumeration on webserver $IP ..."
+  nmap $IP -p80 --script http-enum -oN $myWEBFILE --append-output
 
 fi
 

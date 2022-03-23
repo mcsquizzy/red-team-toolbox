@@ -30,8 +30,8 @@ function fuArpScan {
 
 # NMAP Scans
 function fuNmapSynScan {
-  fuMESSAGE "TCP SYN (Half-open) scan of $1 $2..."
-  nmap -sS -Pn -oN $myPORTFILE $1 $2 $3
+  fuMESSAGE "TCP SYN (Half-open) scan of $1 $2 ..."
+  nmap -sS -oN $myPORTFILE $1 $2 $3
 }
 
 function fuNmapSynScanIPRANGE {
@@ -40,12 +40,12 @@ function fuNmapSynScanIPRANGE {
 }
 
 function fuNmapUDPScan {
-  fuMESSAGE "UDP Scan of $1 $2..."
-  nmap -sU -Pn -T4 -oN $myUPORTFILE $1 $2
+  fuMESSAGE "UDP Scan of $1 $2 ..."
+  nmap -sU -T4 -oN $myUPORTFILE $1 $2
 }
 
 function fuNmapUDPScanIPRANGE {
-  fuMESSAGE "UDP scan of $1 $2..."
+  fuMESSAGE "UDP scan of $1 $2 ..."
   nmap -sU -Pn -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $1 $2
 }
 
@@ -77,13 +77,11 @@ fuGET_DEPS
 
 # Passive Reconnaissance
 # WHOIS
-if [ "$DOMAIN" != "" ]; then
-  fuWhois $DOMAIN
-
-elif [ "$IP" != "" ]; then
-  fuWhois $IP
-
-fi
+#if [ "$DOMAIN" != "" ]; then
+#  fuWhois $DOMAIN
+#elif [ "$IP" != "" ]; then
+#  fuWhois $IP
+#fi
 
 # Active Reconnaissance
 # DNS enumeration
@@ -94,15 +92,13 @@ if [ "$DOMAIN" != "" ]; then
 fi
 
 # AMASS
-if [ "$DOMAIN" != "" ]; then
-  fuMESSAGE "Searching subdomains for $DOMAIN ..."
-  amass enum -ipv4 -brute -d $DOMAIN | tee -a $myDNSFILE
-
-elif [ "$DOMAIN" != "" ] && [ "$NETDEVICE" != "" ]; then
-  fuMESSAGE "Searching subdomains for $DOMAIN through $NETDEVICE ..."
-  amass enum -ipv4 -brute -d $DOMAIN -iface $NETDEVICE | tee -a $myDNSFILE
-
-fi
+#if [ "$DOMAIN" != "" ]; then
+#  fuMESSAGE "Searching subdomains for $DOMAIN ..."
+#  amass enum -ipv4 -brute -d $DOMAIN | tee -a $myDNSFILE
+#elif [ "$DOMAIN" != "" ] && [ "$NETDEVICE" != "" ]; then
+#  fuMESSAGE "Searching subdomains for $DOMAIN through $NETDEVICE ..."
+#  amass enum -ipv4 -brute -d $DOMAIN -iface $NETDEVICE | tee -a $myDNSFILE
+#fi
 
 
 
@@ -157,7 +153,7 @@ fi
 # load balancing detection
 # lbd
 # todo, check if needed?
-
+# waf detection with nmap --script http-waf-*
 
 
 #################
@@ -232,9 +228,9 @@ if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
   fuNmapUDPScan $IP -p$UDPPORT
   fuPrepareTargetPort $myUPORTFILE
 
-elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$TCPPORT" == "" ]; then
-  fuNmapUDPScan $IP
-  fuPrepareTargetPort $myUPORTFILE
+#elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$TCPPORT" == "" ]; then
+#  fuNmapUDPScan $IP
+#  fuPrepareTargetPort $myUPORTFILE
 
 elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
   fuNmapUDPScan $IP -p$PORTRANGE
@@ -252,4 +248,29 @@ elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTR
   fuNmapUDPScan $DOMAIN -p$PORTRANGE
   fuPrepareTargetPort $myUPORTFILE
 
+fi
+
+
+#####################
+# Summarize results #
+#####################
+
+fuMESSAGE "Findings in following files: \n"
+if [ -s $myDNSFILE ]; then
+  echo "DNS information: $myDNSFILE \n"
+fi
+if [ -s $myNETADDRFILE ]; then
+  echo "Network address information: $myNETADDRFILE \n"
+fi
+if [ -s $mySECAPPLFILE ]; then
+  echo "Security Appliances information: $mySECAPPLFILE \n"
+fi
+if [ -s $myPORTFILE ]; then
+  echo "Port information: $myPORTFILE \n"
+fi
+if [ -s targetPort.txt ]; then
+  echo "List of all open ports: targetPort.txt \n"
+fi
+if [ -s targetIP.txt ]; then
+  echo "List of all ip addresses with open ports: targetIP.txt"
 fi
