@@ -102,5 +102,5 @@ if [ "$myEXEC_TYPE" == "auto" ] && [ "$NAME" != "" ]; then
 fi
 
 
-#emailharvester
 #theharvester
+# check if needed

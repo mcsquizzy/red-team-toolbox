@@ -31,7 +31,7 @@ function fuArpScan {
 # NMAP Scans
 function fuNmapSynScan {
   fuMESSAGE "TCP SYN (Half-open) scan of $1 $2 ..."
-  nmap -sS -oN $myPORTFILE $1 $2 $3
+  nmap -sS -Pn -oN $myPORTFILE $1 $2 $3
 }
 
 function fuNmapSynScanIPRANGE {
@@ -41,7 +41,7 @@ function fuNmapSynScanIPRANGE {
 
 function fuNmapUDPScan {
   fuMESSAGE "UDP Scan of $1 $2 ..."
-  nmap -sU -T4 -oN $myUPORTFILE $1 $2
+  nmap -sU -Pn -T4 -oN $myUPORTFILE $1 $2
 }
 
 function fuNmapUDPScanIPRANGE {

@@ -20,7 +20,7 @@ NMAPSMBSCRIPTS="smb-enum-shares"
 
 function fuNmapSoftwareScan {
   fuMESSAGE "SYN scan with OS and version detection of $1 ..."
-  nmap -A -oN $mySOFTWAREFILE $1 $2
+  nmap -A -Pn -oN $mySOFTWAREFILE $1 $2
 }
 
 function fuSambaShareEnumerate {
@@ -30,7 +30,7 @@ function fuSambaShareEnumerate {
 
 function fuNmapSMBScan {
   fuMESSAGE "Nmap SMB Scan of $1 and port $2 ..."
-  nmap -T4 -oN $mySOFTWAREFILE --append-output --script $NMAPSMBSCRIPTS $1 -p$2
+  nmap -Pn -T4 -oN $mySOFTWAREFILE --append-output --script $NMAPSMBSCRIPTS $1 -p$2
 }
 
 ################################
@@ -69,12 +69,12 @@ fi
 ################
 
 # whatweb
-if [ "$DOMAIN" != "" ] && (grep -q -w 80 "targetPort.txt" || grep -q -w 443 "targetPort.txt"); then
+if [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || [ "$TCPPORT" == "443" ] || grep -q -w 80 "targetPort.txt" || grep -q -w 443 "targetPort.txt"); then
   fuMESSAGE "Scan $DOMAIN and recognise web technologies ..."
   whatweb $DOMAIN -v -q --no-errors --color=never | tee $myWEBFILE
 fi
 
-if [ "$IP" != "" ] && (grep -q -w 80 "targetPort.txt" || grep -q -w 443 "targetPort.txt"); then
+if [ "$IP" != "" ] && ([ "$TCPPORT" == "80" ] || [ "$TCPPORT" == "443" ] || grep -q -w 80 "targetPort.txt" || grep -q -w 443 "targetPort.txt"); then
   fuMESSAGE "Scan $IP and recognise web technologies ..."
   whatweb $IP -v -q --no-errors --color=never | tee $myWEBFILE
 fi
