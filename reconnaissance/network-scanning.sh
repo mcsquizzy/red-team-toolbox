@@ -6,11 +6,11 @@
 ####################
 
 DEPENDENCIES="whois dnsenum amass python3-dnspython fping netdiscover nmap"
-myDNSFILE="dns-findings.txt"
-myNETADDRFILE="net-addr-findings.txt"
-mySECAPPLFILE="sec-appliance-findings.txt"
-myPORTFILE="port-findings.txt"
-myUPORTFILE="uport-findings.txt"
+myDNSFILE="output/dns-findings.txt"
+myNETADDRFILE="output/net-addr-findings.txt"
+mySECAPPLFILE="output/sec-appliance-findings.txt"
+myPORTFILE="output/port-findings.txt"
+myUPORTFILE="output/uport-findings.txt"
 
 
 #############
@@ -18,34 +18,34 @@ myUPORTFILE="uport-findings.txt"
 #############
 
 function fuWhois {
-  fuMESSAGE "Searching for whois information of $1 ..."
+  fuTITLE "Searching for whois information of $1 ..."
   whois $1 | tee -a $myDNSFILE
 }
 
 function fuArpScan {
-  fuMESSAGE "Discover network addresses using ARP requests ..."
+  fuTITLE "Discover network addresses using ARP requests ..."
   netdiscover $1 $2 -P | tee $myNETADDRFILE
 }
 
 
 # NMAP Scans
 function fuNmapSynScan {
-  fuMESSAGE "TCP SYN (Half-open) scan of $1 $2 ..."
+  fuTITLE "TCP SYN (Half-open) scan of $1 $2 ..."
   nmap -sS -Pn -oN $myPORTFILE $1 $2 $3
 }
 
 function fuNmapSynScanIPRANGE {
-  fuMESSAGE "TCP SYN (Half-open) scan of $1 $2... (might take some time)"
+  fuTITLE "TCP SYN (Half-open) scan of $1 $2... (might take some time)"
   nmap -sS -Pn -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $1 $2 $3
 }
 
 function fuNmapUDPScan {
-  fuMESSAGE "UDP Scan of $1 $2 ..."
+  fuTITLE "UDP Scan of $1 $2 ..."
   nmap -sU -Pn -T4 -oN $myUPORTFILE $1 $2
 }
 
 function fuNmapUDPScanIPRANGE {
-  fuMESSAGE "UDP scan of $1 $2 ..."
+  fuTITLE "UDP scan of $1 $2 ..."
   nmap -sU -Pn -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $1 $2
 }
 
@@ -72,6 +72,13 @@ fuGET_DEPS
 
 
 ###########################
+# Create output directory #
+###########################
+
+mkdir output 2> /dev/null
+
+
+###########################
 # Domain / DNS Properties #
 ###########################
 
@@ -87,16 +94,16 @@ fuGET_DEPS
 # DNS enumeration
 # dnsenum
 if [ "$DOMAIN" != "" ]; then
-  fuMESSAGE "Searching information (host addresses, nameservers, subdomains, ...) about $DOMAIN ..."
+  fuTITLE "Searching information (host addresses, nameservers, subdomains, ...) about $DOMAIN ..."
   dnsenum $DOMAIN --nocolor | tee -a $myDNSFILE
 fi
 
 # AMASS
 #if [ "$DOMAIN" != "" ]; then
-#  fuMESSAGE "Searching subdomains for $DOMAIN ..."
+#  fuTITLE "Searching subdomains for $DOMAIN ..."
 #  amass enum -ipv4 -brute -d $DOMAIN | tee -a $myDNSFILE
 #elif [ "$DOMAIN" != "" ] && [ "$NETDEVICE" != "" ]; then
-#  fuMESSAGE "Searching subdomains for $DOMAIN through $NETDEVICE ..."
+#  fuTITLE "Searching subdomains for $DOMAIN through $NETDEVICE ..."
 #  amass enum -ipv4 -brute -d $DOMAIN -iface $NETDEVICE | tee -a $myDNSFILE
 #fi
 
@@ -129,11 +136,11 @@ fi
 # ICMP Scan (Network Layer)
 # fping
 if [ "$IP" != "" ]; then
-  fuMESSAGE "Check if ip address $IP is reachable ..."
+  fuTITLE "Check if ip address $IP is reachable ..."
   fping -s $IP | tee -a $myNETADDRFILE
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ]; then
-  fuMESSAGE "Check which ip addresses of range $IPRANGE are reachable ..."
+  fuTITLE "Check which ip addresses of range $IPRANGE are reachable ..."
   fping -asg $IPRANGE -q | tee -a $myNETADDRFILE
 
 fi
@@ -146,7 +153,7 @@ fi
 # identifies and fingerprints Web Application Firewall (WAF)
 # wafw00f
 if [ "$DOMAIN" != "" ]; then
-  fuMESSAGE "Identifying Web Application Firewalls in front of $DOMAIN ..."
+  fuTITLE "Identifying Web Application Firewalls in front of $DOMAIN ..."
   wafw00f -a $DOMAIN -o $mySECAPPLFILE
 fi
 
@@ -255,21 +262,21 @@ fi
 # Summarize results #
 #####################
 
-fuMESSAGE "Findings in following files: \n"
+fuTITLE "Findings in following files:"
 if [ -s $myDNSFILE ]; then
-  echo "DNS information: $myDNSFILE \n"
+  echo "DNS information: $myDNSFILE"
 fi
 if [ -s $myNETADDRFILE ]; then
-  echo "Network address information: $myNETADDRFILE \n"
+  echo "Network address information: $myNETADDRFILE"
 fi
 if [ -s $mySECAPPLFILE ]; then
-  echo "Security Appliances information: $mySECAPPLFILE \n"
+  echo "Security Appliances information: $mySECAPPLFILE"
 fi
 if [ -s $myPORTFILE ]; then
-  echo "Port information: $myPORTFILE \n"
+  echo "Port information: $myPORTFILE"
 fi
 if [ -s targetPort.txt ]; then
-  echo "List of all open ports: targetPort.txt \n"
+  echo "List of all open ports: targetPort.txt"
 fi
 if [ -s targetIP.txt ]; then
   echo "List of all ip addresses with open ports: targetIP.txt"

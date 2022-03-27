@@ -8,9 +8,22 @@
 DEPENDENCIES="toilet"
 
 # colors and text
-RED="\033[0;31m"
-ORANGE="\033[0;33m"
-PURPLE="\033[0;35m"
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+LIGHTGRAY='\033[0;37m'
+
+# bold
+BRED='\033[1;31m'
+BGREEN='\033[1;32m'
+BYELLOW='\033[1;33m'
+BBLUE='\033[1;34m'
+BPURPLE='\033[1;35m'
+BCYAN='\033[1;36m'
+
 NC="\033[0m" # No Color
 BOLD=$(tput bold)
 NORMAL=$(tput sgr0)
@@ -21,21 +34,30 @@ NORMAL=$(tput sgr0)
 
 # Create banners
 function fuBANNER {
-  toilet -tf standard "$1"
+  echo
+  toilet -tf standard "$1" -F metal
+  echo
+}
+
+# Create output title
+function fuTITLE {
+  echo
+  echo -e "${BBLUE}══════════════════════════════════════════════════════"
+  echo -e "${BGREEN} $1 ${BBLUE}"
+  echo -e "══════════════════════════════════════════════════════${NC}"
 }
 
 # Create output messages
 function fuMESSAGE {
   echo
-  echo -e "${NC}======================================================================="
-  echo -e "${RED}${BOLD}$1${NC}${NORMAL}"
-  echo -e "=======================================================================${NC}"
+  echo -e "${BBLUE}═══${BGREEN} $1 ${NC}"
 }
 
 # Check for root permissions
 function fuGOT_ROOT {
 echo
-echo -n "### Checking for root: "
+fuMESSAGE "Checking for root"
+#echo -n "### Checking for root: "
 if [ "$(whoami)" != "root" ]; then
   echo "[ NOT OK ]"
   echo "### Please run as root"
@@ -48,13 +70,9 @@ fi
 
 # Install dependencies
 function fuGET_DEPS {
-  echo
-  echo "### Upgrading packages"
-  echo
+  fuMESSAGE "Upgrading packages"
   apt -y update
-  echo
-  echo "### Installing dependencies"
-  echo
+  fuMESSAGE "Installing dependencies"
   apt -y install $DEPENDENCIES
 }
 
