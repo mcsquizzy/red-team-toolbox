@@ -6,8 +6,8 @@
 ####################
 
 DEPENDENCIES="nmap whatweb wpscan gobuster smbmap"
-mySOFTWAREFILE="software-findings.txt"
-myWEBFILE="web-findings.txt"
+mySOFTWAREFILE="output/software-findings.txt"
+myWEBFILE="output/web-findings.txt"
 SMBPORTS="445 139"
 WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
 NMAPSMBSCRIPTS="smb-enum-shares"
@@ -19,17 +19,17 @@ NMAPSMBSCRIPTS="smb-enum-shares"
 #############
 
 function fuNmapSoftwareScan {
-  fuMESSAGE "SYN scan with OS and version detection of $1 ..."
+  fuTITLE "SYN scan with OS and version detection of $1 ..."
   nmap -A -Pn -oN $mySOFTWAREFILE $1 $2
 }
 
 function fuSambaShareEnumerate {
-  fuMESSAGE "Enumerate Samba Shares of $1 and port $2 ..."
-  smbmap -H $1 -P $2 | tee -a $mySOFTWAREFILE
+  fuTITLE "Enumerate Samba Shares of $1 and port $2 ..."
+  smbmap -H $1 -P $2 -q | tee -a $mySOFTWAREFILE
 }
 
 function fuNmapSMBScan {
-  fuMESSAGE "Nmap SMB Scan of $1 and port $2 ..."
+  fuTITLE "Nmap SMB Scan of $1 and port $2 ..."
   nmap -Pn -T4 -oN $mySOFTWAREFILE --append-output --script $NMAPSMBSCRIPTS $1 -p$2
 }
 
@@ -70,18 +70,18 @@ fi
 
 # whatweb
 if [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || [ "$TCPPORT" == "443" ] || grep -q -w 80 "targetPort.txt" || grep -q -w 443 "targetPort.txt"); then
-  fuMESSAGE "Scan $DOMAIN and recognise web technologies ..."
+  fuTITLE "Scan $DOMAIN and recognise web technologies ..."
   whatweb $DOMAIN -v -q --no-errors --color=never | tee $myWEBFILE
 fi
 
 if [ "$IP" != "" ] && ([ "$TCPPORT" == "80" ] || [ "$TCPPORT" == "443" ] || grep -q -w 80 "targetPort.txt" || grep -q -w 443 "targetPort.txt"); then
-  fuMESSAGE "Scan $IP and recognise web technologies ..."
+  fuTITLE "Scan $IP and recognise web technologies ..."
   whatweb $IP -v -q --no-errors --color=never | tee $myWEBFILE
 fi
 
 # wpscan
 if [ "$DOMAIN" != "" ] && grep -q WordPress "$myWEBFILE"; then
-  fuMESSAGE "WordPress Security Scan of $DOMAIN ..."
+  fuTITLE "WordPress Security Scan of $DOMAIN ..."
   wpscan --url $DOMAIN | tee -a $myWEBFILE
 fi
 
@@ -92,22 +92,22 @@ fi
 
 # Gobuster
 if [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
-  fuMESSAGE "Directory/file enumeration on website $DOMAIN ..."
+  fuTITLE "Directory/file enumeration on website $DOMAIN ..."
   gobuster dir -u https://$DOMAIN -q -w $WORDLIST | tee -a $myWEBFILE
 
 elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
-  fuMESSAGE "Directory/file enumeration on website $DOMAIN ..."
+  fuTITLE "Directory/file enumeration on website $DOMAIN ..."
   gobuster dir -u http://$DOMAIN -q -w $WORDLIST | tee -a $myWEBFILE
 
 fi
 
 # nmap
 if [ "$IP" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
-  fuMESSAGE "Directory/file enumeration on webserver $IP ..."
+  fuTITLE "Directory/file enumeration on webserver $IP ..."
   nmap $IP -p443 --script http-enum -oN $myWEBFILE --append-output
   
 elif [ "$IP" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
-  fuMESSAGE "Directory/file enumeration on webserver $IP ..."
+  fuTITLE "Directory/file enumeration on webserver $IP ..."
   nmap $IP -p80 --script http-enum -oN $myWEBFILE --append-output
 
 fi
@@ -157,3 +157,16 @@ done
 ################
 # SSL Analysis #
 ################
+
+
+#####################
+# Summarize results #
+#####################
+
+fuTITLE "Findings in following files:"
+if [ -s "$mySOFTWAREFILE" ]; then
+  echo "Software and Version information: $mySOFTWAREFILE"
+fi
+if [ -s "$myWEBFILE" ]; then
+  echo "Webserver and -services information: $myWEBFILE"
+fi

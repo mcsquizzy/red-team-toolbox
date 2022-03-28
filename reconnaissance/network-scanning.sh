@@ -263,21 +263,21 @@ fi
 #####################
 
 fuTITLE "Findings in following files:"
-if [ -s $myDNSFILE ]; then
+if [ -s "$myDNSFILE" ]; then
   echo "DNS information: $myDNSFILE"
 fi
-if [ -s $myNETADDRFILE ]; then
+if [ -s "$myNETADDRFILE" ]; then
   echo "Network address information: $myNETADDRFILE"
 fi
-if [ -s $mySECAPPLFILE ]; then
+if [ -s "$mySECAPPLFILE" ]; then
   echo "Security Appliances information: $mySECAPPLFILE"
 fi
-if [ -s $myPORTFILE ]; then
+if [ -s "$myPORTFILE" ]; then
   echo "Port information: $myPORTFILE"
 fi
-if [ -s targetPort.txt ]; then
+if [ -s "targetPort.txt" ]; then
   echo "List of all open ports: targetPort.txt"
 fi
-if [ -s targetIP.txt ]; then
+if [ -s "targetIP.txt" ]; then
   echo "List of all ip addresses with open ports: targetIP.txt"
 fi

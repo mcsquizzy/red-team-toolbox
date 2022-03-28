@@ -105,7 +105,7 @@ for i in "$@"
         echo
         echo "--conf=<Path to \"reconnaissance.conf\">"
 	      echo "  Use this if you want to automatically execute the reconnaissance phase (--type=auto implied)."
-        echo "  A configuration example is available in \"reconnaissance/recon.conf.dist\"."
+        echo "  A configuration example is available in \"reconnaissance/reconnaissance.conf.dist\"."
         echo
         echo "--type=<[manual, auto]>"
 	      echo "  manual, use this if you want to manually set the variables during the execution."
@@ -173,7 +173,6 @@ fi
 if [ "$HOST" == true ]; then
   fuBANNER "Gather Host Information ..."
   source ./host-scanning.sh
-  fuMESSAGE "Finish message todo ..."
 fi
 
 ####################################
@@ -183,5 +182,4 @@ fi
 if [ "$VULN" == true ]; then
   fuBANNER "Gather Vulnerability Information ..."
   source ./vulnerability-scanning.sh
-  fuMESSAGE "Finish message todo ..."
 fi
