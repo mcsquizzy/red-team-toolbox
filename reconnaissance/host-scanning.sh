@@ -19,8 +19,8 @@ NMAPSMBSCRIPTS="smb-enum-shares"
 #############
 
 function fuNmapSoftwareScan {
-  fuTITLE "SYN scan with OS and version detection of $1 ..."
-  nmap -A -Pn -oN $mySOFTWAREFILE $1 $2
+  fuTITLE "SYN scan with OS and version detection of $1 and $2..."
+  nmap -A -Pn -oN $mySOFTWAREFILE $SPOOFINGPARAMETERS $*
 }
 
 function fuSambaShareEnumerate {
@@ -29,8 +29,8 @@ function fuSambaShareEnumerate {
 }
 
 function fuNmapSMBScan {
-  fuTITLE "Nmap SMB Scan of $1 and port $2 ..."
-  nmap -Pn -T4 -oN $mySOFTWAREFILE --append-output --script $NMAPSMBSCRIPTS $1 -p$2
+  fuTITLE "Nmap SMB Scan of $1 and $2 ..."
+  nmap -Pn -T4 -oN $mySOFTWAREFILE --append-output --script $NMAPSMBSCRIPTS $SPOOFINGPARAMETERS $*
 }
 
 ################################
@@ -38,6 +38,12 @@ function fuNmapSMBScan {
 ################################
 
 fuGET_DEPS
+
+###########################
+# Create output directory #
+###########################
+
+mkdir output && echo "directory \"output/\" has been created"
 
 #####################
 # Software Versions #
@@ -139,7 +145,7 @@ done
 #for i in $SMBPORTS;
 #  do
 #    if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
-#      fuNmapSMBScan $IP $i
+#      fuNmapSMBScan $IP -p$i
 #    fi
 #done
 
@@ -165,8 +171,8 @@ done
 
 fuTITLE "Findings in following files:"
 if [ -s "$mySOFTWAREFILE" ]; then
-  echo "Software and Version information: $mySOFTWAREFILE"
+  fuMESSAGE "Software and Version information: $mySOFTWAREFILE"
 fi
 if [ -s "$myWEBFILE" ]; then
-  echo "Webserver and -services information: $myWEBFILE"
+  fuMESSAGE "Webserver and -services information: $myWEBFILE"
 fi

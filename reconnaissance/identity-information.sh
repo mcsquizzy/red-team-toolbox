@@ -18,6 +18,12 @@ DEPENDENCIES="sherlock spiderfoot"
 
 fuGET_DEPS
 
+###########################
+# Create output directory #
+###########################
+
+mkdir output && echo "directory \"output/\" has been created"
+
 ##########################
 # User interaction phase #
 ##########################
@@ -49,7 +55,7 @@ fi
 # sherlock
 if [ "$myEXEC_TYPE" == "auto" ] && [ "$USERNAME" != "" ]; then
   echo "Searching username $USERNAME on social network websites ..."
-  sherlock --print-found --folderoutput ./usernames/ $USERNAME
+  sherlock --print-found --folderoutput ./output/usernames/ $USERNAME
 
 #elif [ "$myEXEC_TYPE" == "manual" ] && [ "$myUSERNAME" != "" ]; then
 #  echo "Searching username $myUSERNAME on social network websites ..."
@@ -60,7 +66,7 @@ fi
 # spiderfoot
 if [ "$myEXEC_TYPE" == "auto" ] && [ "$NAME" != "" ]; then
   echo "Searching for usernames from name $NAME ..."
-  spiderfoot -s "$NAME" -t USERNAME -f -q | tee -a usernames-of-${NAME}.txt
+  spiderfoot -s "$NAME" -t USERNAME -f -q | tee -a output/usernames-of-${NAME}.txt
 
 #elif [ "$myEXEC_TYPE" == "manual" ] && [ "$myNAME" != "" ]; then
 #  echo "Searching for usernames from name "$myNAME" ..."
@@ -75,30 +81,18 @@ fi
 # spiderfoot
 if [ "$myEXEC_TYPE" == "auto" ] && [ "$DOMAIN" != "" ]; then
   echo "searching email addresses from domain $DOMAIN"
-  spiderfoot -s $DOMAIN -t EMAILADDR -f -q | tee -a emailaddresses.txt
-
-#elif [ "$myEXEC_TYPE" == "manual" ] && [ "$myDOMAIN" != "" ]; then
-#  echo "searching email addresses from domain $myDOMAIN"
-#  spiderfoot -s $myDOMAIN -t EMAILADDR -f -q | tee -a emailaddresses.txt
+  spiderfoot -s $DOMAIN -t EMAILADDR -f -q | tee -a output/emailaddresses.txt
 
 elif [ "$myEXEC_TYPE" == "auto" ] && [ "$EMAIL" != "" ]; then
   echo "searchin all types of information from email address $EMAIL"
-  spiderfoot -s $EMAIL -q | tee -a infos-from-$EMAIL.txt
-
-#elif [ "$myEXEC_TYPE" == "manual" ] && [ "$myEMAIL" != "" ]; then
-#  echo "searchin all types of information from email address $myEMAIL"
-#  spiderfoot -s $myEMAIL -q | tee -a infos-from-$myEMAIL.txt
+  spiderfoot -s $EMAIL -q | tee -a output/infos-from-$EMAIL.txt
 fi
 
 # Find email addresses from Human Name
 # spiderfoot
 if [ "$myEXEC_TYPE" == "auto" ] && [ "$NAME" != "" ]; then
   echo "Searching for email addresses from name $NAME ..."
-  spiderfoot -s "$NAME" -t EMAILADDR -f -q | tee -a email-of-${NAME}.txt
-
-#elif [ "$myEXEC_TYPE" == "manual" ] && [ "$myNAME" != "" ]; then
-#  echo "Searching for email addresses from name "${myNAME}" ..."
-#  spiderfoot -s "$myNAME" -t USERNAME -f -q | tee -a email-of-${myNAME}.txt
+  spiderfoot -s "$NAME" -t EMAILADDR -f -q | tee -a output/email-of-${NAME}.txt
 fi
 
 

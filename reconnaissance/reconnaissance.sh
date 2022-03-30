@@ -42,9 +42,9 @@ function fuBANNER {
 # Create output title
 function fuTITLE {
   echo
-  echo -e "${BBLUE}══════════════════════════════════════════════════════"
+  echo -e "${BBLUE}═════════════════════════════════════════════════════════════════════"
   echo -e "${BGREEN} $1 ${BBLUE}"
-  echo -e "══════════════════════════════════════════════════════${NC}"
+  echo -e "═════════════════════════════════════════════════════════════════════${NC}"
 }
 
 # Create output messages
@@ -55,9 +55,7 @@ function fuMESSAGE {
 
 # Check for root permissions
 function fuGOT_ROOT {
-echo
 fuMESSAGE "Checking for root"
-#echo -n "### Checking for root: "
 if [ "$(whoami)" != "root" ]; then
   echo "[ NOT OK ]"
   echo "### Please run as root"
@@ -76,13 +74,32 @@ function fuGET_DEPS {
   apt -y install $DEPENDENCIES
 }
 
+function fuNmapSpoofingParameters {
+  if [ "$NETDEVICE" != "" ] && [ "$SOURCEIP" != "" ] && [ "$SOURCEPORT" != "" ]; then
+    echo -e$NETDEVICE -S$SOURCEIP -g$SOURCEPORT
+  elif [ "$NETDEVICE" != "" ] && [ "$SOURCEIP" != "" ] && [ "$SOURCEPORT" == "" ]; then
+    echo -e$NETDEVICE -S$SOURCEIP
+  elif [ "$NETDEVICE" != "" ] && [ "$SOURCEIP" == "" ] && [ "$SOURCEPORT" != "" ]; then
+    echo -e$NETDEVICE -g$SOURCEPORT
+  elif [ "$NETDEVICE" != "" ] && [ "$SOURCEIP" == "" ] && [ "$SOURCEPORT" == "" ]; then
+    echo -e$NETDEVICE
+  elif [ "$NETDEVICE" == "" ] && [ "$SOURCEIP" != "" ] && [ "$SOURCEPORT" != "" ]; then
+    echo -S$SOURCEIP -g$SOURCEPORT
+  elif [ "$NETDEVICE" == "" ] && [ "$SOURCEIP" != "" ] && [ "$SOURCEPORT" == "" ]; then
+    echo -S$SOURCEIP
+  elif [ "$NETDEVICE" == "" ] && [ "$SOURCEIP" == "" ] && [ "$SOURCEPORT" != "" ]; then
+    echo -g$SOURCEPORT
+  fi
+}
+SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
+
 
 ####################################
 # Check for command line arguments #
 ####################################
 
 if [ "$1" == "" ]; then
-  echo "forgot the command line arguments!"
+  echo "forgot the command line arguments, Try --help"
   exit
 fi
 for i in "$@"
@@ -164,7 +181,6 @@ if [ "$NETWORK" == true ]; then
   fuBANNER "Gather Network Information ..."
   source ./network-scanning.sh
 fi
-
 
 ###########################
 # Gather Host Information #

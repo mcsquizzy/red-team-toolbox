@@ -7,6 +7,7 @@
 
 DEPENDENCIES="whois dnsenum amass python3-dnspython fping netdiscover nmap"
 myDNSFILE="output/dns-findings.txt"
+myWHOISFILE="output/whois-findings.txt"
 myNETADDRFILE="output/net-addr-findings.txt"
 mySECAPPLFILE="output/sec-appliance-findings.txt"
 myPORTFILE="output/port-findings.txt"
@@ -17,48 +18,63 @@ myUPORTFILE="output/uport-findings.txt"
 # Functions #
 #############
 
-function fuWhois {
-  fuTITLE "Searching for whois information of $1 ..."
-  whois $1 | tee -a $myDNSFILE
-}
-
-function fuArpScan {
-  fuTITLE "Discover network addresses using ARP requests ..."
-  netdiscover $1 $2 -P | tee $myNETADDRFILE
-}
-
-
 # NMAP Scans
 function fuNmapSynScan {
-  fuTITLE "TCP SYN (Half-open) scan of $1 $2 ..."
-  nmap -sS -Pn -oN $myPORTFILE $1 $2 $3
+  fuTITLE "TCP SYN (Half-open) scan of $* ..."
+  nmap -sS -Pn -oN $myPORTFILE $SPOOFINGPARAMETERS $*
 }
 
 function fuNmapSynScanIPRANGE {
-  fuTITLE "TCP SYN (Half-open) scan of $1 $2... (might take some time)"
-  nmap -sS -Pn -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $1 $2 $3
+  fuTITLE "TCP SYN (Half-open) scan of $* ... (might take some time)"
+  nmap -sS -Pn -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
 }
 
 function fuNmapUDPScan {
-  fuTITLE "UDP Scan of $1 $2 ..."
-  nmap -sU -Pn -T4 -oN $myUPORTFILE $1 $2
+  fuTITLE "UDP Scan of $* ..."
+  nmap -sU -Pn -sV -T4 -oN $myUPORTFILE $SPOOFINGPARAMETERS $* --host-timeout 120s
 }
 
 function fuNmapUDPScanIPRANGE {
-  fuTITLE "UDP scan of $1 $2 ..."
-  nmap -sU -Pn -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $1 $2
+  fuTITLE "UDP scan of $* ..."
+  nmap -sU -Pn -sV -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $SPOOFINGPARAMETERS $* --host-timeout 120s
+}
+
+# neak through certain non-stateful firewalls and packet filtering routers
+# FIN scan (-sF), Sets just the TCP FIN bit.
+# open|filtered = No response received, port might be open
+function fuNmapFINScan {
+  fuTITLE "FIN scan of $* ..."
+  nmap -sF -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $*
+}
+
+# Null scan (-sN), Does not set any bits (TCP flag header is 0)
+function fuNmapNULLScan {
+  fuTITLE "NULL scan of $* ..."
+  nmap -sN -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $*
 }
 
 
 # Print scan result to usable list
 function fuPrepareTargetIP {
   fuMESSAGE "write ip list of result to targetIP.txt ..."
+  cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat > targetIP.txt #&& rm ip-grepable.txt
+  fuMESSAGE "found $(cat targetIP.txt | wc -l) IP addresses with status \"Up\""
+}
+
+function fuPrepareTargetIPAppend {
+  fuMESSAGE "write ip list of result to targetIP.txt ..."
   cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat >> targetIP.txt #&& rm ip-grepable.txt
   fuMESSAGE "found $(cat targetIP.txt | wc -l) IP addresses with status \"Up\""
 }
 
 function fuPrepareTargetPort {
-  fuMESSAGE "write port list of result to targetPort.txt ..."
+  fuMESSAGE "prepare scan result ..."
+  cat $1 | awk '/ open / {print $1}' | awk -F\/ '{print $1}' | cat > targetPort.txt
+  fuMESSAGE "found $(cat targetPort.txt | wc -l) open ports"
+}
+
+function fuPrepareTargetPortAppend {
+  fuMESSAGE "prepare scan result ..."
   cat $1 | awk '/ open / {print $1}' | awk -F\/ '{print $1}' | cat >> targetPort.txt
   fuMESSAGE "found $(cat targetPort.txt | wc -l) open ports"
 }
@@ -70,13 +86,11 @@ function fuPrepareTargetPort {
 
 fuGET_DEPS
 
-
 ###########################
 # Create output directory #
 ###########################
 
-mkdir output 2> /dev/null
-
+mkdir output && echo "directory \"output/\" has been created"
 
 ###########################
 # Domain / DNS Properties #
@@ -84,11 +98,14 @@ mkdir output 2> /dev/null
 
 # Passive Reconnaissance
 # WHOIS
-#if [ "$DOMAIN" != "" ]; then
-#  fuWhois $DOMAIN
-#elif [ "$IP" != "" ]; then
-#  fuWhois $IP
-#fi
+if [ "$DOMAIN" != "" ]; then
+  fuTITLE "Searching for whois information of $DOMAIN ..."
+  whois $DOMAIN | tee $myWHOISFILE
+
+elif [ "$IP" != "" ]; then
+  fuTITLE "Searching for whois information of $IP ..."
+  whois $IP | tee -a $myWHOISFILE
+fi
 
 # Active Reconnaissance
 # DNS enumeration
@@ -108,7 +125,6 @@ fi
 #fi
 
 
-
 #######################
 # Link Layer Scanning #
 #######################
@@ -116,13 +132,13 @@ fi
 # ARP scan (Link Layer)
 # netdiscover !!!Network range must be 0.0.0.0/8 , /16 or /24 !!!
 if [ "$IPRANGE" != "" ] && [ "$NETDEVICE" == "" ]; then
-  fuArpScan -r$IPRANGE
+  fuTITLE "Discover network addresses using ARP requests ..."
+  netdiscover -r$IPRANGE -P | tee $myNETADDRFILE
 
 elif [ "$IPRANGE" != "" ] && [ "$NETDEVICE" != "" ]; then
-  fuArpScan -r$IPRANGE -i$NETDEVICE
+  fuTITLE "Discover network addresses using ARP requests ..."
+  netdiscover -r$IPRANGE -i$NETDEVICE -P | tee $myNETADDRFILE
 
-elif [ "$IPRANGE" == "" ] && [ "$NETDEVICE" != "" ]; then
-  fuArpScan -i$NETDEVICE
 fi
 
 # traceroute
@@ -135,11 +151,19 @@ fi
 
 # ICMP Scan (Network Layer)
 # fping
-if [ "$IP" != "" ]; then
+if [ "$IP" != "" ] && [ "$NETDEVICE" == "" ]; then
   fuTITLE "Check if ip address $IP is reachable ..."
   fping -s $IP | tee -a $myNETADDRFILE
 
-elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ]; then
+elif [ "$IP" != "" ] && [ "$NETDEVICE" != "" ]; then
+  fuTITLE "Check if ip address $IP is reachable ..."
+  fping -s $IP -I $NETDEVICE | tee -a $myNETADDRFILE
+
+elif [ "$IP" == "" ] && [ "$NETDEVICE" != "" ] && [ "$IPRANGE" != "" ]; then
+  fuTITLE "Check which ip addresses of range $IPRANGE are reachable ..."
+  fping -asg $IPRANGE -I $NETDEVICE -q | tee -a $myNETADDRFILE
+
+elif [ "$IP" == "" ] && [ "$NETDEVICE" == "" ] && [ "$IPRANGE" != "" ]; then
   fuTITLE "Check which ip addresses of range $IPRANGE are reachable ..."
   fping -asg $IPRANGE -q | tee -a $myNETADDRFILE
 
@@ -168,65 +192,91 @@ fi
 #################
 
 # TCP SYN scan (default scan) (Transport Layer)
+# Maybe Exotic Scan Flags
 # nmap
-# Syn scan IP
-if [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == false ]; then
+if [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
   fuNmapSynScan $IP
   fuPrepareTargetPort $myPORTFILE
+  if grep -q -w filtered $myPORTFILE; then
+    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
+    fuNmapFINScan $IP
+  fi
 
-elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
+elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
   fuNmapSynScan $IP -p- -T5
   fuPrepareTargetPort $myPORTFILE
+  if grep -q -w filtered $myPORTFILE; then
+    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
+    fuNmapFINScan $IP -p- -T5
+  fi
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" != "" ]; then
   fuNmapSynScan $IP -p$TCPPORT
   fuPrepareTargetPort $myPORTFILE
+  if grep -q -w filtered $myPORTFILE; then
+    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
+    fuNmapFINScan $IP -p$TCPPORT
+  fi
 
-elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
   fuNmapSynScan $IP -p$PORTRANGE
   fuPrepareTargetPort $myPORTFILE
+  if grep -q -w filtered $myPORTFILE; then
+    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
+    fuNmapFINScan $IP -p$PORTRANGE
+  fi
 
 # Syn Scan IP range
-elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == false ]; then
+elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
   fuNmapSynScanIPRANGE $IPRANGE
   fuPrepareTargetIP
+  if grep -q -w filtered $myPORTFILE; then
+    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
+    fuNmapFINScan $IPRANGE
+  fi
 
-elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
+elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
   fuNmapSynScanIPRANGE $IPRANGE -p- -T5
   fuPrepareTargetIP
+  if grep -q -w filtered $myPORTFILE; then
+    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
+    fuNmapFINScan $IPRANGE -p- -T5
+  fi
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" != "" ]; then
   fuNmapSynScanIPRANGE $IPRANGE -p$TCPPORT
   fuPrepareTargetIP
+  if grep -q -w filtered $myPORTFILE; then
+    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
+    fuNmapFINScan $IPRANGE -p$TCPPORT
+  fi
 
-elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
   fuNmapSynScanIPRANGE $IPRANGE -p$PORTRANGE
   fuPrepareTargetIP
+  if grep -q -w filtered $myPORTFILE; then
+    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
+    fuNmapFINScan $IPRANGE -p$PORTRANGE
+  fi
 
 # Syn Scan Domain
-elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == false ]; then
-  fuNmapSynScan $DOMAIN
-  fuPrepareTargetPort $myPORTFILE
+#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
+#  fuNmapSynScan $DOMAIN
+#  fuPrepareTargetPort $myPORTFILE
 
-elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-  fuNmapSynScan $DOMAIN -p- -T5
-  fuPrepareTargetPort $myPORTFILE
+#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
+#  fuNmapSynScan $DOMAIN -p- -T5
+#  fuPrepareTargetPort $myPORTFILE
 
-elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" != "" ]; then
-  fuNmapSynScan $DOMAIN -p$TCPPORT
-  fuPrepareTargetPort $myPORTFILE
+#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" != "" ]; then
+#  fuNmapSynScan $DOMAIN -p$TCPPORT
+#  fuPrepareTargetPort $myPORTFILE
 
-elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapSynScan $DOMAIN -p$PORTRANGE
-  fuPrepareTargetPort $myPORTFILE
+#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+#  fuNmapSynScan $DOMAIN -p$PORTRANGE
+#  fuPrepareTargetPort $myPORTFILE
 
 fi
-
-# neak through certain non-stateful firewalls and packet filtering routers
-# Xmas scan
-#TODO
-# NULL scan
-#TODO
 
 
 # UDP scan
@@ -235,25 +285,25 @@ if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
   fuNmapUDPScan $IP -p$UDPPORT
   fuPrepareTargetPort $myUPORTFILE
 
-#elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$TCPPORT" == "" ]; then
-#  fuNmapUDPScan $IP
-#  fuPrepareTargetPort $myUPORTFILE
+elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
+  fuNmapUDPScan $IP
+  fuPrepareTargetPortAppend $myUPORTFILE
 
-elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
   fuNmapUDPScan $IP -p$PORTRANGE
-  fuPrepareTargetPort $myUPORTFILE
+  fuPrepareTargetPortAppend $myUPORTFILE
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$UDPPORT" != "" ]; then
   fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
-  fuPrepareTargetIP
+  fuPrepareTargetIPAppend
 
-elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
-  fuNmapUDPScan $DOMAIN -p$UDPPORT
-  fuPrepareTargetPort $myUPORTFILE
+#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
+#  fuNmapUDPScan $DOMAIN -p$UDPPORT
+#  fuPrepareTargetPort $myUPORTFILE
 
-elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapUDPScan $DOMAIN -p$PORTRANGE
-  fuPrepareTargetPort $myUPORTFILE
+#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+#  fuNmapUDPScan $DOMAIN -p$PORTRANGE
+#  fuPrepareTargetPortAppend $myUPORTFILE
 
 fi
 
@@ -263,21 +313,21 @@ fi
 #####################
 
 fuTITLE "Findings in following files:"
-if [ -s "$myDNSFILE" ]; then
-  echo "DNS information: $myDNSFILE"
+if [ -s $myDNSFILE ]; then
+  fuMESSAGE "DNS information: $myDNSFILE"
 fi
-if [ -s "$myNETADDRFILE" ]; then
-  echo "Network address information: $myNETADDRFILE"
+if [ -s $myNETADDRFILE ]; then
+  fuMESSAGE "Network address information: $myNETADDRFILE"
 fi
 if [ -s "$mySECAPPLFILE" ]; then
-  echo "Security Appliances information: $mySECAPPLFILE"
+  fuMESSAGE "Security Appliances information: $mySECAPPLFILE"
 fi
 if [ -s "$myPORTFILE" ]; then
-  echo "Port information: $myPORTFILE"
+  fuMESSAGE "Port information: $myPORTFILE"
 fi
 if [ -s "targetPort.txt" ]; then
-  echo "List of all open ports: targetPort.txt"
+  fuMESSAGE "List of all open ports: targetPort.txt"
 fi
 if [ -s "targetIP.txt" ]; then
-  echo "List of all ip addresses with open ports: targetIP.txt"
+  fuMESSAGE "List of all ip addresses with open ports: targetIP.txt"
 fi
