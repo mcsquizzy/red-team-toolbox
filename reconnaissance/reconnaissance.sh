@@ -99,7 +99,7 @@ SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 ####################################
 
 if [ "$1" == "" ]; then
-  echo "forgot the command line arguments, Try --help"
+  echo "forgot the command line arguments. Try --help"
   exit
 fi
 for i in "$@"

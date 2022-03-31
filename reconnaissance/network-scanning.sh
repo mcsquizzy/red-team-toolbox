@@ -57,13 +57,13 @@ function fuNmapNULLScan {
 # Print scan result to usable list
 function fuPrepareTargetIP {
   fuMESSAGE "write ip list of result to targetIP.txt ..."
-  cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat > targetIP.txt #&& rm ip-grepable.txt
+  cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat > targetIP.txt && rm ip-grepable.txt
   fuMESSAGE "found $(cat targetIP.txt | wc -l) IP addresses with status \"Up\""
 }
 
 function fuPrepareTargetIPAppend {
   fuMESSAGE "write ip list of result to targetIP.txt ..."
-  cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat >> targetIP.txt #&& rm ip-grepable.txt
+  cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat >> targetIP.txt && rm ip-grepable.txt
   fuMESSAGE "found $(cat targetIP.txt | wc -l) IP addresses with status \"Up\""
 }
 
