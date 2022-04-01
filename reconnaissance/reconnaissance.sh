@@ -227,10 +227,4 @@ else
   fuMESSAGE "Try \"metasploit (msfconsole)\" to search for an exploit by a given CVE Number or EDB-ID"
   fuMESSAGE "Example: CVE: 2010-2075: \"$ msfconsole -x \"search cve:2010-2075; exit;\" -q"
   #fuMESSAGE "Search a CVE number and set it in the exploitation.conf file. The script will search for exploits to the given CVE"
-
-
-  if [ -s "$myVULNFILE" ]; then
-    fuMESSAGE "Search a vulnerability found in $myVULNFILE."
-  fi
-
 fi
