@@ -171,8 +171,8 @@ done
 
 fuTITLE "Findings in following files:"
 if [ -s "$mySOFTWAREFILE" ]; then
-  fuMESSAGE "Software and Version information: $mySOFTWAREFILE"
+  fuINFO "Software and Version information: $mySOFTWAREFILE"
 fi
 if [ -s "$myWEBFILE" ]; then
-  fuMESSAGE "Webserver and -services information: $myWEBFILE"
+  fuINFO "Webserver and -services information: $myWEBFILE"
 fi

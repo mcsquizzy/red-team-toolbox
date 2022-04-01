@@ -40,6 +40,13 @@ function fuNmapUDPScanIPRANGE {
 }
 
 # neak through certain non-stateful firewalls and packet filtering routers
+function fuNmapExoticScan {
+  if grep -q -w filtered $myPORTFILE; then
+    fuINFO "Target might be behind a firewall, trying Exotic Scan Flags"
+    fuNmapFINScan $*
+  fi
+}
+
 # FIN scan (-sF), Sets just the TCP FIN bit.
 # open|filtered = No response received, port might be open
 function fuNmapFINScan {
@@ -56,27 +63,27 @@ function fuNmapNULLScan {
 
 # Print scan result to usable list
 function fuPrepareTargetIP {
-  fuMESSAGE "write ip list of result to targetIP.txt ..."
+  fuINFO "write ip list of result to targetIP.txt ..."
   cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat > targetIP.txt && rm ip-grepable.txt
-  fuMESSAGE "found $(cat targetIP.txt | wc -l) IP addresses with status \"Up\""
+  fuINFO "found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
 function fuPrepareTargetIPAppend {
-  fuMESSAGE "write ip list of result to targetIP.txt ..."
+  fuINFO "write ip list of result to targetIP.txt ..."
   cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat >> targetIP.txt && rm ip-grepable.txt
-  fuMESSAGE "found $(cat targetIP.txt | wc -l) IP addresses with status \"Up\""
+  fuINFO "found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
 function fuPrepareTargetPort {
-  fuMESSAGE "prepare scan result ..."
+  fuINFO "prepare scan result ..."
   cat $1 | awk '/ open / {print $1}' | awk -F\/ '{print $1}' | cat > targetPort.txt
-  fuMESSAGE "found $(cat targetPort.txt | wc -l) open ports"
+  fuINFO "found $(cat targetPort.txt | wc -l) open port(s)"
 }
 
 function fuPrepareTargetPortAppend {
-  fuMESSAGE "prepare scan result ..."
+  fuINFO "prepare scan result ..."
   cat $1 | awk '/ open / {print $1}' | awk -F\/ '{print $1}' | cat >> targetPort.txt
-  fuMESSAGE "found $(cat targetPort.txt | wc -l) open ports"
+  fuINFO "found $(cat targetPort.txt | wc -l) open port(s)"
 }
 
 
@@ -197,67 +204,43 @@ fi
 if [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
   fuNmapSynScan $IP
   fuPrepareTargetPort $myPORTFILE
-  if grep -q -w filtered $myPORTFILE; then
-    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
-    fuNmapFINScan $IP
-  fi
+  fuNmapExoticScan $IP
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
   fuNmapSynScan $IP -p- -T5
   fuPrepareTargetPort $myPORTFILE
-  if grep -q -w filtered $myPORTFILE; then
-    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
-    fuNmapFINScan $IP -p- -T5
-  fi
+  fuNmapExoticScan $IP -p- -T5
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" != "" ]; then
   fuNmapSynScan $IP -p$TCPPORT
   fuPrepareTargetPort $myPORTFILE
-  if grep -q -w filtered $myPORTFILE; then
-    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
-    fuNmapFINScan $IP -p$TCPPORT
-  fi
+  fuNmapExoticScan $IP -p$TCPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
   fuNmapSynScan $IP -p$PORTRANGE
   fuPrepareTargetPort $myPORTFILE
-  if grep -q -w filtered $myPORTFILE; then
-    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
-    fuNmapFINScan $IP -p$PORTRANGE
-  fi
+  fuNmapExoticScan $IP -p$PORTRANGE
 
 # Syn Scan IP range
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
   fuNmapSynScanIPRANGE $IPRANGE
   fuPrepareTargetIP
-  if grep -q -w filtered $myPORTFILE; then
-    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
-    fuNmapFINScan $IPRANGE
-  fi
+  fuNmapExoticScan $IPRANGE
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
   fuNmapSynScanIPRANGE $IPRANGE -p- -T5
   fuPrepareTargetIP
-  if grep -q -w filtered $myPORTFILE; then
-    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
-    fuNmapFINScan $IPRANGE -p- -T5
-  fi
+  fuNmapExoticScan $IPRANGE -p- -T5
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" != "" ]; then
   fuNmapSynScanIPRANGE $IPRANGE -p$TCPPORT
   fuPrepareTargetIP
-  if grep -q -w filtered $myPORTFILE; then
-    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
-    fuNmapFINScan $IPRANGE -p$TCPPORT
-  fi
+  fuNmapExoticScan $IPRANGE -p$TCPPORT
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
   fuNmapSynScanIPRANGE $IPRANGE -p$PORTRANGE
   fuPrepareTargetIP
-  if grep -q -w filtered $myPORTFILE; then
-    fuMESSAGE "Target might be behind a firewall, trying Exotic Scan Flags"
-    fuNmapFINScan $IPRANGE -p$PORTRANGE
-  fi
+  fuNmapExoticScan $IPRANGE -p$PORTRANGE
 
 # Syn Scan Domain
 #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
@@ -281,30 +264,31 @@ fi
 
 # UDP scan
 # nmap
-if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
-  fuNmapUDPScan $IP -p$UDPPORT
-  fuPrepareTargetPort $myUPORTFILE
+if [ "$UDP" == true ]; then
+  if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
+    fuNmapUDPScan $IP -p$UDPPORT
+    fuPrepareTargetPort $myUPORTFILE
 
-elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
-  fuNmapUDPScan $IP
-  fuPrepareTargetPortAppend $myUPORTFILE
+  elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
+    fuNmapUDPScan $IP
+    fuPrepareTargetPortAppend $myUPORTFILE
 
-elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapUDPScan $IP -p$PORTRANGE
-  fuPrepareTargetPortAppend $myUPORTFILE
+  elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+    fuNmapUDPScan $IP -p$PORTRANGE
+    fuPrepareTargetPortAppend $myUPORTFILE
 
-elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$UDPPORT" != "" ]; then
-  fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
-  fuPrepareTargetIPAppend
+  elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$UDPPORT" != "" ]; then
+    fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
+    fuPrepareTargetIPAppend
 
-#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
-#  fuNmapUDPScan $DOMAIN -p$UDPPORT
-#  fuPrepareTargetPort $myUPORTFILE
+  #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
+  #  fuNmapUDPScan $DOMAIN -p$UDPPORT
+  #  fuPrepareTargetPort $myUPORTFILE
 
-#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-#  fuNmapUDPScan $DOMAIN -p$PORTRANGE
-#  fuPrepareTargetPortAppend $myUPORTFILE
-
+  #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+  #  fuNmapUDPScan $DOMAIN -p$PORTRANGE
+  #  fuPrepareTargetPortAppend $myUPORTFILE
+  fi
 fi
 
 
@@ -314,20 +298,23 @@ fi
 
 fuTITLE "Findings in following files:"
 if [ -s $myDNSFILE ]; then
-  fuMESSAGE "DNS information: $myDNSFILE"
+  fuINFO "DNS information: $myDNSFILE"
 fi
 if [ -s $myNETADDRFILE ]; then
-  fuMESSAGE "Network address information: $myNETADDRFILE"
+  fuINFO "Network address information: $myNETADDRFILE"
 fi
 if [ -s "$mySECAPPLFILE" ]; then
-  fuMESSAGE "Security Appliances information: $mySECAPPLFILE"
+  fuINFO "Security Appliances information: $mySECAPPLFILE"
 fi
 if [ -s "$myPORTFILE" ]; then
-  fuMESSAGE "Port information: $myPORTFILE"
+  fuINFO "Port information: $myPORTFILE"
 fi
 if [ -s "targetPort.txt" ]; then
-  fuMESSAGE "List of all open ports: targetPort.txt"
+  fuINFO "List of all open ports: targetPort.txt"
 fi
 if [ -s "targetIP.txt" ]; then
-  fuMESSAGE "List of all ip addresses with open ports: targetIP.txt"
+  fuINFO "List of all ip addresses with open ports: targetIP.txt"
+fi
+if [ ! -s $myDNSFILE ] && [ ! -s $myNETADDRFILE ] && [ ! -s "$mySECAPPLFILE" ] && [ ! -s "$myPORTFILE" ]; then
+  fuINFO "No network information found."
 fi

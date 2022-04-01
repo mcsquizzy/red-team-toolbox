@@ -32,14 +32,14 @@ NORMAL=$(tput sgr0)
 # Functions #
 #############
 
-# Create banners
+# Print banner
 function fuBANNER {
   echo
   toilet -tf standard "$1" -F metal
   echo
 }
 
-# Create output title
+# Print output title
 function fuTITLE {
   echo
   echo -e "${BBLUE}═════════════════════════════════════════════════════════════════════"
@@ -47,15 +47,20 @@ function fuTITLE {
   echo -e "═════════════════════════════════════════════════════════════════════${NC}"
 }
 
-# Create output messages
-function fuMESSAGE {
+# Print info line
+function fuINFO {
   echo
   echo -e "${BBLUE}═══${BGREEN} $1 ${NC}"
 }
 
+# Print message line
+function fuMESSAGE {
+  echo -e "${BBLUE}---${NC} $1 ${NC}"
+}
+
 # Check for root permissions
 function fuGOT_ROOT {
-fuMESSAGE "Checking for root"
+fuINFO "Checking for root"
 if [ "$(whoami)" != "root" ]; then
   echo "[ NOT OK ]"
   echo "### Please run as root"
@@ -68,9 +73,9 @@ fi
 
 # Install dependencies
 function fuGET_DEPS {
-  fuMESSAGE "Upgrading packages"
+  fuINFO "Upgrading packages"
   apt -y update
-  fuMESSAGE "Installing dependencies"
+  fuINFO "Installing dependencies"
   apt -y install $DEPENDENCIES
 }
 
@@ -155,13 +160,17 @@ elif ! [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
   exit
 fi
 
+#####################
+# Checking for root #
+#####################
+
+fuGOT_ROOT
+
 ################################
 # Installation of Dependencies #
 ################################
 
-fuGOT_ROOT
 fuGET_DEPS
-
 
 ###############################
 # Gather Identity Information #
@@ -170,7 +179,6 @@ fuGET_DEPS
 if [ "$IDENTITY" == true ]; then
   fuBANNER "Gather Identity Information ..."
   source ./identity-information.sh
-  fuMESSAGE "Finish message todo ..."
 fi
 
 ##############################
@@ -198,4 +206,31 @@ fi
 if [ "$VULN" == true ]; then
   fuBANNER "Gather Vulnerability Information ..."
   source ./vulnerability-scanning.sh
+fi
+
+###############
+# Next Steps  #
+###############
+
+# Checking config file
+if [ "$IDENTITY" != true ] && [ "$NETWORK" != true ] && [ "$HOST" != true ] && [ "$VULN" != true ]; then
+  fuINFO "No main variable in $myCONF_FILE set to true. No information is gathered"
+  fuINFO "Specify your configuration in $myCONF_FILE and run script again."
+
+else
+  fuBANNER "Next steps to do ..."
+
+  fuMESSAGE " search for possible vulnerabilities in output/ directory "
+
+  fuMESSAGE "Try \"searchsploit\" to search for an exploit by keywords"
+  fuMESSAGE "Example: Keyword openssh: \"$ searchsploit openssh -www\""
+  fuMESSAGE "Try \"metasploit (msfconsole)\" to search for an exploit by a given CVE Number or EDB-ID"
+  fuMESSAGE "Example: CVE: 2010-2075: \"$ msfconsole -x \"search cve:2010-2075; exit;\" -q"
+  #fuMESSAGE "Search a CVE number and set it in the exploitation.conf file. The script will search for exploits to the given CVE"
+
+
+  if [ -s "$myVULNFILE" ]; then
+    fuMESSAGE "Search a vulnerability found in $myVULNFILE."
+  fi
+
 fi

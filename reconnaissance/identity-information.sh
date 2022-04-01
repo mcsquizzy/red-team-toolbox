@@ -98,3 +98,11 @@ fi
 
 #theharvester
 # check if needed
+
+
+#####################
+# Summarize results #
+#####################
+
+fuTITLE "Findings in following files:"
+echo "TODO"
