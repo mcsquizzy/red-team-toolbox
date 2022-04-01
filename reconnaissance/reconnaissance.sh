@@ -220,7 +220,7 @@ if [ "$IDENTITY" != true ] && [ "$NETWORK" != true ] && [ "$HOST" != true ] && [
 else
   fuBANNER "Next steps to do ..."
 
-  fuMESSAGE " search for possible vulnerabilities in output/ directory "
+  fuMESSAGE "Search for possible vulnerabilities in directory \"output/\""
 
   fuMESSAGE "Try \"searchsploit\" to search for an exploit by keywords"
   fuMESSAGE "Example: Keyword openssh: \"$ searchsploit openssh -www\""

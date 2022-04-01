@@ -1,40 +1,45 @@
 # reconnaissance configuration file
 
-# Gather Identity Information?
+# Gather which information?
 IDENTITY=false
-# Gather Network Information?
-NETWORK=true
-# Gather Host Information?
-HOST=true
-# Gather Vulnerability Information?
-VULN=true
+NETWORK=false
+HOST=false
+VULN=false
 
 #####################################
 # Variables for Identity Informtion #
 #####################################
 # USERNAME=[alice, alice bob eve]
-USERNAME=""
 # NAME=[Max Muster]
-NAME=""
 # DOMAIN=[scanme.nmap.org, http://scanme.nmap.org/]
-DOMAIN=""
 # EMAIL=[max.muster@gmail.com]
+USERNAME=""
+NAME=""
+DOMAIN=""
 EMAIL=""
 
 #############################################
 # Variables for Network and Host Informtion #
 #############################################
 # IP=[192.168.0.12]
-IP=""
 # IPRANGE=[192.168.0.0/8, 192.168.0.0/16, 192.168.0.0/24, ...]
-IPRANGE=""
-# NETDEVICE=[eth0]
-NETDEVICE=""
-# TCPPORT=[80, 80,443]
-TCPPORT=""
-# UDPPORT=[22, 22,53]
-UDPPORT=""
-# PORTRANGE=[1-100, 20-1000]
-PORTRANGE=""
+# UDP=[true, false]
 # ALLPORTS=[true, false]
+# TCPPORT=[80, 80,443]
+# UDPPORT=[22, 22,53]
+# PORTRANGE=[1-100, 20-1000]
+IP=""
+IPRANGE=""
+UDP=false
 ALLPORTS=false
+TCPPORT=""
+UDPPORT=""
+PORTRANGE=""
+
+# EVASION AND SPOOFING
+# NETDEVICE=[eth0]
+# Source IP Manipulation
+# Source Port Manipulation
+NETDEVICE=""
+SOURCEIP=""
+SOURCEPORT=""
