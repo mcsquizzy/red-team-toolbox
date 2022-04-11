@@ -22,7 +22,8 @@ fuGET_DEPS
 # Create output directory #
 ###########################
 
-mkdir output && echo "directory \"output/\" has been created"
+fuINFO "creating \"output/\" directory"
+mkdir output && echo "[ OK ]"
 
 ##########################
 # User interaction phase #

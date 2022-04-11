@@ -42,9 +42,9 @@ function fuBANNER {
 # Print output title
 function fuTITLE {
   echo
-  echo -e "${BBLUE}═════════════════════════════════════════════════════════════════════"
+  echo -e "${BBLUE}════════════════════════════════════════════════════════════════════════"
   echo -e "${BGREEN} $1 ${BBLUE}"
-  echo -e "═════════════════════════════════════════════════════════════════════${NC}"
+  echo -e "════════════════════════════════════════════════════════════════════════${NC}"
 }
 
 # Print info line
@@ -216,15 +216,25 @@ fi
 if [ "$IDENTITY" != true ] && [ "$NETWORK" != true ] && [ "$HOST" != true ] && [ "$VULN" != true ]; then
   fuINFO "No main variable in $myCONF_FILE set to true. No information is gathered"
   fuINFO "Specify your configuration in $myCONF_FILE and run script again."
-
+  echo
 else
   fuBANNER "Next steps to do ..."
+
+  if [ "$IP" != true ]; then
+    fuINFO "No specific IP set. Try set a specific ip address to gather more detailed information."
+  fi
+
+  if [ "$VULN" != true ]; then
+    fuINFO "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
+    echo
+  fi
 
   fuMESSAGE "Search for possible vulnerabilities in directory \"output/\""
 
   fuMESSAGE "Try \"searchsploit\" to search for an exploit by keywords"
-  fuMESSAGE "Example: Keyword openssh: \"$ searchsploit openssh -www\""
+  fuMESSAGE "Example: Keyword \"openssh\": \"$ searchsploit openssh -www\""
   fuMESSAGE "Try \"metasploit (msfconsole)\" to search for an exploit by a given CVE Number or EDB-ID"
   fuMESSAGE "Example: CVE: 2010-2075: \"$ msfconsole -x \"search cve:2010-2075; exit;\" -q"
   #fuMESSAGE "Search a CVE number and set it in the exploitation.conf file. The script will search for exploits to the given CVE"
+  echo
 fi

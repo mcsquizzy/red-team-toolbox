@@ -26,7 +26,7 @@ function fuNmapSynScan {
 
 function fuNmapSynScanIPRANGE {
   fuTITLE "TCP SYN (Half-open) scan of $* ... (might take some time)"
-  nmap -sS -Pn -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
+  nmap -sS -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
 }
 
 function fuNmapUDPScan {
@@ -35,8 +35,8 @@ function fuNmapUDPScan {
 }
 
 function fuNmapUDPScanIPRANGE {
-  fuTITLE "UDP scan of $* ..."
-  nmap -sU -Pn -sV -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $SPOOFINGPARAMETERS $* --host-timeout 120s
+  fuTITLE "UDP scan of $* ... (might take some time)"
+  nmap -sU -sV -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $SPOOFINGPARAMETERS $* --host-timeout 120s
 }
 
 # neak through certain non-stateful firewalls and packet filtering routers
@@ -63,27 +63,27 @@ function fuNmapNULLScan {
 
 # Print scan result to usable list
 function fuPrepareTargetIP {
-  fuINFO "write ip list of result to targetIP.txt ..."
-  cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat > targetIP.txt && rm ip-grepable.txt
-  fuINFO "found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
+  fuINFO "Write ip list of result to targetIP.txt ..."
+  cat ip-grepable.txt | awk '/open/ {print $2$3}' | cat > targetIP.txt #&& rm ip-grepable.txt
+  fuINFO "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
 function fuPrepareTargetIPAppend {
-  fuINFO "write ip list of result to targetIP.txt ..."
-  cat ip-grepable.txt | awk '/Up/ {print $2$3}' | cat >> targetIP.txt && rm ip-grepable.txt
-  fuINFO "found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
+  fuINFO "Write ip list of result to targetIP.txt ..."
+  cat ip-grepable.txt | awk '/open/ {print $2$3}' | cat >> targetIP.txt #&& rm ip-grepable.txt
+  fuINFO "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
 function fuPrepareTargetPort {
-  fuINFO "prepare scan result ..."
+  fuINFO "Prepare scan result ..."
   cat $1 | awk '/ open / {print $1}' | awk -F\/ '{print $1}' | cat > targetPort.txt
-  fuINFO "found $(cat targetPort.txt | wc -l) open port(s)"
+  fuINFO "Found $(cat targetPort.txt | wc -l) open port(s)"
 }
 
 function fuPrepareTargetPortAppend {
-  fuINFO "prepare scan result ..."
+  fuINFO "Prepare scan result ..."
   cat $1 | awk '/ open / {print $1}' | awk -F\/ '{print $1}' | cat >> targetPort.txt
-  fuINFO "found $(cat targetPort.txt | wc -l) open port(s)"
+  fuINFO "Found $(cat targetPort.txt | wc -l) open port(s)"
 }
 
 
@@ -97,7 +97,8 @@ fuGET_DEPS
 # Create output directory #
 ###########################
 
-mkdir output && echo "directory \"output/\" has been created"
+fuINFO "creating \"output/\" directory"
+mkdir output && echo "[ OK ]"
 
 ###########################
 # Domain / DNS Properties #
@@ -318,3 +319,4 @@ fi
 if [ ! -s $myDNSFILE ] && [ ! -s $myNETADDRFILE ] && [ ! -s "$mySECAPPLFILE" ] && [ ! -s "$myPORTFILE" ]; then
   fuINFO "No network information found."
 fi
+echo
