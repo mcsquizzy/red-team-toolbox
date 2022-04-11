@@ -1,3 +1,4 @@
 *.txt
 *.conf
+*.restore
 test.sh
