@@ -94,6 +94,8 @@ function fuNmapSpoofingParameters {
     echo -S$SOURCEIP
   elif [ "$NETDEVICE" == "" ] && [ "$SOURCEIP" == "" ] && [ "$SOURCEPORT" != "" ]; then
     echo -g$SOURCEPORT
+  else
+    echo
   fi
 }
 SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
@@ -178,7 +180,7 @@ fuGET_DEPS
 
 if [ "$IDENTITY" == true ]; then
   fuBANNER "Gather Identity Information ..."
-  source ./identity-information.sh
+  source ./parts/identity-information.sh
 fi
 
 ##############################
@@ -187,7 +189,7 @@ fi
 
 if [ "$NETWORK" == true ]; then
   fuBANNER "Gather Network Information ..."
-  source ./network-scanning.sh
+  source ./parts/network-scanning.sh
 fi
 
 ###########################
@@ -196,7 +198,7 @@ fi
 
 if [ "$HOST" == true ]; then
   fuBANNER "Gather Host Information ..."
-  source ./host-scanning.sh
+  source ./parts/host-scanning.sh
 fi
 
 ####################################
@@ -205,7 +207,7 @@ fi
 
 if [ "$VULN" == true ]; then
   fuBANNER "Gather Vulnerability Information ..."
-  source ./vulnerability-scanning.sh
+  source ./parts/vulnerability-scanning.sh
 fi
 
 ##############
