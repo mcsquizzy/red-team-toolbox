@@ -6,3 +6,6 @@ Definition todo
 
 - Kali Linux
 
+## Composition
+
+Setup of all components ...
