@@ -217,6 +217,7 @@ if [ "$IDENTITY" != true ] && [ "$NETWORK" != true ] && [ "$HOST" != true ] && [
   fuINFO "No main variable in $myCONF_FILE set to true. No information is gathered"
   fuINFO "Specify your configuration in $myCONF_FILE and run script again."
   echo
+
 else
   fuBANNER "Next steps to do ..."
 
@@ -235,9 +236,12 @@ else
 
   fuMESSAGE "Try \"searchsploit\" to search for an exploit by keywords"
   fuMESSAGE "Example: \"searchsploit openssh -www\" (keyword: \"openssh\")"
+  
   fuMESSAGE "Try \"metasploit (msfconsole)\" to search for an exploit by a given CVE Number or EDB-ID or by keywords"
   fuMESSAGE "Example: \"msfconsole -x \"search cve:2010-2075; exit;\" -q"
   fuMESSAGE "Example: \"msfconsole -x \"search platform:windows port:135 type:exploit; exit;\" -q"
+
+  fuMESSAGE "Try \"shodan exploit search\": https://exploits.shodan.io"
   #fuMESSAGE "Search a CVE number and set it in the exploitation.conf file. The script will search for exploits to the given CVE"
   echo
 fi
