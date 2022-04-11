@@ -208,9 +208,9 @@ if [ "$VULN" == true ]; then
   source ./vulnerability-scanning.sh
 fi
 
-###############
-# Next Steps  #
-###############
+##############
+# Next Steps #
+##############
 
 # Checking config file
 if [ "$IDENTITY" != true ] && [ "$NETWORK" != true ] && [ "$HOST" != true ] && [ "$VULN" != true ]; then
@@ -220,7 +220,7 @@ if [ "$IDENTITY" != true ] && [ "$NETWORK" != true ] && [ "$HOST" != true ] && [
 else
   fuBANNER "Next steps to do ..."
 
-  if [ "$IP" != true ]; then
+  if [ "$IP" == "" ]; then
     fuINFO "No specific IP set. Try set a specific ip address to gather more detailed information."
   fi
 
@@ -231,10 +231,13 @@ else
 
   fuMESSAGE "Search for possible vulnerabilities in directory \"output/\""
 
+  fuINFO "Search Exploits:"
+
   fuMESSAGE "Try \"searchsploit\" to search for an exploit by keywords"
-  fuMESSAGE "Example: Keyword \"openssh\": \"$ searchsploit openssh -www\""
-  fuMESSAGE "Try \"metasploit (msfconsole)\" to search for an exploit by a given CVE Number or EDB-ID"
-  fuMESSAGE "Example: CVE: 2010-2075: \"$ msfconsole -x \"search cve:2010-2075; exit;\" -q"
+  fuMESSAGE "Example: \"searchsploit openssh -www\" (keyword: \"openssh\")"
+  fuMESSAGE "Try \"metasploit (msfconsole)\" to search for an exploit by a given CVE Number or EDB-ID or by keywords"
+  fuMESSAGE "Example: \"msfconsole -x \"search cve:2010-2075; exit;\" -q"
+  fuMESSAGE "Example: \"msfconsole -x \"search platform:windows port:135 type:exploit; exit;\" -q"
   #fuMESSAGE "Search a CVE number and set it in the exploitation.conf file. The script will search for exploits to the given CVE"
   echo
 fi
