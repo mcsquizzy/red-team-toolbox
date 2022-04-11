@@ -49,15 +49,16 @@ function fuNmapExoticScan {
 
 # FIN scan (-sF), Sets just the TCP FIN bit.
 # open|filtered = No response received, port might be open
+# IDS and IPS Evasion (https://book.hacktricks.xyz/pentesting/pentesting-network/ids-evasion)
 function fuNmapFINScan {
   fuTITLE "FIN scan of $* ..."
-  nmap -sF -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $*
+  nmap -sF -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $* --data-length 25 -f
 }
 
 # Null scan (-sN), Does not set any bits (TCP flag header is 0)
 function fuNmapNULLScan {
   fuTITLE "NULL scan of $* ..."
-  nmap -sN -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $*
+  nmap -sN -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $* --data-length 25 -f
 }
 
 
