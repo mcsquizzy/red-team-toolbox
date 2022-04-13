@@ -116,24 +116,12 @@ for i in "$@"
         myCONF_FILE="${i#*=}"
         shift
       ;;
-      --type=manual)
-        myEXEC_TYPE="${i#*=}"
-        shift
-      ;;
-      --type=auto)
-        myEXEC_TYPE="${i#*=}"
-        shift
-      ;;
       --help)
         echo "Usage: $0 <options>"
         echo
         echo "--conf=<Path to \"reconnaissance.conf\">"
-	      echo "  Use this if you want to automatically execute the reconnaissance phase (--type=auto implied)."
+	      echo "  Use this to execute the reconnaissance phase."
         echo "  A configuration example is available in \"reconnaissance/reconnaissance.conf.dist\"."
-        echo
-        echo "--type=<[manual, auto]>"
-	      echo "  manual, use this if you want to manually set the variables during the execution."
-        echo "  auto, implied if a configuration file is passed as an argument for automatic execution."
         echo
 	    exit
       ;;
@@ -145,12 +133,11 @@ for i in "$@"
 
 # Validate command line arguments and load config
 # If a valid config file exists, set deployment type to "auto" and load the configuration
-if [ "$myEXEC_TYPE" == "auto" ] && [ "$myCONF_FILE" == "" ]; then
+if [ "$myCONF_FILE" == "" ]; then
   echo "Aborting. No configuration file given. Additionally try --conf"
   exit
 fi
 if [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
-  myEXEC_TYPE="auto"
   if [ "$(head -n 1 $myCONF_FILE | grep -c "# reconnaissance")" == "1" ]; then
     source "$myCONF_FILE"
   else
@@ -173,6 +160,31 @@ fuGOT_ROOT
 ################################
 
 fuGET_DEPS
+
+############################
+# Check configuration file #
+############################
+
+if [ "$IDENTITY" == true ] || [ "$NETWORK" == true ] || [ "$HOST" == true ] || [ "$VULN" == true ]; then
+  fuTITLE "Following parts will be executed:"
+  if [ "$IDENTITY" == true ]; then
+    fuMESSAGE "Identity Scanning"
+  fi
+  if [ "$NETWORK" == true ]; then
+    fuMESSAGE "Network Scanning"
+  fi
+  if [ "$HOST" == true ]; then
+    fuMESSAGE "Host Scanning"
+  fi
+  if [ "$VULN" == true ]; then
+    fuMESSAGE "Vulnerability Scanning"
+  fi
+else
+  fuTITLE "No main variable in $myCONF_FILE set to true. Nothing to do."
+  fuINFO "Specify your configuration in $myCONF_FILE and run script again."
+  echo
+  exit
+fi
 
 ###############################
 # Gather Identity Information #
@@ -214,14 +226,9 @@ fi
 # Next Steps #
 ##############
 
-# Checking config file
-if [ "$IDENTITY" != true ] && [ "$NETWORK" != true ] && [ "$HOST" != true ] && [ "$VULN" != true ]; then
-  fuINFO "No main variable in $myCONF_FILE set to true. No information is gathered"
-  fuINFO "Specify your configuration in $myCONF_FILE and run script again."
-  echo
+if [ "$IDENTITY" == true ] || [ "$NETWORK" == true ] || [ "$HOST" == true ] || [ "$VULN" == true ]; then
 
-else
-  fuBANNER "Next steps to do ..."
+  fuBANNER "Next Steps To Do ..."
 
   if [ "$IP" == "" ]; then
     fuINFO "No specific IP set. Try set a specific ip address to gather more detailed information."
@@ -232,18 +239,8 @@ else
     echo
   fi
 
-  fuMESSAGE "Search for possible vulnerabilities in directory \"output/\""
+  fuINFO "Search for possible vulnerabilities in directory \"output/\""
 
-  fuINFO "Search Exploits:"
-
-  fuMESSAGE "Try \"searchsploit\" to search for an exploit by keywords"
-  fuMESSAGE "Example: \"searchsploit openssh -www\" (keyword: \"openssh\")"
-  
-  fuMESSAGE "Try \"metasploit (msfconsole)\" to search for an exploit by a given CVE Number or EDB-ID or by keywords"
-  fuMESSAGE "Example: \"msfconsole -x \"search cve:2010-2075; exit;\" -q"
-  fuMESSAGE "Example: \"msfconsole -x \"search platform:windows port:135 type:exploit; exit;\" -q"
-
-  fuMESSAGE "Try \"shodan exploit search\": https://exploits.shodan.io"
-  #fuMESSAGE "Search a CVE number and set it in the exploitation.conf file. The script will search for exploits to the given CVE"
+  fuINFO "Check the ../exploitation/README.md file on how to find exploits"  
   echo
 fi

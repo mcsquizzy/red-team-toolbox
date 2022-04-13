@@ -31,12 +31,12 @@ function fuNmapSynScanIPRANGE {
 
 function fuNmapUDPScan {
   fuTITLE "UDP Scan of $* ..."
-  nmap -sU -Pn -sV -T4 -oN $myUPORTFILE $SPOOFINGPARAMETERS $* --host-timeout 120s
+  nmap -sU -Pn -sV --version-light -T4 -oN $myUPORTFILE $SPOOFINGPARAMETERS $* --host-timeout 120s
 }
 
 function fuNmapUDPScanIPRANGE {
   fuTITLE "UDP scan of $* ... (might take some time)"
-  nmap -sU -sV -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $SPOOFINGPARAMETERS $* --host-timeout 120s
+  nmap -sU -sV --version-light -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $SPOOFINGPARAMETERS $* --host-timeout 120s
 }
 
 # neak through certain non-stateful firewalls and packet filtering routers
@@ -98,8 +98,10 @@ fuGET_DEPS
 # Create output directory #
 ###########################
 
-fuINFO "creating \"output/\" directory"
-mkdir output && echo "[ OK ]"
+if [ ! -d "output/" ]; then
+  fuINFO "creating \"output/\" directory"
+  mkdir output && echo "[ OK ]"
+fi
 
 ###########################
 # Domain / DNS Properties #
