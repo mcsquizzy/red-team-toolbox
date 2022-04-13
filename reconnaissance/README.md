@@ -24,4 +24,6 @@ cp ./reconnaissance.conf.dist reconnaissance.conf
 
 Results stored to output/ directory
 
+## Spoofing
 
+All nmap scans can be provided with obfuscation/spoofing technique. 

@@ -52,6 +52,12 @@ function fuINFO {
   echo -e "${BBLUE}═══${BGREEN} $1 ${NC}"
 }
 
+# Print error line
+function fuERROR {
+  echo
+  echo -e "${BBLUE}═══${BRED} $1 ${NC}"
+}
+
 # Print message line
 function fuMESSAGE {
   echo -e "${BBLUE}---${NC} $1 ${NC}"
@@ -61,7 +67,7 @@ function fuMESSAGE {
 function fuGOT_ROOT {
 fuINFO "Checking for root"
 if [ "$(whoami)" != "root" ]; then
-  echo "[ NOT OK ]"
+  fuERROR "Aborting. Not root."
   echo "### Please run as root"
   echo "### Example: sudo $0"
   exit
@@ -99,13 +105,13 @@ function fuNmapSpoofingParameters {
 }
 SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 
-
 ####################################
 # Check for command line arguments #
 ####################################
 
 if [ "$1" == "" ]; then
-  echo "forgot the command line arguments. Try --help"
+  fuERROR "Aborting. Forgot the command line arguments. Try --help."
+  echo
   exit
 fi
 for i in "$@"
@@ -133,18 +139,21 @@ for i in "$@"
 # Validate command line arguments and load config
 # If a valid config file exists, set deployment type to "auto" and load the configuration
 if [ "$myCONF_FILE" == "" ]; then
-  echo "Aborting. No configuration file given. Additionally try --conf"
+  fuERROR "Aborting. No configuration file given. Additionally try --conf."
+  echo
   exit
 fi
 if [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
   if [ "$(head -n 1 $myCONF_FILE | grep -c "# reconnaissance")" == "1" ]; then
     source "$myCONF_FILE"
   else
-	  echo "Aborting. Config file \"$myCONF_FILE\" not a reconnaissance configuration file."
+	  fuERROR "Aborting. Config file \"$myCONF_FILE\" not a reconnaissance configuration file."
+    echo
     exit
 fi
 elif ! [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
-  echo "Aborting. Config file \"$myCONF_FILE\" not found."
+  fuERROR "Aborting. Config file \"$myCONF_FILE\" not found."
+  echo
   exit
 fi
 
@@ -160,9 +169,9 @@ fuGOT_ROOT
 
 fuGET_DEPS
 
-############################
-# Check configuration file #
-############################
+#########################################
+# Check variables in configuration file #
+#########################################
 
 if [ "$IDENTITY" == true ] || [ "$NETWORK" == true ] || [ "$HOST" == true ] || [ "$VULN" == true ]; then
   fuTITLE "Following parts will be executed:"
@@ -179,8 +188,43 @@ if [ "$IDENTITY" == true ] || [ "$NETWORK" == true ] || [ "$HOST" == true ] || [
     fuMESSAGE "Vulnerability Scanning"
   fi
 else
-  fuTITLE "No main variable in $myCONF_FILE set to true. Nothing to do."
+  fuERROR "Aborting. No main variable in \"$myCONF_FILE\" set to true. Nothing to do."
   fuINFO "Specify your configuration in $myCONF_FILE and run script again."
+  echo
+  exit
+fi
+
+######################
+# Validate variables #
+######################
+
+if [ "$IP" != "" ] && ! expr "${IP}" : '^\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)$' >/dev/null; then
+  fuERROR "Aborting. Invalid IP, check \"$myCONF_FILE\"."
+  echo
+  exit
+fi
+if [ "$IPRANGE" != "" ] && ! expr "${IPRANGE}" : '^\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}\)$' >/dev/null; then
+  fuERROR "Aborting. Invalid IP Range, check \"$myCONF_FILE\"."
+  echo
+  exit
+fi
+if [ "$TCPPORT" != "" ] && ! expr "${TCPPORT}" : '^\([0-9]\{1,5\}\)$' >/dev/null; then
+  fuERROR "Aborting. Invalid TCP Port, check \"$myCONF_FILE\"."
+  echo
+  exit
+fi
+if [ "$UDPPORT" != "" ] && ! expr "${UDPPORT}" : '^\([0-9]\{1,5\}\)$' >/dev/null; then
+  fuERROR "Aborting. Invalid UDP Port, check \"$myCONF_FILE\"."
+  echo
+  exit
+fi
+if [ "$PORTRANGE" != "" ] && ! expr "${PORTRANGE}" : '^\([0-9]\{1,5\}\-[0-9]\{1,5\}\)$' >/dev/null; then
+  fuERROR "Aborting. Invalid Port Range, check \"$myCONF_FILE\"."
+  echo
+  exit
+fi
+if [ "$DOMAIN" != "" ] && ! expr "${DOMAIN}" : '^\(\([[:alnum:]-]\{1,63\}\.\)*[[:alpha:]]\{2,6\}\)$' >/dev/null; then
+  fuERROR "Aborting. Invalid Domain / URL, check \"$myCONF_FILE\"."
   echo
   exit
 fi
@@ -235,7 +279,6 @@ if [ "$IDENTITY" == true ] || [ "$NETWORK" == true ] || [ "$HOST" == true ] || [
 
   if [ "$VULN" != true ]; then
     fuINFO "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
-    echo
   fi
 
   fuINFO "Search for possible vulnerabilities in directory \"output/\""
