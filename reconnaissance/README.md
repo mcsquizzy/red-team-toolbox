@@ -20,4 +20,8 @@ cp ./reconnaissance.conf.dist reconnaissance.conf
 ./reconnaissance.sh --conf=reconnaissance.conf
 ```
 
+## Results
+
+Results stored to output/ directory
+
 

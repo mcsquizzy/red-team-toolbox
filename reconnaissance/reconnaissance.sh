@@ -15,7 +15,6 @@ BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 LIGHTGRAY='\033[0;37m'
-
 # bold
 BRED='\033[1;31m'
 BGREEN='\033[1;32m'
