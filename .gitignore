@@ -1,4 +1,6 @@
 *.txt
 *.conf
 *.restore
+*.xml
+*.json
 test.sh
