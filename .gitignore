@@ -3,4 +3,4 @@
 *.restore
 *.xml
 *.json
-test.sh
+testing/
