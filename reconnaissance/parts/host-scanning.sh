@@ -153,11 +153,11 @@ done
 
 fuTITLE "Findings in following files:"
 if [ -s "$mySOFTWAREFILE" ]; then
-  fuINFO "Software and Version information: $mySOFTWAREFILE"
+  fuRESULT "Software and Version information: $mySOFTWAREFILE"
 fi
 if [ -s "$myDIRFILE" ]; then
-  fuINFO "Web Directory information: $myDIRFILE"
+  fuRESULT "Web Directory information: $myDIRFILE"
 fi
 if [ ! -s "$mySOFTWAREFILE" ] && [ ! -s "$myDIRFILE" ]; then 
-  fuINFO "No host information found."
+  fuERROR "No host information found."
 fi

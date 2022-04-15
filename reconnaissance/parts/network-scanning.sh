@@ -302,24 +302,24 @@ fi
 
 fuTITLE "Findings in following files:"
 if [ -s $myDNSFILE ]; then
-  fuINFO "DNS information: $myDNSFILE"
+  fuRESULT "DNS information: $myDNSFILE"
 fi
 if [ -s $myNETADDRFILE ]; then
-  fuINFO "Network address information: $myNETADDRFILE"
+  fuRESULT "Network address information: $myNETADDRFILE"
 fi
 if [ -s "$mySECAPPLFILE" ]; then
-  fuINFO "Security Appliances information: $mySECAPPLFILE"
+  fuRESULT "Security Appliances information: $mySECAPPLFILE"
 fi
 if [ -s "$myPORTFILE" ]; then
-  fuINFO "Port information: $myPORTFILE"
+  fuRESULT "Port information: $myPORTFILE"
 fi
 if [ -s "targetPort.txt" ]; then
-  fuINFO "List of all open ports: targetPort.txt"
+  fuRESULT "List of all open ports: targetPort.txt"
 fi
 if [ -s "targetIP.txt" ]; then
-  fuINFO "List of all ip addresses with open ports: targetIP.txt"
+  fuRESULT "List of all ip addresses with open ports: targetIP.txt"
 fi
 if [ ! -s $myDNSFILE ] && [ ! -s $myNETADDRFILE ] && [ ! -s "$mySECAPPLFILE" ] && [ ! -s "$myPORTFILE" ]; then
-  fuINFO "No network information found."
+  fuERROR "No network information found."
 fi
 echo

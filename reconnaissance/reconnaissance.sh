@@ -7,25 +7,20 @@
 
 DEPENDENCIES="toilet"
 
-# colors and text
+# colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-LIGHTGRAY='\033[0;37m'
+NC="\033[0m" # No Color
 # bold
 BRED='\033[1;31m'
 BGREEN='\033[1;32m'
 BYELLOW='\033[1;33m'
 BBLUE='\033[1;34m'
-BPURPLE='\033[1;35m'
-BCYAN='\033[1;36m'
-
-NC="\033[0m" # No Color
+# text
 BOLD=$(tput bold)
-NORMAL=$(tput sgr0)
+NORMAL='\033[0;39m'
 
 #############
 # Functions #
@@ -34,33 +29,39 @@ NORMAL=$(tput sgr0)
 # Print banner
 function fuBANNER {
   echo
-  toilet -tf standard "$1" -F metal
+  toilet -tf standard $1 -F metal
   echo
 }
 
 # Print output title
 function fuTITLE {
   echo
-  echo -e "${BBLUE}════════════════════════════════════════════════════════════════════════"
-  echo -e "${BGREEN} $1 ${BBLUE}"
-  echo -e "════════════════════════════════════════════════════════════════════════${NC}"
+  echo -e "$BBLUE════════════════════════════════════════════════════════════════════════"
+  echo -e "$BGREEN $1 $BBLUE"
+  echo -e "════════════════════════════════════════════════════════════════════════$NC"
 }
 
 # Print info line
 function fuINFO {
   echo
-  echo -e "${BBLUE}═══${BGREEN} $1 ${NC}"
+  echo -e "$BBLUE═══$BGREEN $1 $NC"
 }
 
 # Print error line
 function fuERROR {
   echo
-  echo -e "${BBLUE}═══${BRED} $1 ${NC}"
+  echo -e "$BBLUE═══$BRED $1 $NC"
+}
+
+# Print results line
+function fuRESULT {
+  echo
+  echo -e "$BBLUE═══$BYELLOW $1 $NC"
 }
 
 # Print message line
 function fuMESSAGE {
-  echo -e "${BBLUE}---${NC} $1 ${NC}"
+  echo -e "$BBLUE---$BLUE $1 $NC"
 }
 
 # Check for root permissions
@@ -104,6 +105,13 @@ function fuNmapSpoofingParameters {
   fi
 }
 SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
+
+
+fuBANNER "RECONNAISSANCE"
+echo
+echo -e "Disclaimer: $RED todo $NC"
+echo
+
 
 ####################################
 # Check for command line arguments #
@@ -274,15 +282,15 @@ if [ "$IDENTITY" == true ] || [ "$NETWORK" == true ] || [ "$HOST" == true ] || [
   fuBANNER "Next Steps To Do ..."
 
   if [ "$IP" == "" ]; then
-    fuINFO "No specific IP set. Try set a specific ip address to gather more detailed information."
+    fuMESSAGE "No specific IP set. Try set a specific ip address to gather more detailed information."
   fi
 
   if [ "$VULN" != true ]; then
-    fuINFO "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
+    fuMESSAGE "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
   fi
 
-  fuINFO "Search for possible vulnerabilities in directory \"output/\""
+  fuMESSAGE "Search for possible vulnerabilities in directory \"output/\""
 
-  fuINFO "Check the ../exploitation/README.md file on how to find exploits"  
+  fuMESSAGE "Check the ../exploitation/README.md file on how to find exploits"  
   echo
 fi
