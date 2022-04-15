@@ -27,3 +27,18 @@ Results stored to output/ directory
 ## Spoofing
 
 All nmap scans can be provided with obfuscation/spoofing technique. 
+
+## Tools
+
+Tools used:  
+- sherlock
+- spiderfoot
+- whois
+- dnsenum
+#- amass
+- fping
+- netdiscover
+- nmap
+- gobuster
+- smbmap
+- nikto
