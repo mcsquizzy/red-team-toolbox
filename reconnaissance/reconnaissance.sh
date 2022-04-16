@@ -22,16 +22,6 @@ BBLUE='\033[1;34m'
 BOLD=$(tput bold)
 NORMAL='\033[0;39m'
 
-##########
-# Banner #
-##########
-
-toilet -tf standard -F metal "RECONNAISSANCE"
-echo
-echo -e "Disclaimer: $RED todo $NC"
-echo
-sleep 1.0
-
 #############
 # Functions #
 #############
@@ -134,27 +124,26 @@ if [ "$1" == "" ]; then
   echo
   exit
 fi
-for i in "$@"
-  do
-    case $i in
-      --conf=*)
-        myCONF_FILE="${i#*=}"
-        shift
-      ;;
-      --help)
-        echo "Usage: $0 <options>"
-        echo
-        echo "--conf=<Path to \"reconnaissance.conf\">"
-	      echo "  Use this to execute the reconnaissance phase."
-        echo "  A configuration example is available in \"reconnaissance/reconnaissance.conf.dist\"."
-        echo
-	    exit
-      ;;
-      *)
-	    exit
-      ;;
-    esac
-  done
+for i in "$@" do
+  case $i in
+    --conf=*)
+      myCONF_FILE="${i#*=}"
+      shift
+    ;;
+    --help)
+      echo "Usage: $0 <options>"
+      echo
+      echo "--conf=<Path to \"reconnaissance.conf\">"
+      echo "  Use this to execute the reconnaissance phase."
+      echo "  A configuration example is available in \"reconnaissance/reconnaissance.conf.dist\"."
+      echo
+    exit
+    ;;
+    *)
+    exit
+    ;;
+  esac
+done
 
 # Validate command line arguments and load config
 # If a valid config file exists, set deployment type to "auto" and load the configuration
@@ -176,6 +165,16 @@ elif ! [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
   echo
   exit
 fi
+
+##########
+# Banner #
+##########
+
+fuBANNER "RECONNAISSANCE"
+echo
+echo -e "Disclaimer: $RED todo $NC"
+echo
+sleep 1.0
 
 #####################
 # Checking for root #

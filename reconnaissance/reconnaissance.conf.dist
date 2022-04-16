@@ -6,9 +6,9 @@ NETWORK=false
 HOST=false
 VULN=false
 
-#####################################
-# Variables for Identity Informtion #
-#####################################
+#######################
+# Identity Informtion #
+#######################
 # USERNAME=[alice, alice bob eve]
 # NAME=[Max Muster]
 # DOMAIN=[scanme.nmap.org, http://scanme.nmap.org/]
@@ -18,9 +18,9 @@ NAME=""
 DOMAIN=""
 EMAIL=""
 
-#############################################
-# Variables for Network and Host Informtion #
-#############################################
+######################
+# Network Informtion #
+######################
 # IP=[192.168.0.12]
 # IPRANGE=[192.168.0.0/8, 192.168.0.0/16, 192.168.0.0/24, ...]
 # UDP=[true, false]
@@ -36,7 +36,9 @@ TCPPORT=""
 UDPPORT=""
 PORTRANGE=""
 
-# EVASION AND SPOOFING
+########################
+# Spoofing and Evasion #
+########################
 # NETDEVICE=[eth0]
 # Source IP Manipulation
 # Source Port Manipulation
