@@ -92,7 +92,7 @@ function fuPrepareTargetPortAppend {
 # Installation of Dependencies #
 ################################
 
-fuGET_DEPS
+#fuGET_DEPS
 
 ###########################
 # Create output directory #
@@ -149,7 +149,6 @@ if [ "$IPRANGE" != "" ] && [ "$NETDEVICE" == "" ]; then
 elif [ "$IPRANGE" != "" ] && [ "$NETDEVICE" != "" ]; then
   fuTITLE "Discover network addresses using ARP requests ..."
   netdiscover -r$IPRANGE -i$NETDEVICE -P | tee $myNETADDRFILE
-
 fi
 
 # traceroute
@@ -177,7 +176,6 @@ elif [ "$IP" == "" ] && [ "$NETDEVICE" != "" ] && [ "$IPRANGE" != "" ]; then
 elif [ "$IP" == "" ] && [ "$NETDEVICE" == "" ] && [ "$IPRANGE" != "" ]; then
   fuTITLE "Check which ip addresses of range $IPRANGE are reachable ..."
   fping -asg $IPRANGE -q | tee -a $myNETADDRFILE
-
 fi
 
 
@@ -262,7 +260,6 @@ elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPP
 #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
 #  fuNmapSynScan $DOMAIN -p$PORTRANGE
 #  fuPrepareTargetPort $myPORTFILE
-
 fi
 
 

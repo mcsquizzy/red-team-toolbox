@@ -6,38 +6,55 @@
 ####################
 
 DEPENDENCIES="nmap gobuster smbmap"
+
 mySOFTWAREFILE="output/software-findings.txt"
 myDIRFILE="output/directory-findings.txt"
-SMBPORTS="445 139"
-WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
-NMAPSMBSCRIPTS="smb-enum-shares"
-#SMTPPORTS="25 465 587"
+myMYSQLFILE="output/mysql-findings.txt"
+mySMBFILE="output/smb-findings.txt"
+mySNMPFILE="output/snmp-findings.txt"
+mySMTPFILE="output/smtp-findings.txt"
+mySSHFILE="output/ssh-findings.txt"
 
+SMBPORTS="445 139"
+SNMPPORTS="161 162"
+SMTPPORTS="25 465 587"
+
+WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
+
+NMAPSMBSCRIPTS="smb-enum-shares"
+NMAPSMTPSCRIPTS="smtp-commands,smtp-enum-users"
+NMAPMYSQLSCRIPTS="mysql-databases,mysql-dump-hashes,mysql-empty-password,mysql-enum,mysql-info,mysql-query,mysql-users,mysql-vuln-cve2012-2122"
+NMAPSSHSCRIPTS="ssh-hostkey,ssh-auth-methods,ssh2-enum-algos"
 
 #############
 # Functions #
 #############
 
 function fuNmapSoftwareScan {
-  fuTITLE "SYN scan with OS and version detection of $1 and $2..."
+  fuTITLE "SYN scan with OS and version detection of $1 and $2 ..."
   nmap -A -Pn -oN $mySOFTWAREFILE $SPOOFINGPARAMETERS $*
 }
 
-function fuSambaShareEnumerate {
-  fuTITLE "Enumerate Samba Shares of $1 and port $2 ..."
-  smbmap -H $1 -P $2 -q | tee -a $mySOFTWAREFILE
+function fuGobusterScan {
+  fuTITLE "Directory/file enumeration on website $1 ..."
+  gobuster dir -u $1 -q -w $WORDLIST | tee -a $myDIRFILE
 }
 
-function fuNmapSMBScan {
-  fuTITLE "Nmap SMB Scan of $1 and $2 ..."
-  nmap -Pn -T4 -oN $mySOFTWAREFILE --append-output --script $NMAPSMBSCRIPTS $SPOOFINGPARAMETERS $*
+function fuNmapHttpEnumScan {
+  fuTITLE "Directory/file enumeration on webserver $1 $2 ..."
+  nmap --script http-enum -oN $myDIRFILE --append-output $SPOOFINGPARAMETERS $*
+}
+
+function fuNmapMYSQLScan {
+  fuTITLE "Nmap MySQL Scan of $1 and $2 ..."
+  nmap -sV --script $NMAPMYSQLSCRIPTS -oN $myMYSQLFILE $SPOOFINGPARAMETERS $*
 }
 
 ################################
 # Installation of Dependencies #
 ################################
 
-fuGET_DEPS
+#fuGET_DEPS
 
 ###########################
 # Create output directory #
@@ -70,82 +87,105 @@ elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
   fuNmapSoftwareScan $IP -p$PORTRANGE
-
 fi
-
 
 #########################
 # Directory Enumeration #
 #########################
 
 # Gobuster
-if [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
-  fuTITLE "Directory/file enumeration on website $DOMAIN ..."
-  gobuster dir -u https://$DOMAIN -q -w $WORDLIST | tee -a $myDIRFILE
+if [ "$IP" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
+  fuGobusterScan https://$IP
+elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
+  fuGobusterScan https://$DOMAIN
+fi
 
+if [ "$IP" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
+  fuGobusterScan $IP
 elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
-  fuTITLE "Directory/file enumeration on website $DOMAIN ..."
-  gobuster dir -u http://$DOMAIN -q -w $WORDLIST | tee -a $myDIRFILE
-
+  fuGobusterScan http://$DOMAIN
 fi
 
 # nmap
 if [ "$IP" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
-  fuTITLE "Directory/file enumeration on webserver $IP ..."
-  nmap $IP -p443 --script http-enum -oN $myDIRFILE --append-output
-  
-elif [ "$IP" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
-  fuTITLE "Directory/file enumeration on webserver $IP ..."
-  nmap $IP -p80 --script http-enum -oN $myDIRFILE --append-output
+  fuNmapHttpEnumScan $IP -p443
 
+elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
+  fuNmapHttpEnumScan $DOMAIN -p443
 fi
 
+if [ "$IP" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
+  fuNmapHttpEnumScan $IP -p80
+
+elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
+  fuNmapHttpEnumScan $DOMAIN -p443
+fi
+
+
+##################
+# MySQL Analysis #
+##################
+
+if [ "$IP" != "" ] && ([ "$TCPPORT" == "3306" ] || grep -q -w 3306 "targetPort.txt"); then
+  fuNmapMYSQLScan $IP -p3306
+
+elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "3306" ] || grep -q -w 3306 "targetPort.txt"); then
+  fuNmapMYSQLScan $DOMAIN -p3306
+fi
 
 ################
 # SMB Analysis #
 ################
 
-# test
-for i in $SMBPORTS;
-  do
-    if grep -q -w $i "targetPort.txt"; then
-      echo
-      echo "$i"
-      echo
-    fi
-done
-
 # smbmap
-for i in $SMBPORTS;
-  do
-    if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
-      fuSambaShareEnumerate $IP $i
-    fi
-done
-
 # nmap
-#for i in $SMBPORTS;
-#  do
-#    if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
-#      fuNmapSMBScan $IP -p$i
-#    fi
-#done
-
+for i in $SMBPORTS; do
+  if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
+    fuTITLE "Enumerate Samba Shares of $IP and port $i ..."
+    smbmap -H $IP -P $i -q | tee $mySMBFILE
+    #fuTITLE "Nmap SMB Scan of $IP and port $i ..."
+    #nmap -sV --script $NMAPSMBSCRIPTS -oN $mySMBFILE --append-output $SPOOFINGPARAMETERS $*
+  fi
+done
 
 #################
 # SMTP Analysis #
 #################
 
+for i in $SMTPPORTS; do
+  if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
+    fuTITLE "Nmap SMTP Scan of $IP and port $i ..."
+    nmap -sV --script $NMAPSMTPSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $mySMTPFILE
+  fi
+done
 
 #################
 # SNMP Analysis #
 #################
 
+# nmap
+for i in $SNMPPORTS; do
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
+    fuTITLE "Nmap SNMP Scan of $IP and port $i ..."
+    nmap -sV --script snmp-info $IP -p$i $SPOOFINGPARAMETERS -oN $mySNMPFILE
+  elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
+    fuTITLE "Nmap SNMP Scan of $DOMAIN and port $i ..."
+    nmap -sV --script snmp-info $DOMAIN -p$i $SPOOFINGPARAMETERS -oN $mySNMPFILE
+  fi
+done
 
 ################
-# SSL Analysis #
+# SSH Analysis #
 ################
 
+# nmap
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w 22 "targetPort.txt" ); then
+  fuTITLE "Nmap SHH Scan of $IP and port 22 ..."
+  nmap -sV --script $NMAPSSHSCRIPTS $IP -p22 $SPOOFINGPARAMETERS -oN $mySSHFILE
+elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w 22 "targetPort.txt" ); then
+  fuTITLE "Nmap SSH Scan of $DOMAIN and port 22 ..."
+  nmap -sV --script $NMAPSSHSCRIPTS $DOMAIN -p22 $SPOOFINGPARAMETERS -oN $mySSHFILE
+fi
 
 #####################
 # Summarize results #
@@ -158,6 +198,16 @@ fi
 if [ -s "$myDIRFILE" ]; then
   fuRESULT "Web Directory information: $myDIRFILE"
 fi
-if [ ! -s "$mySOFTWAREFILE" ] && [ ! -s "$myDIRFILE" ]; then 
-  fuERROR "No host information found."
+if [ -s "$myMYSQLFILE" ]; then
+  fuRESULT "MySQL information: $myMYSQLFILE"
 fi
+if [ -s "$mySMBFILE" ]; then
+  fuRESULT "SMB information: $mySMBFILE"
+fi
+if [ -s "$mySNMPFILE" ]; then
+  fuRESULT "SNMP information: $mySNMPFILE"
+fi
+if [ ! -s "$mySOFTWAREFILE" ] && [ ! -s "$myDIRFILE" ]; then 
+  fuERROR "No host/software information found."
+fi
+echo

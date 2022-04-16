@@ -8,7 +8,7 @@ Available parts:
 - Network
 - Vulnerability
 
-## User manual
+## Quick Start
 
 1. Copy the `reconnaissance.conf.dist` file to `reconnaissance.conf`
 ```
@@ -30,7 +30,7 @@ All nmap scans can be provided with obfuscation/spoofing technique.
 
 ## Tools
 
-Tools used:  
+All tools used are preinstalled on latest Kali Linux Version 2022.1:  
 - sherlock
 - spiderfoot
 - whois

@@ -22,6 +22,16 @@ BBLUE='\033[1;34m'
 BOLD=$(tput bold)
 NORMAL='\033[0;39m'
 
+##########
+# Banner #
+##########
+
+toilet -tf standard -F metal "RECONNAISSANCE"
+echo
+echo -e "Disclaimer: $RED todo $NC"
+echo
+sleep 1.0
+
 #############
 # Functions #
 #############
@@ -61,7 +71,7 @@ function fuRESULT {
 
 # Print message line
 function fuMESSAGE {
-  echo -e "$BBLUE---$BLUE $1 $NC"
+  echo -e "$BBLUE---$NC $1 $NC"
 }
 
 # Check for root permissions
@@ -74,6 +84,15 @@ if [ "$(whoami)" != "root" ]; then
   exit
 else
   echo "[ OK ]"
+fi
+}
+
+function fuCHECK_INET {
+wget -q --tries=10 --timeout=20 --spider http://google.com
+if [[ $? -eq 0 ]]; then
+  echo "[ OK ]"
+else
+  fuERROR "No internet connection"
 fi
 }
 
@@ -105,13 +124,6 @@ function fuNmapSpoofingParameters {
   fi
 }
 SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
-
-
-fuBANNER "RECONNAISSANCE"
-echo
-echo -e "Disclaimer: $RED todo $NC"
-echo
-
 
 ####################################
 # Check for command line arguments #
@@ -171,11 +183,17 @@ fi
 
 fuGOT_ROOT
 
+####################################
+# Checking for internet connection #
+####################################
+
+#fuCHECK_INET
+
 ################################
 # Installation of Dependencies #
 ################################
 
-fuGET_DEPS
+#fuGET_DEPS
 
 #########################################
 # Check variables in configuration file #
@@ -201,6 +219,8 @@ else
   echo
   exit
 fi
+
+sleep 1.5
 
 ######################
 # Validate variables #
