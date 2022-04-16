@@ -116,37 +116,31 @@ function fuNmapSpoofingParameters {
 SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 
 ####################################
-# Check for command line arguments #
+# Check the command line arguments #
 ####################################
 
-if [ "$1" == "" ]; then
-  fuERROR "Aborting. Forgot the command line arguments. Try --help."
-  echo
-  exit
-fi
-for i in "$@" do
+for i in "$@"; do
   case $i in
     --conf=*)
       myCONF_FILE="${i#*=}"
-      shift
-    ;;
+      shift;;
     --help)
       echo "Usage: $0 <options>"
       echo
       echo "--conf=<Path to \"reconnaissance.conf\">"
-      echo "  Use this to execute the reconnaissance phase."
+      echo "  Use this to execute the reconnaissance script."
       echo "  A configuration example is available in \"reconnaissance/reconnaissance.conf.dist\"."
       echo
-    exit
-    ;;
+      exit;;
     *)
-    exit
-    ;;
+      fuERROR "Aborting. Wrong command line arguments. Try --help."
+      echo
+      exit;;
   esac
 done
 
 # Validate command line arguments and load config
-# If a valid config file exists, set deployment type to "auto" and load the configuration
+# If a valid config file exists, load the configuration
 if [ "$myCONF_FILE" == "" ]; then
   fuERROR "Aborting. No configuration file given. Additionally try --conf."
   echo
