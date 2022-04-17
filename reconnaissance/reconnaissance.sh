@@ -119,30 +119,31 @@ SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 # Check the command line arguments #
 ####################################
 
-for i in "$@"; do
-  case $i in
-    --conf=*)
-      myCONF_FILE="${i#*=}"
-      shift;;
-    --help)
-      echo "Usage: $0 <options>"
-      echo
-      echo "--conf=<Path to \"reconnaissance.conf\">"
-      echo "  Use this to execute the reconnaissance script."
-      echo "  A configuration example is available in \"reconnaissance/reconnaissance.conf.dist\"."
-      echo
-      exit;;
-    *)
-      fuERROR "Aborting. Wrong command line arguments. Try --help."
-      echo
-      exit;;
-  esac
-done
+PASSED_ARGS=$@
+if [ "$PASSED_ARGS" != "" ]; then
+  while getopts "hc:" opt; do
+    case "$opt" in
+      h|\?)
+        echo
+        echo "Usage: $0 [-h] [-c]"
+        echo
+        echo "-c <Path to \"reconnaissance.conf\">"
+        echo "  Use this to execute the reconnaissance script."
+        echo "  A configuration example is available in \"reconnaissance/reconnaissance.conf.dist\"."
+        echo
+        exit;;
+      c) myCONF_FILE=$OPTARG;;
+      esac
+  done
+else
+  echo "$0: no configuration file given. Try -h for help."
+  echo
+  exit
+fi
 
-# Validate command line arguments and load config
 # If a valid config file exists, load the configuration
 if [ "$myCONF_FILE" == "" ]; then
-  fuERROR "Aborting. No configuration file given. Additionally try --conf."
+  echo "$0: no configuration file given. Try -h for help."
   echo
   exit
 fi
@@ -150,12 +151,12 @@ if [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
   if [ "$(head -n 1 $myCONF_FILE | grep -c "# reconnaissance")" == "1" ]; then
     source "$myCONF_FILE"
   else
-	  fuERROR "Aborting. Config file \"$myCONF_FILE\" not a reconnaissance configuration file."
+	  echo "Aborting. Config file \"$myCONF_FILE\" not a reconnaissance configuration file."
     echo
     exit
 fi
 elif ! [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
-  fuERROR "Aborting. Config file \"$myCONF_FILE\" not found."
+  echo "Aborting. Config file \"$myCONF_FILE\" not found."
   echo
   exit
 fi
