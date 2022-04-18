@@ -170,13 +170,14 @@ fuBANNER "RECONNAISSANCE"
 echo
 echo -e "Disclaimer: $RED todo $NC"
 echo
-sleep 1.0
+sleep 1
 
 #####################
 # Checking for root #
 #####################
 
 fuGOT_ROOT
+sleep 1
 
 ####################################
 # Checking for internet connection #
@@ -256,7 +257,7 @@ fi
 # Gather Identity Information #
 ###############################
 
-if [ "$IDENTITY" == true ]; then
+if [ "$IDENTITY" ]; then
   fuBANNER "Gather Identity Information ..."
   source ./parts/identity-information.sh
 fi
@@ -265,7 +266,7 @@ fi
 # Gather Network Information #
 ##############################
 
-if [ "$NETWORK" == true ]; then
+if [ "$NETWORK" ]; then
   fuBANNER "Gather Network Information ..."
   source ./parts/network-scanning.sh
 fi
@@ -274,7 +275,7 @@ fi
 # Gather Host Information #
 ###########################
 
-if [ "$HOST" == true ]; then
+if [ "$HOST" ]; then
   fuBANNER "Gather Host Information ..."
   source ./parts/host-scanning.sh
 fi
@@ -283,7 +284,7 @@ fi
 # Gather Vulnerability Information #
 ####################################
 
-if [ "$VULN" == true ]; then
+if [ "$VULN" ]; then
   fuBANNER "Gather Vulnerability Information ..."
   source ./parts/vulnerability-scanning.sh
 fi
@@ -292,7 +293,7 @@ fi
 # Next Steps #
 ##############
 
-if [ "$IDENTITY" == true ] || [ "$NETWORK" == true ] || [ "$HOST" == true ] || [ "$VULN" == true ]; then
+if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
 
   fuBANNER "Next Steps To Do ..."
 
@@ -300,7 +301,7 @@ if [ "$IDENTITY" == true ] || [ "$NETWORK" == true ] || [ "$HOST" == true ] || [
     fuMESSAGE "No specific IP set. Try set a specific ip address to gather more detailed information."
   fi
 
-  if [ "$VULN" != true ]; then
+  if [ ! "$VULN" ]; then
     fuMESSAGE "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
   fi
 

@@ -265,7 +265,7 @@ fi
 
 # UDP scan
 # nmap
-if [ "$UDP" == true ]; then
+if [ "$UDP" ]; then
   if [ "$IAMROOT" ]; then
     if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
       fuNmapUDPScan $IP -p$UDPPORT
