@@ -19,23 +19,23 @@ myUPORTFILE="output/uport-findings.txt"
 #############
 
 # NMAP Scans
-function fuNmapSynScan {
-  fuTITLE "TCP SYN (Half-open) scan of $* ..."
-  nmap -sS -Pn -oN $myPORTFILE $SPOOFINGPARAMETERS $*
+function fuNmapTCPScan {
+  fuTITLE "Nmap TCP scan of $* ..."
+  nmap -Pn -oN $myPORTFILE $SPOOFINGPARAMETERS $*
 }
 
-function fuNmapSynScanIPRANGE {
-  fuTITLE "TCP SYN (Half-open) scan of $* ... (might take some time)"
-  nmap -sS -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
+function fuNmapTCPScanIPRANGE {
+  fuTITLE "Nmap TCP scan of $* ... (might take some time)"
+  nmap -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
 }
 
 function fuNmapUDPScan {
-  fuTITLE "UDP Scan of $* ..."
+  fuTITLE "Nmap UDP scan of $* ..."
   nmap -sU -Pn -sV --version-light -T4 -oN $myUPORTFILE $SPOOFINGPARAMETERS $* --host-timeout 120s
 }
 
 function fuNmapUDPScanIPRANGE {
-  fuTITLE "UDP scan of $* ... (might take some time)"
+  fuTITLE "Nmap UDP scan of $* ... (might take some time)"
   nmap -sU -sV --version-light -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $SPOOFINGPARAMETERS $* --host-timeout 120s
 }
 
@@ -51,13 +51,13 @@ function fuNmapExoticScan {
 # open|filtered = No response received, port might be open
 # IDS and IPS Evasion (https://book.hacktricks.xyz/pentesting/pentesting-network/ids-evasion)
 function fuNmapFINScan {
-  fuTITLE "FIN scan of $* ..."
+  fuTITLE "Nmap FIN scan of $* ..."
   nmap -sF -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $* --data-length 25 -f
 }
 
 # Null scan (-sN), Does not set any bits (TCP flag header is 0)
 function fuNmapNULLScan {
-  fuTITLE "NULL scan of $* ..."
+  fuTITLE "Nmap NULL scan of $* ..."
   nmap -sN -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $* --data-length 25 -f
 }
 
@@ -65,13 +65,13 @@ function fuNmapNULLScan {
 # Print scan result to usable list
 function fuPrepareTargetIP {
   fuINFO "Write ip list of result to targetIP.txt ..."
-  cat ip-grepable.txt | awk '/open/ {print $2$3}' | cat > targetIP.txt #&& rm ip-grepable.txt
+  cat ip-grepable.txt | awk '/open/ {print $2$3}' | cat > targetIP.txt && rm ip-grepable.txt
   fuINFO "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
 function fuPrepareTargetIPAppend {
   fuINFO "Write ip list of result to targetIP.txt ..."
-  cat ip-grepable.txt | awk '/open/ {print $2$3}' | cat >> targetIP.txt #&& rm ip-grepable.txt
+  cat ip-grepable.txt | awk '/open/ {print $2$3}' | cat >> targetIP.txt && rm ip-grepable.txt
   fuINFO "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
@@ -142,13 +142,17 @@ fi
 
 # ARP scan (Link Layer)
 # netdiscover !!!Network range must be 0.0.0.0/8 , /16 or /24 !!!
-if [ "$IPRANGE" != "" ] && [ "$NETDEVICE" == "" ]; then
-  fuTITLE "Discover network addresses using ARP requests ..."
-  netdiscover -r$IPRANGE -P | tee $myNETADDRFILE
+if [ "$IAMROOT" ]; then
+  if [ "$IPRANGE" != "" ] && [ "$NETDEVICE" == "" ]; then
+    fuTITLE "Discover network addresses using ARP requests ..."
+    netdiscover -r$IPRANGE -P | tee $myNETADDRFILE
 
-elif [ "$IPRANGE" != "" ] && [ "$NETDEVICE" != "" ]; then
-  fuTITLE "Discover network addresses using ARP requests ..."
-  netdiscover -r$IPRANGE -i$NETDEVICE -P | tee $myNETADDRFILE
+  elif [ "$IPRANGE" != "" ] && [ "$NETDEVICE" != "" ]; then
+    fuTITLE "Discover network addresses using ARP requests ..."
+    netdiscover -r$IPRANGE -i$NETDEVICE -P | tee $myNETADDRFILE
+  fi
+else
+  fuINFO "netdiscover not possible without root privileges. Try \"sudo $0\""
 fi
 
 # traceroute
@@ -200,66 +204,72 @@ fi
 # Port Scanning #
 #################
 
-# TCP SYN scan (default scan) (Transport Layer)
+# TCP scan (default scan) (Transport Layer)
 # Maybe Exotic Scan Flags
 # nmap
 if [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
-  fuNmapSynScan $IP
+  fuNmapTCPScan $IP
   fuPrepareTargetPort $myPORTFILE
   fuNmapExoticScan $IP
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-  fuNmapSynScan $IP -p- -T5
+  fuNmapTCPScan $IP -p- -T5
   fuPrepareTargetPort $myPORTFILE
   fuNmapExoticScan $IP -p- -T5
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" != "" ]; then
-  fuNmapSynScan $IP -p$TCPPORT
+  fuNmapTCPScan $IP -p$TCPPORT
   fuPrepareTargetPort $myPORTFILE
   fuNmapExoticScan $IP -p$TCPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapSynScan $IP -p$PORTRANGE
+  fuNmapTCPScan $IP -p$PORTRANGE
   fuPrepareTargetPort $myPORTFILE
   fuNmapExoticScan $IP -p$PORTRANGE
 
-# Syn Scan IP range
+
+# TCP Scan IP range
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
-  fuNmapSynScanIPRANGE $IPRANGE
+  fuNmapTCPScanIPRANGE $IPRANGE
   fuPrepareTargetIP
   fuNmapExoticScan $IPRANGE
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-  fuNmapSynScanIPRANGE $IPRANGE -p- -T5
+  fuNmapTCPScanIPRANGE $IPRANGE -p- -T5
   fuPrepareTargetIP
   fuNmapExoticScan $IPRANGE -p- -T5
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" != "" ]; then
-  fuNmapSynScanIPRANGE $IPRANGE -p$TCPPORT
+  fuNmapTCPScanIPRANGE $IPRANGE -p$TCPPORT
   fuPrepareTargetIP
   fuNmapExoticScan $IPRANGE -p$TCPPORT
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapSynScanIPRANGE $IPRANGE -p$PORTRANGE
+  fuNmapTCPScanIPRANGE $IPRANGE -p$PORTRANGE
   fuPrepareTargetIP
   fuNmapExoticScan $IPRANGE -p$PORTRANGE
 
-# Syn Scan Domain
-#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
-#  fuNmapSynScan $DOMAIN
-#  fuPrepareTargetPort $myPORTFILE
 
-#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-#  fuNmapSynScan $DOMAIN -p- -T5
-#  fuPrepareTargetPort $myPORTFILE
+# TCP Scan Domain
+elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
+  fuNmapTCPScan $DOMAIN
+  fuPrepareTargetPort $myPORTFILE
+  fuNmapExoticScan $DOMAIN
 
-#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" != "" ]; then
-#  fuNmapSynScan $DOMAIN -p$TCPPORT
-#  fuPrepareTargetPort $myPORTFILE
+elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
+  fuNmapTCPScan $DOMAIN -p- -T5
+  fuPrepareTargetPort $myPORTFILE
+  fuNmapExoticScan $DOMAIN -p- -T5
 
-#elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-#  fuNmapSynScan $DOMAIN -p$PORTRANGE
-#  fuPrepareTargetPort $myPORTFILE
+elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" != "" ]; then
+  fuNmapTCPScan $DOMAIN -p$TCPPORT
+  fuPrepareTargetPort $myPORTFILE
+  fuNmapExoticScan $DOMAIN -p$TCPPORT
+
+elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+  fuNmapTCPScan $DOMAIN -p$PORTRANGE
+  fuPrepareTargetPort $myPORTFILE
+  fuNmapExoticScan $DOMAIN -p$PORTRANGE
 fi
 
 
@@ -283,13 +293,13 @@ if [ "$UDP" ]; then
       fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
       fuPrepareTargetIPAppend
 
-    #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
-    #  fuNmapUDPScan $DOMAIN -p$UDPPORT
-    #  fuPrepareTargetPort $myUPORTFILE
+    elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
+      fuNmapUDPScan $DOMAIN -p$UDPPORT
+      fuPrepareTargetPort $myUPORTFILE
 
-    #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-    #  fuNmapUDPScan $DOMAIN -p$PORTRANGE
-    #  fuPrepareTargetPortAppend $myUPORTFILE
+    elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+      fuNmapUDPScan $DOMAIN -p$PORTRANGE
+      fuPrepareTargetPortAppend $myUPORTFILE
     fi
   else
     fuERROR "You are not root. UDP scan is only possible with root."
