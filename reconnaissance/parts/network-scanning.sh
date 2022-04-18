@@ -266,29 +266,33 @@ fi
 # UDP scan
 # nmap
 if [ "$UDP" == true ]; then
-  if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
-    fuNmapUDPScan $IP -p$UDPPORT
-    fuPrepareTargetPort $myUPORTFILE
+  if [ "$IAMROOT" ]; then
+    if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
+      fuNmapUDPScan $IP -p$UDPPORT
+      fuPrepareTargetPort $myUPORTFILE
 
-  elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
-    fuNmapUDPScan $IP
-    fuPrepareTargetPortAppend $myUPORTFILE
+    elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
+      fuNmapUDPScan $IP
+      fuPrepareTargetPortAppend $myUPORTFILE
 
-  elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-    fuNmapUDPScan $IP -p$PORTRANGE
-    fuPrepareTargetPortAppend $myUPORTFILE
+    elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+      fuNmapUDPScan $IP -p$PORTRANGE
+      fuPrepareTargetPortAppend $myUPORTFILE
 
-  elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$UDPPORT" != "" ]; then
-    fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
-    fuPrepareTargetIPAppend
+    elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$UDPPORT" != "" ]; then
+      fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
+      fuPrepareTargetIPAppend
 
-  #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
-  #  fuNmapUDPScan $DOMAIN -p$UDPPORT
-  #  fuPrepareTargetPort $myUPORTFILE
+    #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
+    #  fuNmapUDPScan $DOMAIN -p$UDPPORT
+    #  fuPrepareTargetPort $myUPORTFILE
 
-  #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  #  fuNmapUDPScan $DOMAIN -p$PORTRANGE
-  #  fuPrepareTargetPortAppend $myUPORTFILE
+    #elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+    #  fuNmapUDPScan $DOMAIN -p$PORTRANGE
+    #  fuPrepareTargetPortAppend $myUPORTFILE
+    fi
+  else
+    fuERROR "You are not root. UDP scan is only possible with root."
   fi
 fi
 

@@ -67,13 +67,14 @@ function fuMESSAGE {
 # Check for root permissions
 function fuGOT_ROOT {
 fuINFO "Checking for root"
-if [ "$(whoami)" != "root" ]; then
-  fuERROR "Aborting. Not root."
-  echo "### Please run as root"
-  echo "### Example: sudo $0"
-  exit
+if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
+  IAMROOT="1"
+  fuMESSAGE "You are root"
+  echo
 else
-  echo "[ OK ]"
+  IAMROOT=""
+  fuMESSAGE "You are not root"
+  echo
 fi
 }
 
