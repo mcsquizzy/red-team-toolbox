@@ -14,6 +14,7 @@ mySMBFILE="output/smb-findings.txt"
 mySNMPFILE="output/snmp-findings.txt"
 mySMTPFILE="output/smtp-findings.txt"
 mySSHFILE="output/ssh-findings.txt"
+mySSLFILE="output/ssl-findings.txt"
 
 SMBPORTS="445 139"
 SNMPPORTS="161 162"
@@ -24,7 +25,7 @@ WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
 NMAPSMBSCRIPTS="smb-enum-shares"
 NMAPSMTPSCRIPTS="smtp-commands,smtp-enum-users"
 NMAPMYSQLSCRIPTS="mysql-databases,mysql-dump-hashes,mysql-empty-password,mysql-enum,mysql-info,mysql-query,mysql-users,mysql-vuln-cve2012-2122"
-NMAPSSHSCRIPTS="ssh-hostkey,ssh-auth-methods,ssh2-enum-algos"
+NMAPSSHSCRIPTS="ssh-hostkey,ssh-auth-methods"#,ssh2-enum-algos"
 
 #############
 # Functions #
@@ -180,11 +181,25 @@ done
 
 # nmap
 if [ "$IP" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w 22 "targetPort.txt" ); then
-  fuTITLE "Nmap SHH Scan of $IP and port 22 ..."
+  fuTITLE "Nmap SSH Scan of $IP and port 22 ..."
   nmap -sV --script $NMAPSSHSCRIPTS $IP -p22 $SPOOFINGPARAMETERS -oN $mySSHFILE
 elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w 22 "targetPort.txt" ); then
   fuTITLE "Nmap SSH Scan of $DOMAIN and port 22 ..."
   nmap -sV --script $NMAPSSHSCRIPTS $DOMAIN -p22 $SPOOFINGPARAMETERS -oN $mySSHFILE
+fi
+
+################
+# SSL Analysis #
+################
+
+#todo
+# sslscan
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt" ); then
+  fuTITLE "SSL Scan (SSL/TLS Protocols, supported ciphers, certificates, etc.) of $IP ..."
+  sslscan $IP --no-colour | tee $mySSLFILE
+elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt" ); then
+  fuTITLE "SSL Scan (protocols, supported ciphers, certificates, etc.) of $DOMAIN ..."
+  sslscan $DOMAIN --no-colour | tee $mySSLFILE
 fi
 
 #####################
