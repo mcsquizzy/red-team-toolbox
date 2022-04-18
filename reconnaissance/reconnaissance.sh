@@ -195,18 +195,18 @@ sleep 1
 # Check variables in configuration file #
 #########################################
 
-if [ "$IDENTITY" == true ] || [ "$NETWORK" == true ] || [ "$HOST" == true ] || [ "$VULN" == true ]; then
+if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
   fuTITLE "Following parts will be executed:"
-  if [ "$IDENTITY" == true ]; then
+  if [ "$IDENTITY" ]; then
     fuMESSAGE "Identity Scanning"
   fi
-  if [ "$NETWORK" == true ]; then
+  if [ "$NETWORK" ]; then
     fuMESSAGE "Network Scanning"
   fi
-  if [ "$HOST" == true ]; then
+  if [ "$HOST" ]; then
     fuMESSAGE "Host Scanning"
   fi
-  if [ "$VULN" == true ]; then
+  if [ "$VULN" ]; then
     fuMESSAGE "Vulnerability Scanning"
   fi
 else
