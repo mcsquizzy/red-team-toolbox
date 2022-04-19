@@ -82,9 +82,9 @@ else
 fi
 }
 
-####################################
-# Check the command line arguments #
-####################################
+#####################################
+# Check the command line parameters #
+#####################################
 
 PASSED_ARGS=$@
 if [ "$PASSED_ARGS" != "" ]; then
