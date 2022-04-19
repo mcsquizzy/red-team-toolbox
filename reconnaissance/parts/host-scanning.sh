@@ -15,10 +15,12 @@ mySNMPFILE="output/snmp-findings.txt"
 mySMTPFILE="output/smtp-findings.txt"
 mySSHFILE="output/ssh-findings.txt"
 mySSLFILE="output/ssl-findings.txt"
+myVNCFILE="output/vnc-findings.txt"
 
 SMBPORTS="445 139"
 SNMPPORTS="161 162"
 SMTPPORTS="25 465 587"
+VNCPORTS="5800 5801 5900 5901"
 
 WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
 
@@ -26,6 +28,7 @@ NMAPSMBSCRIPTS="smb-enum-shares"
 NMAPSMTPSCRIPTS="smtp-commands,smtp-enum-users"
 NMAPMYSQLSCRIPTS="mysql-databases,mysql-dump-hashes,mysql-empty-password,mysql-enum,mysql-info,mysql-query,mysql-users,mysql-vuln-cve2012-2122"
 NMAPSSHSCRIPTS="ssh-hostkey,ssh-auth-methods"#,ssh2-enum-algos"
+NMAPVNCSCRIPTS="vnc-info,realvnc-auth-bypass,vnc-title"
 
 #############
 # Functions #
@@ -154,7 +157,7 @@ done
 #################
 
 for i in $SMTPPORTS; do
-  if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
     fuTITLE "Nmap SMTP Scan of $IP and port $i ..."
     nmap -sV --script $NMAPSMTPSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $mySMTPFILE
   fi
@@ -169,9 +172,12 @@ for i in $SNMPPORTS; do
   if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
     fuTITLE "Nmap SNMP Scan of $IP and port $i ..."
     nmap -sV --script snmp-info $IP -p$i $SPOOFINGPARAMETERS -oN $mySNMPFILE
+    #snmp-check
+
   elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
     fuTITLE "Nmap SNMP Scan of $DOMAIN and port $i ..."
     nmap -sV --script snmp-info $DOMAIN -p$i $SPOOFINGPARAMETERS -oN $mySNMPFILE
+    # snmp-check
   fi
 done
 
@@ -202,6 +208,38 @@ elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w 443 "targetP
   sslscan $DOMAIN --no-colour | tee $mySSLFILE
 fi
 
+################
+# VNC Analysis #
+################
+
+# nmap
+for i in $VNCPORTS; do
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
+  fuTITLE "Nmap VNC Scan of $IP and port $i ..."
+  nmap -sV --script $NMAPVNCSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $myVNCFILE
+  
+  elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
+  fuTITLE "Nmap VNC Scan of $DOMAIN and port $i ..."
+  nmap -sV --script $NMAPVNCSCRIPTS $DOMAIN -p$i $SPOOFINGPARAMETERS -oN $myVNCFILE
+  fi
+done
+
+# VNC Authentication
+# metasploit
+for i in $VNCPORTS; do
+  if [ "$IP" != "" ] && [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
+    fuTITLE "Looking for target $IP if a VNC Server is running ..."
+    msfdb init
+    msfconsole -x "use auxiliary/scanner/vnc/vnc_none_auth; set rhost $IP; set rport $i; run; exit" -q -o $myVNCFILE
+  fi
+done
+
+#if [ "$IP" == "" ] && [ "$IPRANGE" != "" ]; then
+#    fuTITLE "Looking for targets that are running a VNC Server ..."
+#    msfdb init
+#    msfconsole -x "use auxiliary/scanner/vnc/vnc_none_auth; set rhost $IPRANGE; run; exit" -q -o output/vuln-findings-vnc.txt
+#fi
+
 #####################
 # Summarize results #
 #####################
@@ -222,7 +260,19 @@ fi
 if [ -s "$mySNMPFILE" ]; then
   fuRESULT "SNMP information: $mySNMPFILE"
 fi
-if [ ! -s "$mySOFTWAREFILE" ] && [ ! -s "$myDIRFILE" ]; then 
+if [ -s "$mySMTPFILE" ]; then
+  fuRESULT "SMTP information: $mySMTPFILE"
+fi
+if [ -s "$mySSHFILE" ]; then
+  fuRESULT "SSH information: $mySSHFILE"
+fi
+if [ -s "$mySSLFILE" ]; then
+  fuRESULT "SSL information: $mySSLFILE"
+fi
+if [ -s "$myVNCFILE" ]; then
+  fuRESULT "VNC information: $myVNCFILE"
+fi
+if [ ! -s "$mySOFTWAREFILE" ] && [ ! -s "$myDIRFILE" ] && [ ! -s "$myMYSQLFILE" ] && [ ! -s "$mySMBFILE" ] && [ ! -s "$mySNMPFILE" ] && [ ! -s "$mySMTPFILE" ] [ ! -s "$mySSHFILE" ] [ ! -s "$mySSLFILE" ] [ ! -s "$myVNCFILE" ]; then 
   fuERROR "No host/software information found."
 fi
 echo
