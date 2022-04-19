@@ -6,10 +6,12 @@
 ####################
 
 DEPENDENCIES="whois dnsenum amass python3-dnspython fping netdiscover nmap"
+
 myDNSFILE="output/dns-findings.txt"
 myWHOISFILE="output/whois-findings.txt"
 myNETADDRFILE="output/net-addr-findings.txt"
 mySECAPPLFILE="output/sec-appliance-findings.txt"
+myDHCPFILE="output/dhcp-findings.txt"
 myPORTFILE="output/port-findings.txt"
 myUPORTFILE="output/uport-findings.txt"
 
@@ -155,9 +157,7 @@ else
   fuINFO "netdiscover not possible without root privileges. Try \"sudo $0\""
 fi
 
-# traceroute
-# check if needed?
-
+# traceroute, check if needed?
 
 ################
 # IP Addresses #
@@ -199,6 +199,17 @@ fi
 # todo, check if needed?
 # waf detection with nmap --script http-waf-*
 
+#################
+# DHCP Scanning #
+#################
+
+if [ "$IAMROOT" ]; then
+  fuTITLE "Nmap DHCP discover scan, DHCP request to broadcast 255.255.255.255 ..."
+  nmap --script broadcast-dhcp-discover -oN $myDHCPFILE $SPOOFINGPARAMETERS
+else
+  fuERROR "You are not root. Script \"broadcast-dhcp-discover\" needs root privileges."
+  fuINFO "Run script with sudo: sudo $0"
+fi
 
 #################
 # Port Scanning #
@@ -303,6 +314,7 @@ if [ "$UDP" ]; then
     fi
   else
     fuERROR "You are not root. UDP scan is only possible with root."
+    fuINFO "Run script with sudo: sudo $0"
   fi
 fi
 
