@@ -154,7 +154,7 @@ if [ "$IAMROOT" ]; then
     netdiscover -r$IPRANGE -i$NETDEVICE -P | tee $myNETADDRFILE
   fi
 else
-  fuINFO "netdiscover not possible without root privileges. Try \"sudo $0\""
+  fuERROR "Not root. Netdiscover needs root privileges. Try \"sudo $0\""
 fi
 
 # traceroute, check if needed?
@@ -207,8 +207,7 @@ if [ "$IAMROOT" ]; then
   fuTITLE "Nmap DHCP discover scan, DHCP request to broadcast 255.255.255.255 ..."
   nmap --script broadcast-dhcp-discover -oN $myDHCPFILE $SPOOFINGPARAMETERS
 else
-  fuERROR "You are not root. Script \"broadcast-dhcp-discover\" needs root privileges."
-  fuINFO "Run script with sudo: sudo $0"
+  fuERROR "Not root. Script \"broadcast-dhcp-discover\" needs root privileges. Try \"sudo $0\""
 fi
 
 #################
