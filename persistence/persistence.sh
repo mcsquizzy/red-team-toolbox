@@ -63,6 +63,12 @@ fuRESULT() {
   echo "$BBLUE═══$BYELLOW $1 $NC"
 }
 
+# Print next steps line
+fuSTEPS() {
+  echo
+  echo "$BBLUE[X]$NC $1 $NC"
+}
+
 # Print message line
 fuMESSAGE() {
   echo "$BBLUE---$NC $1 $NC"
@@ -144,6 +150,7 @@ if [ "$SSH" ]; then
 
   # check if local ssh server is running
   fuTITLE "Check if local ssh server is running ..."
+  sleep 2
   if ps aux | grep sshd | grep -v grep 2>/dev/null; then
     fuMESSAGE "Local ssh server is running"
   elif netstat -plant | grep :22 | grep LISTEN 2>/dev/null; then
@@ -161,10 +168,11 @@ if [ "$SSH" ]; then
     fi
   fi
 
+  fuTITLE "Trying to add given SSH public key to authorized_keys file of user $USER ..."
+  sleep 2
   if [ "$PUBKEY" != "" ]; then
-    fuTITLE "Trying to add given SSH public key to authorized_keys file of user $USER ..."
     if [ -d "$HOME/.ssh" ]; then
-      if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then TRYCHMOD=""; else fuERROR "unable to write authorized_keys" && TRYCHMOD="1"; fi
+      if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then TRYCHMOD=""; else SSHOK="" && fuERROR "unable to write authorized_keys" && TRYCHMOD="1"; fi
       if [ "$TRYCHMOD" ]; then
         CHMOD=$(command -v chmod 2>/dev/null) || fuERROR "command \"chmod\" not found"
         $CHMOD 700 "$HOME"/.ssh 2>/dev/null
@@ -187,25 +195,19 @@ fi
 ##############
 # Next Steps #
 ##############
-
-if [ "$SSH" ]; then
   
-  echo "
-    _   _           _     ____  _                   _____       ____                
-   | \ | | _____  _| |_  / ___|| |_ ___ _ __  ___  |_   _|__   |  _ \  ___          
-   |  \| |/ _ \ \/ / __| \___ \| __/ _ \ '_ \/ __|   | |/ _ \  | | | |/ _ \         
-   | |\  |  __/>  <| |_   ___) | ||  __/ |_) \__ \   | | (_) | | |_| | (_) |  _ _ _ 
-   |_| \_|\___/_/\_\ __| |____/ \__\___| .__/|___/   |_|\___/  |____/ \___/  (_|_|_)
-                                       |_|                                          
-  "
-  sleep 1
+echo "
+  _   _           _     ____  _                   _____       ____                
+  | \ | | _____  _| |_  / ___|| |_ ___ _ __  ___  |_   _|__   |  _ \  ___          
+  |  \| |/ _ \ \/ / __| \___ \| __/ _ \ '_ \/ __|   | |/ _ \  | | | |/ _ \         
+  | |\  |  __/>  <| |_   ___) | ||  __/ |_) \__ \   | | (_) | | |_| | (_) |  _ _ _ 
+  |_| \_|\___/_/\_\ __| |____/ \__\___| .__/|___/   |_|\___/  |____/ \___/  (_|_|_)
+                                      |_|                                          
+"
 
-  if [ "$SSHOK" ]; then
-    fuMESSAGE "authorized_key file updated, remote ssh login should be possible to user $current_user with given SSH key pair."
-    echo
-  else
-    fuERROR "Modify SSH keys was not successful"
-    echo
-  fi
-
+if [ "$SSHOK" ]; then
+  fuSTEPS "authorized_key file updated, if ssh server is running, remote ssh login should be possible to user $USER with given SSH key pair."
+else
+  fuERROR "Modify ssh keys was not successful"
 fi
+echo
