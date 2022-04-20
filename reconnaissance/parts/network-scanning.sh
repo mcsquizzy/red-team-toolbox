@@ -144,13 +144,12 @@ fi
 
 # ARP scan (Link Layer)
 # netdiscover !!!Network range must be 0.0.0.0/8 , /16 or /24 !!!
+fuTITLE "Discover network addresses using ARP requests ..."
 if [ "$IAMROOT" ]; then
   if [ "$IPRANGE" != "" ] && [ "$NETDEVICE" == "" ]; then
-    fuTITLE "Discover network addresses using ARP requests ..."
     netdiscover -r$IPRANGE -P | tee $myNETADDRFILE
 
   elif [ "$IPRANGE" != "" ] && [ "$NETDEVICE" != "" ]; then
-    fuTITLE "Discover network addresses using ARP requests ..."
     netdiscover -r$IPRANGE -i$NETDEVICE -P | tee $myNETADDRFILE
   fi
 else
@@ -203,8 +202,8 @@ fi
 # DHCP Scanning #
 #################
 
+fuTITLE "Nmap DHCP discover scan, DHCP request to broadcast 255.255.255.255 ..."
 if [ "$IAMROOT" ]; then
-  fuTITLE "Nmap DHCP discover scan, DHCP request to broadcast 255.255.255.255 ..."
   nmap --script broadcast-dhcp-discover -oN $myDHCPFILE $SPOOFINGPARAMETERS
 else
   fuERROR "You're not root. Script \"broadcast-dhcp-discover\" needs root privileges. Try \"sudo $0\""

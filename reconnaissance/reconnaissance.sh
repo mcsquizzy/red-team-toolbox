@@ -64,6 +64,11 @@ function fuMESSAGE {
   echo -e "$BBLUE---$NC $1 $NC"
 }
 
+# Print attention message line
+function fuATTENTION {
+  echo -e "$BLUE---$YELLOW $1 $NC"
+}
+
 # Check for root permissions
 function fuGOT_ROOT {
 fuINFO "Checking for root"
@@ -208,6 +213,9 @@ if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
   fi
   if [ "$VULN" ]; then
     fuMESSAGE "Vulnerability Scanning"
+    if [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
+    fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port. The Vuln Scanning takes data from the Network Scanning about open ports."
+    fi
   fi
 else
   fuERROR "Aborting. No main variable in \"$myCONF_FILE\" set to true. Nothing to do."
@@ -216,7 +224,7 @@ else
   exit
 fi
 
-sleep 1.5
+sleep 2
 
 ######################
 # Validate variables #
@@ -303,6 +311,8 @@ if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
 
   if [ ! "$VULN" ]; then
     fuMESSAGE "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
+  elif [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
+    fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port. The Vuln Scanning takes data from the Network Scanning about open ports."
   fi
 
   fuMESSAGE "Search for possible vulnerabilities in directory \"output/\""
