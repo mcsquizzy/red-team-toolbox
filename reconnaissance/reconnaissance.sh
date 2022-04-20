@@ -59,6 +59,12 @@ function fuRESULT {
   echo -e "$BBLUE═══$BYELLOW $1 $NC"
 }
 
+# Print next steps line
+function fuSTEPS {
+  echo
+  echo -e "$BBLUE[X]$NC $1 $NC"
+}
+
 # Print message line
 function fuMESSAGE {
   echo -e "$BBLUE---$NC $1 $NC"
@@ -229,8 +235,9 @@ sleep 2
 # Validate variables #
 ######################
 
+# BETA!!!
 if [ "$IP" != "" ] && ! expr "${IP}" : '^\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)$' >/dev/null; then
-  fuERROR "Aborting. Invalid IP, check \"$myCONF_FILE\"."
+  fuERROR "Aborting. Invalid IPv4, check \"$myCONF_FILE\"."
   echo
   exit
 fi
@@ -300,22 +307,18 @@ fi
 # Next Steps #
 ##############
 
-if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
+fuBANNER "Next Steps To Do ..."
 
-  fuBANNER "Next Steps To Do ..."
-
-  if [ "$IP" == "" ]; then
-    fuMESSAGE "No specific IP set. Try set a specific ip address to gather more detailed information."
-  fi
-
-  if [ ! "$VULN" ]; then
-    fuMESSAGE "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
-  elif [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
-    fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port. The Vuln Scanning takes data from the Network Scanning about open ports."
-  fi
-
-  fuMESSAGE "Search for possible vulnerabilities in directory \"output/\""
-
-  fuMESSAGE "Check the ../exploitation/README.md file on how to find exploits"  
-  echo
+if [ "$IP" == "" ]; then
+  fuSTEPS "No specific IP set. Try to set a specific ip address to gather more detailed information."
 fi
+
+if [ ! "$VULN" ]; then
+  fuSTEPS "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
+elif [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
+  fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port. The Vuln Scanning takes data from the Network Scanning about open ports."
+fi
+
+fuSTEPS "Search for possible vulnerabilities in directory $BYELLOW\"output/\"$NC."
+fuSTEPS "Check the $BYELLOW../exploitation/README.md$NC file on how to find exploits."
+echo
