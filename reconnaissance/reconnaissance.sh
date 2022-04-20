@@ -86,7 +86,7 @@ fi
 function fuCHECK_INET {
 wget -q --tries=10 --timeout=20 --spider http://google.com
 if [[ $? -eq 0 ]]; then
-  echo "[ OK ]"
+  fuMESSAGE "[ OK ]"
 else
   fuERROR "No internet connection"
 fi
@@ -223,7 +223,6 @@ else
   echo
   exit
 fi
-
 sleep 2
 
 ######################

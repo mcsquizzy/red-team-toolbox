@@ -30,7 +30,7 @@ cp ./reconnaissance.conf.dist reconnaissance.conf
 ./reconnaissance.sh -c reconnaissance.conf
 ```
 
-## Tools
+## Tools used
 
 All tools used are preinstalled on latest Kali Linux Version 2022.1:  
 - sherlock
