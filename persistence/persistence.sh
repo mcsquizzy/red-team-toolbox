@@ -98,9 +98,9 @@ if [ "$PASSED_ARGS" != "" ]; then
     case "$opt" in
       h|\?)
         echo
-        echo "Usage: $0 [-h] [-s]"
+        echo "Usage: sh $0 [-h] [-s]"
         echo
-        echo "-s <SSH public key>"
+        echo "-s <ssh public key / content of id_rsa.pub>"
         echo "  Trying to add ssh public key to authorized_keys"
         echo
         exit;;
@@ -160,15 +160,18 @@ if [ "$SSH" ]; then
   fi
 
   # check if $HOME variable is set
-  command -v whoami 2>/dev/null) || fuERROR "command \"whoami\" not found"
-  $USER=$(whoami 2>/dev/null)
+  WHOAMI=$(command -v whoami 2>/dev/null) || fuERROR "command \"whoami\" not found"
+  USER=$($WHOAMI 2>/dev/null)
   if [ ! "$HOME" ]; then
     if [ -d "/home/$USER" ]; then
       HOME="/home/$USER"
     fi
   fi
 
-  fuTITLE "Trying to add given SSH public key to authorized_keys file of user $USER ..."
+  # get local ip addresses
+  LOCAL_IP=$(ip a | grep -v docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
+
+  fuTITLE "Trying to add given ssh public key to authorized_keys file of user $USER ..."
   sleep 2
   if [ "$PUBKEY" != "" ]; then
     if [ -d "$HOME/.ssh" ]; then
@@ -197,7 +200,7 @@ fi
 ##############
   
 echo "
-  _   _           _     ____  _                   _____       ____                
+   _   _           _     ____  _                   _____       ____                
   | \ | | _____  _| |_  / ___|| |_ ___ _ __  ___  |_   _|__   |  _ \  ___          
   |  \| |/ _ \ \/ / __| \___ \| __/ _ \ '_ \/ __|   | |/ _ \  | | | |/ _ \         
   | |\  |  __/>  <| |_   ___) | ||  __/ |_) \__ \   | | (_) | | |_| | (_) |  _ _ _ 
@@ -206,7 +209,10 @@ echo "
 "
 
 if [ "$SSHOK" ]; then
-  fuSTEPS "authorized_key file updated, if ssh server is running, remote ssh login should be possible to user $USER with given SSH key pair."
+  fuSTEPS "authorized_key file updated, if ssh server is running, remote ssh login should be possible to user \"$USER\" with given SSH key pair."
+  for ip in $LOCAL_IP; do
+    fuSTEPS "From your Host: Try \"ssh $USER@$ip\""
+  done
 else
   fuERROR "Modify ssh keys was not successful"
 fi
