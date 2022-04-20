@@ -33,7 +33,7 @@ echo "
  | |_) ||  _|  | |_) |\___ \ | | \___ \  | |  |  _|  |  \| || |    |  _|  
  |  __/ | |___ |  _ <  ___) || |  ___) | | |  | |___ | |\  || |___ | |___ 
  |_|    |_____||_| \_\|____/|___||____/  |_|  |_____||_| \_| \____||_____|
-                                                                         
+                                                                     
 "
 }
 
@@ -171,7 +171,7 @@ if [ "$SSH" ]; then
   # get local ip addresses
   LOCAL_IP=$(ip a | grep -v docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
 
-  fuTITLE "Trying to add given ssh public key to authorized_keys file of user $USER ..."
+  fuTITLE "Trying to add given ssh public key to authorized_keys file of user \"$USER\" ..."
   sleep 2
   if [ "$PUBKEY" != "" ]; then
     if [ -d "$HOME/.ssh" ]; then
