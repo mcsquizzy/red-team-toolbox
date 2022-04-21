@@ -23,29 +23,49 @@ myUPORTFILE="output/uport-findings.txt"
 # NMAP Scans
 function fuNmapTCPScan {
   fuTITLE "Nmap TCP SYN scan of $* ..."
-  nmap -sS -Pn -oN $myPORTFILE $SPOOFINGPARAMETERS $*
+  if [ "$IAMROOT" ]; then
+    nmap -sS -Pn -oN $myPORTFILE $SPOOFINGPARAMETERS $*
+  else
+    fuERROR "You're not root. TCP SYN scan needs root privileges. Try \"sudo $0\""
+  fi
 }
 
 function fuNmapTCPScanIPRANGE {
   fuTITLE "Nmap TCP SYN scan of $* ... (might take some time)"
-  nmap -sS -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
+  if [ "$IAMROOT" ]; then
+    nmap -sS -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
+  else
+    fuERROR "You're not root. TCP SYN scan needs root privileges. Try \"sudo $0\""
+  fi
 }
 
 function fuNmapUDPScan {
   fuTITLE "Nmap UDP scan of $* ..."
-  nmap -sU -Pn -sV --version-light -T4 -oN $myUPORTFILE $SPOOFINGPARAMETERS $* --host-timeout 120s
+  if [ "$IAMROOT" ]; then
+    nmap -sU -Pn -sV --version-light -T4 -oN $myUPORTFILE $SPOOFINGPARAMETERS $* --host-timeout 120s
+  else
+    fuERROR "You're not root. UDP scan needs root privileges. Try \"sudo $0\""
+  fi
 }
 
 function fuNmapUDPScanIPRANGE {
   fuTITLE "Nmap UDP scan of $* ... (might take some time)"
-  nmap -sU -sV --version-light -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $SPOOFINGPARAMETERS $* --host-timeout 120s
+  if [ "$IAMROOT" ]; then
+    nmap -sU -sV --version-light -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $SPOOFINGPARAMETERS $* --host-timeout 120s
+  else
+    fuERROR "You're not root. UDP scan needs root privileges. Try \"sudo $0\""
+  fi
 }
 
 # neak through certain non-stateful firewalls and packet filtering routers
 function fuNmapExoticScan {
   if grep -q -w filtered $myPORTFILE; then
     fuINFO "Target might be behind a firewall, trying Exotic Scan Flags"
-    fuNmapFINScan $*
+    if [ "$IAMROOT" ]; then
+      fuNmapFINScan $*
+    else
+      fuERROR "You're not root. Exotic scan needs root privileges. Try \"sudo $0\""
+    fi
   fi
 }
 
@@ -281,40 +301,34 @@ elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPO
   fuNmapExoticScan $DOMAIN -p$PORTRANGE
 fi
 
-
 # UDP scan
 # nmap
 if [ "$UDP" ]; then
-  if [ "$IAMROOT" ]; then
-    if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
-      fuNmapUDPScan $IP -p$UDPPORT
-      fuPrepareTargetPort $myUPORTFILE
+  if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
+    fuNmapUDPScan $IP -p$UDPPORT
+    fuPrepareTargetPort $myUPORTFILE
 
-    elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
-      fuNmapUDPScan $IP
-      fuPrepareTargetPortAppend $myUPORTFILE
+  elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
+    fuNmapUDPScan $IP
+    fuPrepareTargetPortAppend $myUPORTFILE
 
-    elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-      fuNmapUDPScan $IP -p$PORTRANGE
-      fuPrepareTargetPortAppend $myUPORTFILE
+  elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+    fuNmapUDPScan $IP -p$PORTRANGE
+    fuPrepareTargetPortAppend $myUPORTFILE
 
-    elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$UDPPORT" != "" ]; then
-      fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
-      fuPrepareTargetIPAppend
+  elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$UDPPORT" != "" ]; then
+    fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
+    fuPrepareTargetIPAppend
 
-    elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
-      fuNmapUDPScan $DOMAIN -p$UDPPORT
-      fuPrepareTargetPort $myUPORTFILE
+  elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
+    fuNmapUDPScan $DOMAIN -p$UDPPORT
+    fuPrepareTargetPort $myUPORTFILE
 
-    elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-      fuNmapUDPScan $DOMAIN -p$PORTRANGE
-      fuPrepareTargetPortAppend $myUPORTFILE
-    fi
-  else
-    fuERROR "You're not root. UDP scan needs root privileges. Try \"sudo $0\""
+  elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
+    fuNmapUDPScan $DOMAIN -p$PORTRANGE
+    fuPrepareTargetPortAppend $myUPORTFILE
   fi
 fi
-
 
 #####################
 # Summarize results #
