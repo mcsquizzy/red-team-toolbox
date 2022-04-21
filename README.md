@@ -16,4 +16,3 @@ Setup of all components ...
 1. Escalate Privileges
 1. Internal Recon
 1. Lateral Movement
-1. dont know yet
