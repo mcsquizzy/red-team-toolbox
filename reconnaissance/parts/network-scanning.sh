@@ -22,13 +22,13 @@ myUPORTFILE="output/uport-findings.txt"
 
 # NMAP Scans
 function fuNmapTCPScan {
-  fuTITLE "Nmap TCP scan of $* ..."
-  nmap -Pn -oN $myPORTFILE $SPOOFINGPARAMETERS $*
+  fuTITLE "Nmap TCP SYN scan of $* ..."
+  nmap -sS -Pn -oN $myPORTFILE $SPOOFINGPARAMETERS $*
 }
 
 function fuNmapTCPScanIPRANGE {
-  fuTITLE "Nmap TCP scan of $* ... (might take some time)"
-  nmap -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
+  fuTITLE "Nmap TCP SYN scan of $* ... (might take some time)"
+  nmap -sS -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
 }
 
 function fuNmapUDPScan {
