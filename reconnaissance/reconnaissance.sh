@@ -108,24 +108,23 @@ function fuGET_DEPS {
 
 function fuNmapSpoofingParameters {
   if [ "$NETDEVICE" != "" ] && [ "$SOURCEIP" != "" ] && [ "$SOURCEPORT" != "" ]; then
-    echo -e$NETDEVICE -S$SOURCEIP -g$SOURCEPORT
+    echo "-e$NETDEVICE -S$SOURCEIP -g$SOURCEPORT"
   elif [ "$NETDEVICE" != "" ] && [ "$SOURCEIP" != "" ] && [ "$SOURCEPORT" == "" ]; then
-    echo -e$NETDEVICE -S$SOURCEIP
+    echo "-e$NETDEVICE -S$SOURCEIP"
   elif [ "$NETDEVICE" != "" ] && [ "$SOURCEIP" == "" ] && [ "$SOURCEPORT" != "" ]; then
-    echo -e$NETDEVICE -g$SOURCEPORT
+    echo "-e$NETDEVICE -g$SOURCEPORT"
   elif [ "$NETDEVICE" != "" ] && [ "$SOURCEIP" == "" ] && [ "$SOURCEPORT" == "" ]; then
-    echo -e$NETDEVICE
+    echo "-e$NETDEVICE"
   elif [ "$NETDEVICE" == "" ] && [ "$SOURCEIP" != "" ] && [ "$SOURCEPORT" != "" ]; then
-    echo -S$SOURCEIP -g$SOURCEPORT
+    echo "-S$SOURCEIP -g$SOURCEPORT"
   elif [ "$NETDEVICE" == "" ] && [ "$SOURCEIP" != "" ] && [ "$SOURCEPORT" == "" ]; then
-    echo -S$SOURCEIP
+    echo "-S$SOURCEIP"
   elif [ "$NETDEVICE" == "" ] && [ "$SOURCEIP" == "" ] && [ "$SOURCEPORT" != "" ]; then
-    echo -g$SOURCEPORT
+    echo "-g$SOURCEPORT"
   else
-    echo
+    echo "funktioniert noch nicht wtf"
   fi
 }
-SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 
 ####################################
 # Check the command line arguments #
@@ -225,11 +224,14 @@ if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
   fi
 else
   fuERROR "Aborting. No main variable in \"$myCONF_FILE\" set to true. Nothing to do."
-  fuINFO "Specify your configuration in $myCONF_FILE and run script again."
+  fuINFO "Specify your configuration in \"$myCONF_FILE\" and run script again."
   echo
   exit
 fi
 sleep 2
+
+# set nmap spoofing variable
+SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 
 ######################
 # Validate variables #
