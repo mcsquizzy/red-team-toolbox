@@ -12,8 +12,8 @@ if [ "$ADDUSER" ]; then
   "
   sleep 1
 
-  # without root
-  #useradd -M -N -r -s /bin/bash #{username}
+  # check -p parameter
+  if [ ! "$ADDPW" ]; then fuERROR "Aborting! No password given. You cannot login to that user until you set a password. Use the -p parameter" && exit; fi
 
   # check if /bin/bash exists
   if [ -f "/bin/bash" ]; then BASH="1"; else BASH=""; fi
@@ -56,8 +56,6 @@ if [ "$ADDUSER" ]; then
       else
         echo "$PW" | passwd $USERNAME
       fi
-    else
-      fuERROR "No password given. You cannot login with that username until you create a password!!! Try \"sudo sh $0 -p\""
     fi
   fi
 
