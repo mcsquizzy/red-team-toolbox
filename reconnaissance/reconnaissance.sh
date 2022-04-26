@@ -122,7 +122,7 @@ function fuNmapSpoofingParameters {
   elif [ "$NETDEVICE" == "" ] && [ "$SOURCEIP" == "" ] && [ "$SOURCEPORT" != "" ]; then
     echo "-g$SOURCEPORT"
   else
-    echo "funktioniert noch nicht wtf"
+    echo 
   fi
 }
 
@@ -219,7 +219,7 @@ if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
   if [ "$VULN" ]; then
     fuMESSAGE "Vulnerability Scanning"
     if [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
-    fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port. The Vuln Scanning takes data from the Network Scanning about open ports."
+    fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port, unless you've already run it once. The Vuln Scanning takes data from the Network Scanning about open ports."
     fi
   fi
 else
@@ -228,7 +228,7 @@ else
   echo
   exit
 fi
-sleep 2
+sleep 3
 
 # set nmap spoofing variable
 SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
