@@ -1,6 +1,7 @@
 # Reconnaissance Phase
 
 Definition
+Environment variables controlled bash script
 
 Available parts:
 - Identity
