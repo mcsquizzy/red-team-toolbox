@@ -122,7 +122,7 @@ function fuNmapSpoofingParameters {
   elif [ "$NETDEVICE" == "" ] && [ "$SOURCEIP" == "" ] && [ "$SOURCEPORT" != "" ]; then
     echo "-g$SOURCEPORT"
   else
-    echo 
+    echo ""
   fi
 }
 

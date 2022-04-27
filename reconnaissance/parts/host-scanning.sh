@@ -27,7 +27,7 @@ WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
 NMAPSMBSCRIPTS="smb-enum-shares"
 NMAPSMTPSCRIPTS="smtp-commands,smtp-enum-users"
 NMAPMYSQLSCRIPTS="mysql-databases,mysql-dump-hashes,mysql-empty-password,mysql-enum,mysql-info,mysql-query,mysql-users,mysql-vuln-cve2012-2122"
-NMAPSSHSCRIPTS="ssh-hostkey,ssh-auth-methods"#,ssh2-enum-algos"
+NMAPSSHSCRIPTS="ssh-hostkey,ssh-auth-methods"
 NMAPVNCSCRIPTS="vnc-info,realvnc-auth-bypass,vnc-title"
 
 #############
@@ -227,7 +227,7 @@ done
 # VNC Authentication
 # metasploit
 for i in $VNCPORTS; do
-  if [ "$IP" != "" ] && [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
     fuTITLE "Looking for target $IP if a VNC Server is running ..."
     msfdb init
     msfconsole -x "use auxiliary/scanner/vnc/vnc_none_auth; set rhost $IP; set rport $i; run; exit" -q -o $myVNCFILE
