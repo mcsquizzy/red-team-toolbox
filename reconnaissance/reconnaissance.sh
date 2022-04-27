@@ -219,7 +219,9 @@ if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
   if [ "$VULN" ]; then
     fuMESSAGE "Vulnerability Scanning"
     if [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
+    echo
     fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port, unless you've already run it once. The Vuln Scanning takes data from the Network Scanning about open ports."
+    echo
     fi
   fi
 else
@@ -318,6 +320,7 @@ fi
 if [ ! "$VULN" ]; then
   fuSTEPS "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
 elif [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
+  echo
   fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port. The Vuln Scanning takes data from the Network Scanning about open ports."
 fi
 
