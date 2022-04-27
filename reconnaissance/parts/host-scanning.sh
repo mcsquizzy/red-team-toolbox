@@ -35,7 +35,7 @@ NMAPVNCSCRIPTS="vnc-info,realvnc-auth-bypass,vnc-title"
 #############
 
 function fuNmapSoftwareScan {
-  fuTITLE "SYN scan with OS and version detection of $1 and $2 ..."
+  fuTITLE "Nmap scan with OS and version detection of $* ..."
   nmap -A -Pn -oN $mySOFTWAREFILE $SPOOFINGPARAMETERS $*
 }
 
@@ -50,7 +50,7 @@ function fuNmapHttpEnumScan {
 }
 
 function fuNmapMYSQLScan {
-  fuTITLE "Nmap MySQL Scan of $1 and $2 ..."
+  fuTITLE "Nmap MySQL scan of $1 and $2 ..."
   nmap -sV --script $NMAPMYSQLSCRIPTS -oN $myMYSQLFILE $SPOOFINGPARAMETERS $*
 }
 
@@ -146,9 +146,9 @@ fi
 for i in $SMBPORTS; do
   if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
     fuTITLE "Enumerate Samba Shares of $IP and port $i ..."
-    smbmap -H $IP -P $i -q | tee $mySMBFILE
-    #fuTITLE "Nmap SMB Scan of $IP and port $i ..."
-    #nmap -sV --script $NMAPSMBSCRIPTS -oN $mySMBFILE --append-output $SPOOFINGPARAMETERS $*
+    smbmap -H $IP -P $i -q | tee -a $mySMBFILE
+    fuTITLE "Nmap SMB scan of $IP and port $i ..."
+    nmap -sV --script $NMAPSMBSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $mySMBFILE --append-output
   fi
 done
 
@@ -158,7 +158,7 @@ done
 
 for i in $SMTPPORTS; do
   if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-    fuTITLE "Nmap SMTP Scan of $IP and port $i ..."
+    fuTITLE "Nmap SMTP scan of $IP and port $i ..."
     nmap -sV --script $NMAPSMTPSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $mySMTPFILE
   fi
 done
@@ -170,12 +170,12 @@ done
 # nmap
 for i in $SNMPPORTS; do
   if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-    fuTITLE "Nmap SNMP Scan of $IP and port $i ..."
+    fuTITLE "Nmap SNMP scan of $IP and port $i ..."
     nmap -sV --script snmp-info $IP -p$i $SPOOFINGPARAMETERS -oN $mySNMPFILE
     #snmp-check
 
   elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-    fuTITLE "Nmap SNMP Scan of $DOMAIN and port $i ..."
+    fuTITLE "Nmap SNMP scan of $DOMAIN and port $i ..."
     nmap -sV --script snmp-info $DOMAIN -p$i $SPOOFINGPARAMETERS -oN $mySNMPFILE
     # snmp-check
   fi
@@ -187,10 +187,10 @@ done
 
 # nmap
 if [ "$IP" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w 22 "targetPort.txt" ); then
-  fuTITLE "Nmap SSH Scan of $IP and port 22 ..."
+  fuTITLE "Nmap SSH scan of $IP and port 22 ..."
   nmap -sV --script $NMAPSSHSCRIPTS $IP -p22 $SPOOFINGPARAMETERS -oN $mySSHFILE
 elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w 22 "targetPort.txt" ); then
-  fuTITLE "Nmap SSH Scan of $DOMAIN and port 22 ..."
+  fuTITLE "Nmap SSH scan of $DOMAIN and port 22 ..."
   nmap -sV --script $NMAPSSHSCRIPTS $DOMAIN -p22 $SPOOFINGPARAMETERS -oN $mySSHFILE
 fi
 
@@ -201,10 +201,10 @@ fi
 #todo
 # sslscan
 if [ "$IP" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt" ); then
-  fuTITLE "SSL Scan (SSL/TLS Protocols, supported ciphers, certificates, etc.) of $IP ..."
+  fuTITLE "SSL scan (SSL/TLS protocols, supported ciphers, certificates, etc.) of $IP ..."
   sslscan $IP --no-colour | tee $mySSLFILE
 elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt" ); then
-  fuTITLE "SSL Scan (protocols, supported ciphers, certificates, etc.) of $DOMAIN ..."
+  fuTITLE "SSL scan (protocols, supported ciphers, certificates, etc.) of $DOMAIN ..."
   sslscan $DOMAIN --no-colour | tee $mySSLFILE
 fi
 
@@ -215,11 +215,11 @@ fi
 # nmap
 for i in $VNCPORTS; do
   if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-  fuTITLE "Nmap VNC Scan of $IP and port $i ..."
+  fuTITLE "Nmap VNC scan of $IP and port $i ..."
   nmap -sV --script $NMAPVNCSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $myVNCFILE
   
   elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-  fuTITLE "Nmap VNC Scan of $DOMAIN and port $i ..."
+  fuTITLE "Nmap VNC scan of $DOMAIN and port $i ..."
   nmap -sV --script $NMAPVNCSCRIPTS $DOMAIN -p$i $SPOOFINGPARAMETERS -oN $myVNCFILE
   fi
 done
@@ -246,7 +246,7 @@ done
 
 fuTITLE "Findings in following files:"
 if [ -s "$mySOFTWAREFILE" ]; then
-  fuRESULT "Software and Version information: $mySOFTWAREFILE"
+  fuRESULT "Software and version information: $mySOFTWAREFILE"
 fi
 if [ -s "$myDIRFILE" ]; then
   fuRESULT "Web Directory information: $myDIRFILE"
