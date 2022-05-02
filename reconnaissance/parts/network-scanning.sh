@@ -125,9 +125,9 @@ if [ ! -d "output/" ]; then
   mkdir output && echo "[ OK ]"
 fi
 
-###########################
-# Domain / DNS Properties #
-###########################
+##############################
+# DNS Properties/Enumeration #
+##############################
 
 # Passive Reconnaissance
 # WHOIS
