@@ -180,35 +180,43 @@ if [ "$ADDUSER" ]; then
   # check if /bin/bash exists
   if [ -f "/bin/bash" ]; then BASH="1"; else BASH=""; fi
 
-  # check commands
-  USERADD=$(command -v useradd 2>/dev/null) || fuERROR "command \"useradd\" not found"
-  USERMOD=$(command -v usermod 2>/dev/null) || fuERROR "command \"usermod\" not found"
-
   fuTITLE "Trying to add the user \"$USERNAME\" with root privileges ..."
   sleep 2
   if [ "$BASH" ]; then
+    if [ "$(command -v useradd 2>/dev/null)" ]; then
     #if $USERADD -g 0 -M -d /root -s /bin/bash $USERNAME 2>/dev/null; then
-    if $USERADD -m -s /bin/bash $USERNAME 2>/dev/null; then
-      ADDUSEROK="1" && fuINFO "user \"$USERNAME\" added"
+      if useradd -m -s /bin/bash $USERNAME 2>/dev/null; then
+        ADDUSEROK="1" && fuINFO "user \"$USERNAME\" added"
+      else
+        ADDUSEROK="" && fuERROR "unable to add user \"$USERNAME\". You need root privileges. Try \"sudo sh $0\""
+      fi
     else
-      ADDUSEROK="" && fuERROR "unable to add user \"$USERNAME\". You need root privileges. Try \"sudo sh $0\""
+      fuERROR "command \"useradd\" not found"
     fi
   else
-    #if $USERADD -g 0 -M -d /root -s /bin/sh $USERNAME 2>/dev/null; then
-    if $USERADD -m -s /bin/sh $USERNAME 2>/dev/null; then
-      ADDUSEROK="1" && fuINFO "user \"$USERNAME\" added"
+    if [ "$(command -v useradd 2>/dev/null)" ]; then
+      #if $USERADD -g 0 -M -d /root -s /bin/sh $USERNAME 2>/dev/null; then
+      if useradd -m -s /bin/sh $USERNAME 2>/dev/null; then
+        ADDUSEROK="1" && fuINFO "user \"$USERNAME\" added"
+      else
+        ADDUSEROK="" && fuERROR "unable to add user \"$USERNAME\". You need root privileges. Try \"sudo sh $0\""
+      fi
     else
-      ADDUSEROK="" && fuERROR "unable to add user \"$USERNAME\". You need root privileges. Try \"sudo sh $0\""
+      fuERROR "command \"useradd\" not found"
     fi
   fi
   
   if [ "$ADDUSEROK" ]; then
     fuTITLE "Trying to add user \"$USERNAME\" to sudo group ..."
     sleep 2
-    if $USERMOD -a -G sudo $USERNAME 2>/dev/null; then
-      fuINFO "user \"$USERNAME\" added to sudo group"
+    if [ "$(command -v usermod 2>/dev/null)" ]; then
+      if $USERMOD -a -G sudo $USERNAME 2>/dev/null; then
+        fuINFO "user \"$USERNAME\" added to sudo group"
+      else
+        fuERROR "unable to add user \"$USERNAME\" to sudo group"
+      fi
     else
-      fuERROR "unable to add user \"$USERNAME\" to sudo group"
+      fuERROR "command \"usermod\" not found"
     fi
 
     fuTITLE "Trying to add a password to user \"$USERNAME\" ..."
@@ -248,7 +256,7 @@ if [ "$ELEVATEPRIV" ]; then
   # check if given user exists
   if id -u $PRIVUSER >/dev/null 2>&1; then
     fuMESSAGE "user $PRIVUSER found"
-    if USERMOD=$(command -v usermod 2>/dev/null); then
+    if [ "$(command -v usermod 2>/dev/null)" ]; then
       # add user to sudo group
       if $USERMOD -a -G sudo $PRIVUSER 2>/dev/null; then
         ELEVATEPRIVOK="1" && fuINFO "user \"$PRIVUSER\" added to sudo group"
@@ -298,8 +306,8 @@ if [ "$SSH" ]; then
   fi
 
   # set current user to $USER
-  if WHOAMI=$(command -v whoami 2>/dev/null); then
-    USER=$($WHOAMI 2>/dev/null)
+  if [ "$(command -v whoami 2>/dev/null)" ]; then
+    USER=$(whoami 2>/dev/null)
   else
     fuERROR "command \"whoami\" not found"
     # try with who am i
@@ -321,8 +329,8 @@ if [ "$SSH" ]; then
   if [ -d "$HOME/.ssh" ]; then
     if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then TRYCHMOD=""; else SSHOK="" && fuERROR "unable to write authorized_keys" && TRYCHMOD="1"; fi
     if [ "$TRYCHMOD" ]; then
-      if CHMOD=$(command -v chmod 2>/dev/null); then
-        $CHMOD 700 "$HOME"/.ssh 2>/dev/null
+      if [ "$(command -v chmod 2>/dev/null)" ]; then
+        chmod 700 "$HOME"/.ssh 2>/dev/null
         echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys && SSHOK="1" && fuINFO "authorized_keys updated"
       else 
         fuERROR "command \"chmod\" not found"
@@ -332,9 +340,11 @@ if [ "$SSH" ]; then
     fi
   else
     fuINFO "No .ssh directory exists, creating one ..."
-    MKDIR=$(command -v mkdir 2>/dev/null) || fuERROR "command \"mkdir\" not found"
-    CHMOD=$(command -v chmod 2>/dev/null) || fuERROR "command \"chmod\" not found"
-    $MKDIR "$HOME"/.ssh 2>/dev/null && $CHMOD 700 "$HOME"/.ssh 2>/dev/null && $CHMOD 600 "$HOME"/.ssh/authorized_keys 2>/dev/null
+    if [ "$(command -v mkdir 2>/dev/null)" ]; then
+      mkdir "$HOME"/.ssh 2>/dev/null && chmod 700 "$HOME"/.ssh 2>/dev/null && chmod 600 "$HOME"/.ssh/authorized_keys 2>/dev/null
+    else
+      fuERROR "command \"mkdir\" not found"
+    fi
     if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then SSHOK="1" && fuINFO "authorized_keys updated"; else SSHOK="" && fuERROR "unable to write authorized_keys"; fi
   fi
 fi
