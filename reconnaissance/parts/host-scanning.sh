@@ -24,7 +24,7 @@ VNCPORTS="5800 5801 5900 5901"
 
 WORDLIST="/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
 
-NMAPSMBSCRIPTS="smb-enum-shares"
+NMAPSMBSCRIPTS="smb-enum-shares,smb-enum-users"
 NMAPSMTPSCRIPTS="smtp-commands,smtp-enum-users"
 NMAPMYSQLSCRIPTS="mysql-databases,mysql-dump-hashes,mysql-empty-password,mysql-enum,mysql-info,mysql-query,mysql-users,mysql-vuln-cve2012-2122"
 NMAPSSHSCRIPTS="ssh-hostkey,ssh-auth-methods"
@@ -47,11 +47,6 @@ function fuGobusterScan {
 function fuNmapHttpEnumScan {
   fuTITLE "Directory/file enumeration on webserver $1 $2 ..."
   nmap --script http-enum -oN $myDIRFILE --append-output $SPOOFINGPARAMETERS $*
-}
-
-function fuNmapMYSQLScan {
-  fuTITLE "Nmap MySQL scan of $1 and $2 ..."
-  nmap -sV --script $NMAPMYSQLSCRIPTS -oN $myMYSQLFILE $SPOOFINGPARAMETERS $*
 }
 
 ################################
@@ -93,9 +88,9 @@ elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORT
   fuNmapSoftwareScan $IP -p$PORTRANGE
 fi
 
-#########################
-# Directory Enumeration #
-#########################
+#####################################
+# Directory Enumeration (Webserver) #
+#####################################
 
 # Gobuster
 if [ "$IP" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
@@ -125,16 +120,35 @@ elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort
   fuNmapHttpEnumScan $DOMAIN -p443
 fi
 
+####################
+# LDAP Enumeration #
+####################
+
+#todo
+# nmap
+nmap -n -sV --script "ldap* and not brute" <IP> #Using anonymous credentials
+
+
+# LDAP user enumeration
+nmap -p 88 --script=krb5-enum-users --script-args="krb5-enum-users.realm='DOMAIN'" <IP>
+
+
+nmap --script dns-srv-enum --script-args "dns-srv-enum.domain='domain.com'"
+
+
 
 ##################
 # MySQL Analysis #
 ##################
 
+# nmap
 if [ "$IP" != "" ] && ([ "$TCPPORT" == "3306" ] || grep -q -w 3306 "targetPort.txt"); then
-  fuNmapMYSQLScan $IP -p3306
+  fuTITLE "Nmap MySQL scan of $IP and port 3306 ..."
+  nmap -sV --script $NMAPMYSQLSCRIPTS $IP -p3306 -oN $myMYSQLFILE $SPOOFINGPARAMETERS
 
 elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "3306" ] || grep -q -w 3306 "targetPort.txt"); then
-  fuNmapMYSQLScan $DOMAIN -p3306
+  fuTITLE "Nmap MySQL scan of $DOMAIN and port 3306 ..."
+  nmap -sV --script $NMAPMYSQLSCRIPTS $DOMAIN -p3306 -oN $myMYSQLFILE $SPOOFINGPARAMETERS
 fi
 
 ################
@@ -156,6 +170,7 @@ done
 # SMTP Analysis #
 #################
 
+# nmap
 for i in $SMTPPORTS; do
   if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
     fuTITLE "Nmap SMTP scan of $IP and port $i ..."
