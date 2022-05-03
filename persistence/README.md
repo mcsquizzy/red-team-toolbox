@@ -3,7 +3,10 @@
 Definition...  
 
 Available parts:
-- Modify SSH Keys
+- Elevate privileges
+- Create a root shell
+- Modify ssh keys
+- Create local user
 
 ## Usage
 
@@ -26,15 +29,32 @@ sh lin-persistence.sh -h
 ```sh
 sh lin-persistence.sh -h
 
-Usage: sh lin-persistence.sh [-h] [-s]
+Usage: sh lin-persistence.sh [-h] [-e] [-r] [-s] [-u] [-p]
 
--s <SSH public key>
-  Trying to add ssh public key to authorized_keys
+-e <username>
+  Elevate privileges of the given user
+  Root needed!
+
+-r
+  Create a root shell
+  Root needed!
+
+-s <ssh public key / content of id_rsa.pub>
+  Trying to add ssh public key to authorized_keys of current user
+
+-u <username>
+  Add a local account/user
+  Root needed!
+
+-p <password>
+  Set this password to new user
+  Only useful in combination with -u parameter
+  Root needed!
 ```
 
 ## Results
 
-Results are output directly to the STDOUT.
+The results are printed directly to STDOUT.
 
 ## Compatibility
 
