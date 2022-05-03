@@ -20,6 +20,8 @@ BBLUE='\033[1;34m'
 BOLD=$(tput bold)
 NORMAL='\033[0;39m'
 
+mySYSTEMFILE="system_info.txt"
+
 
 #############
 # Functions #
@@ -41,15 +43,16 @@ echo "
 # Print output title
 fuTITLE() {
   echo
-  echo "$BBLUE════════════════════════════════════════════════════════════════════════"
+  echo "$BBLUE════════════════════════════════════════════════════════════════════════════"
   echo "$BGREEN $1 $BBLUE"
-  echo "════════════════════════════════════════════════════════════════════════$NC"
+  echo "════════════════════════════════════════════════════════════════════════════$NC"
 }
 
 # Print info line
 fuINFO() {
   echo
   echo "$BBLUE═══$BGREEN $1 $NC"
+  echo
 }
 
 # Print error line
@@ -139,9 +142,90 @@ fuGOT_ROOT
 sleep 1
 
 
-#############
-# Parts ... #
-#############
+######################
+# System Information #
+######################
+
+system_info() {
+
+fuTITLE "System Information"
+
+fuINFO "Linux version"
+versioninfo='$(command -v cat) /etc/*-release 2>/dev/null'
+if [ "$versioninfo" ]; then versioninfo; fi
+
+fuINFO "Kernel info"
+kernelinfo='$(command -v uname) -ar 2>/dev/null'
+if [ "$kernelinfo" ]; then kernelinfo; fi
+
+fuINFO "Hostname"
+hostname='$(command -v hostname) 2>/dev/null'
+if [ "$hostname" ]; then hostname; fi
+
+}
+
+#######################
+# Network Information #
+#######################
+
+network_info() {
+
+fuTITLE "Network Information"
+
+fuINFO "Current IP"
+currentip='$(command -v ip) a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null'
+if [ "$currentip" ]; then
+  currentip
+else
+  $(command -v ifconfig) | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null
+fi
+
+fuINFO "DNS info"
+dnsinfo='grep "nameserver" /etc/resolv.conf'
+if [ "$dnsinfo" ]; then dnsinfo; fi
+nsinfo='systemd-resolve --status 2>/dev/null'
+if [ "$nsinfo" ]; then nsinfo; fi
+
+fuINFO "Route info"
+defroute='$(command -v route)'
+if [ "$defroute" ]; then defroute; fi
+defrouteip='$(command -v ip) r | grep default 2>/dev/null'
+if [ "$defrouteip" ]; then defrouteip; fi
+
+
+
+}
+
+
+####################
+# User Information #
+####################
+
+user_info() {
+
+
+
+}
+
+#########################
+# Environment Variables #
+#########################
+
+
+
+################
+# Jobs / Tasks #
+################
+
+
+
+
+
+
+
+
+system_info | tee $mySYSTEMFILE
+network_info | tee ....
 
 
 
