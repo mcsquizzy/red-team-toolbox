@@ -18,7 +18,7 @@ Available parts:
 
 ## Results
 
-Results stored to output/ directory
+Results saved to output/ directory.
 
 ## Usage
 
