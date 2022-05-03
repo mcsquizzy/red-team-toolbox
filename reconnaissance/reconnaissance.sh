@@ -178,7 +178,7 @@ fi
 
 fuBANNER "RECONNAISSANCE"
 echo
-echo -e "Disclaimer: $RED todo $NC"
+echo -e "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
 echo
 sleep 1
 

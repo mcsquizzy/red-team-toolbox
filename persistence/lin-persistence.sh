@@ -20,6 +20,7 @@ BBLUE='\033[1;34m'
 BOLD=$(tput bold)
 NORMAL='\033[0;39m'
 
+
 #############
 # Functions #
 #############
@@ -93,6 +94,7 @@ else
 fi
 }
 
+
 #####################################
 # Check the command line parameters #
 #####################################
@@ -142,15 +144,17 @@ fi
 # validate OPTARG 
 # todo
 
+
 ##########
 # Banner #
 ##########
 
 fuBANNER
 echo
-echo "Disclaimer: $RED todo $NC"
+echo "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
 echo
 sleep 1
+
 
 #####################
 # Checking for root #
