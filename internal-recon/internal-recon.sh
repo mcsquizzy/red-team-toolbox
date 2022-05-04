@@ -6,21 +6,25 @@
 ####################
 
 # colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+BLUE="\033[0;34m"
 NC="\033[0m" # No Color
 # bold
-BRED='\033[1;31m'
-BGREEN='\033[1;32m'
-BYELLOW='\033[1;33m'
-BBLUE='\033[1;34m'
+BRED="\033[1;31m"
+BGREEN="\033[1;32m"
+BYELLOW="\033[1;33m"
+BBLUE="\033[1;34m"
 # text
-BOLD=$(tput bold)
-NORMAL='\033[0;39m'
+BOLD="$(tput bold)"
+NORMAL="\033[0;39m"
 
-mySYSTEMFILE="system_info.txt"
+# Get hostname
+hostname=`$(command -v hostname) 2>/dev/null`
+
+mySYSTEMFILE="${hostname}_system_info.txt"
+myNETWFILE="${hostname}_network_info.txt"
 
 
 #############
@@ -51,20 +55,19 @@ fuTITLE() {
 # Print info line
 fuINFO() {
   echo
-  echo "$BBLUE═══$BGREEN $1 $NC"
-  echo
+  echo "$BBLUE════$BGREEN $1 $NC"
 }
 
 # Print error line
 fuERROR() {
   echo
-  echo "$BBLUE═══$BRED $1 $NC"
+  echo "$BBLUE════$BRED $1 $NC"
 }
 
 # Print results line
 fuRESULT() {
   echo
-  echo "$BBLUE═══$BYELLOW $1 $NC"
+  echo "$BBLUE════$BYELLOW $1 $NC"
 }
 
 # Print next steps line
@@ -75,12 +78,12 @@ fuSTEPS() {
 
 # Print message line
 fuMESSAGE() {
-  echo "$BBLUE---$NC $1 $NC"
+  echo "$BBLUE----$NC $1 $NC"
 }
 
 # Print attention message line
 fuATTENTION() {
-  echo "$BLUE---$YELLOW $1 $NC"
+  echo "$BLUE----$YELLOW $1 $NC"
 }
 
 # Check for root permissions
@@ -104,13 +107,21 @@ fi
 
 PASSED_ARGS=$@
 if [ "$PASSED_ARGS" != "" ]; then
-  while getopts "h" opt; do
+  while getopts "h?c" opt; do
     case "$opt" in
       h|\?)
         echo
-        echo "Usage: sh $0 [-h]"
+        echo "Usage: sh $0 [-h/-?] [-c]"
+        echo
+        echo "-h/-?"
+        echo "  Show this help message"
+        echo
+        echo "-c"
+        echo "  No colours"
+        echo "  Without colours, the output can probably be read better"
         echo
         exit;;
+      c) NOCOLOUR="1";;
       esac
   done
 else
@@ -122,6 +133,17 @@ fi
 # validate OPTARG 
 # todo
 
+if [ "$NOCOLOUR" ]; then
+  RED=""
+  GREEN=""
+  YELLOW=""
+  BLUE=""
+  NC=""
+  BRED=""
+  BGREEN=""
+  BYELLOW=""
+  BBLUE=""
+fi
 
 ##########
 # Banner #
@@ -133,14 +155,12 @@ echo "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/o
 echo
 sleep 1
 
-
 #####################
 # Checking for root #
 #####################
 
 fuGOT_ROOT
 sleep 1
-
 
 ######################
 # System Information #
@@ -151,16 +171,16 @@ system_info() {
 fuTITLE "System Information"
 
 fuINFO "Linux version"
-versioninfo='$(command -v cat) /etc/*-release 2>/dev/null'
-if [ "$versioninfo" ]; then versioninfo; fi
+versioninfo=`$(command -v cat) /etc/*-release 2>/dev/null`
+if [ "$versioninfo" ]; then echo "$versioninfo"; fi
 
 fuINFO "Kernel info"
-kernelinfo='$(command -v uname) -ar 2>/dev/null'
-if [ "$kernelinfo" ]; then kernelinfo; fi
+kernelinfo=`$(command -v uname) -ar 2>/dev/null`
+if [ "$kernelinfo" ]; then echo "$kernelinfo"; fi
 
 fuINFO "Hostname"
-hostname='$(command -v hostname) 2>/dev/null'
-if [ "$hostname" ]; then hostname; fi
+hostname=`$(command -v hostname) 2>/dev/null`
+if [ "$hostname" ]; then echo "$hostname"; fi
 
 }
 
@@ -182,15 +202,15 @@ fi
 
 fuINFO "DNS info"
 dnsinfo='grep "nameserver" /etc/resolv.conf'
-if [ "$dnsinfo" ]; then dnsinfo; fi
+if [ "$dnsinfo" ]; then $dnsinfo; fi
 nsinfo='systemd-resolve --status 2>/dev/null'
-if [ "$nsinfo" ]; then nsinfo; fi
+if [ "$nsinfo" ]; then $nsinfo; fi
 
 fuINFO "Route info"
 defroute='$(command -v route)'
-if [ "$defroute" ]; then defroute; fi
+if [ "$defroute" ]; then $defroute; fi
 defrouteip='$(command -v ip) r | grep default 2>/dev/null'
-if [ "$defrouteip" ]; then defrouteip; fi
+if [ "$defrouteip" ]; then $defrouteip; fi
 
 
 
@@ -201,11 +221,11 @@ if [ "$defrouteip" ]; then defrouteip; fi
 # User Information #
 ####################
 
-user_info() {
+#user_info(){}
 
 
 
-}
+
 
 #########################
 # Environment Variables #
@@ -225,7 +245,6 @@ user_info() {
 
 
 system_info | tee $mySYSTEMFILE
-network_info | tee ....
 
 
 
