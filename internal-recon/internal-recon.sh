@@ -21,7 +21,7 @@ BOLD="$(tput bold)"
 NORMAL="\033[0;39m"
 
 # Get hostname
-hostname=`$(command -v hostname) 2>/dev/null`
+hostname=`hostname 2>/dev/null`
 
 mySYSTEMFILE="${hostname}_system_info.txt"
 myNETWFILE="${hostname}_network_info.txt"
@@ -56,6 +56,21 @@ fuTITLE() {
 fuINFO() {
   echo
   echo "$BBLUE════$BGREEN $1 $NC"
+}
+
+# Print info line
+fuCHECKS() {
+  echo
+  printf "$BBLUE════$BYELLOW $1 $NC"
+}
+
+fuOK() {
+  echo "$BGREEN[OK]$NC"
+}
+
+fuNOTOK() {
+  echo "$BRED[NOT OK]$NC"
+  echo "unknown"
 }
 
 # Print error line
@@ -168,20 +183,40 @@ sleep 1
 
 system_info() {
 
-fuTITLE "System Information"
+fuTITLE "System information"
+sleep 1
 
-fuINFO "Linux version"
-versioninfo=`$(command -v cat) /etc/*-release 2>/dev/null`
-if [ "$versioninfo" ]; then echo "$versioninfo"; fi
+# hostname
+hostname=$(hostname 2>/dev/null)
+if [ "$hostname" ]; then
+  echo "      $BYELLOW Hostname:$NC $hostname"
+else
+  echo "      $BYELLOW Hostname:$NC unknown"
+fi
 
-fuINFO "Kernel info"
-kernelinfo=`$(command -v uname) -ar 2>/dev/null`
-if [ "$kernelinfo" ]; then echo "$kernelinfo"; fi
+# release version
+kernelinfo=$(uname -r 2>/dev/null)
+if [ "$kernelinfo" ]; then
+  echo "$BYELLOW Kernel Release:$NC $kernelinfo"
+else
+  echo "$BYELLOW Kernel Release:$NC unknown"
+fi
 
-fuINFO "Hostname"
-hostname=`$(command -v hostname) 2>/dev/null`
-if [ "$hostname" ]; then echo "$hostname"; fi
+# distribution / version
+versioninfo=$(cat /etc/*-release | grep PRETTY | cut -d "=" -f 2 | tr -d \" 2>/dev/null)
+if [ "$versioninfo" ]; then
+  echo "  $BYELLOW Distribution:$NC $versioninfo"
+else
+  echo "  $BYELLOW Distribution:$NC unknown"
+fi
 
+# architecture
+architecture=$(uname -m 2>/dev/null)
+if [ "$architecture" ]; then
+  echo "  $BYELLOW Architecture:$NC $architecture"
+else
+  echo "  $BYELLOW Architecture:$NC unknown"
+fi
 }
 
 #######################
@@ -190,30 +225,35 @@ if [ "$hostname" ]; then echo "$hostname"; fi
 
 network_info() {
 
-fuTITLE "Network Information"
+fuTITLE "Network information"
+sleep 1
 
-fuINFO "Current IP"
-currentip='$(command -v ip) a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null'
+fuCHECKS "Current IP"
+currentip=$(ip a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null)
+currentif=$(ifconfig | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null)
 if [ "$currentip" ]; then
-  currentip
+  fuOK && echo "$currentip"
+elif [ "$currentif" ]; then
+  fuOK && echo "$currentif"
 else
-  $(command -v ifconfig) | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null
+  fuNOTOK
 fi
 
-fuINFO "DNS info"
-dnsinfo='grep "nameserver" /etc/resolv.conf'
-if [ "$dnsinfo" ]; then $dnsinfo; fi
-nsinfo='systemd-resolve --status 2>/dev/null'
-if [ "$nsinfo" ]; then $nsinfo; fi
+fuCHECKS "DNS info"
+dnsinfo=$(grep "nameserver" /etc/resolv.conf 2>/dev/null || systemd-resolve --status 2>/dev/null)
+if [ "$dnsinfo" ]; then fuOK && echo "$dnsinfo"; else fuNOTOK; fi
 
-fuINFO "Route info"
-defroute='$(command -v route)'
-if [ "$defroute" ]; then $defroute; fi
-defrouteip='$(command -v ip) r | grep default 2>/dev/null'
-if [ "$defrouteip" ]; then $defrouteip; fi
+fuCHECKS "Route info"
+defroute=$(route || ip r | grep default) 2>/dev/null
+if [ "$defroute" ]; then fuOK && echo "$defroute"; else fuNOTOK; fi
 
+fuCHECKS "Listening TCP connections"
+tcplisten=$(netstat -tlpn || ss -tln) 2>/dev/null
+if [ "$tcplisten" ]; then fuOK && echo "$tcplisten"; else fuNOTOK; fi
 
-
+fuCHECKS "Listening UDP connections"
+udplisten=$(netstat -ulpn || ss -uln) 2>/dev/null
+if [ "$udplisten" ]; then fuOK && echo "$udplisten"; else fuNOTOK; fi
 }
 
 
@@ -221,10 +261,80 @@ if [ "$defrouteip" ]; then $defrouteip; fi
 # User Information #
 ####################
 
-#user_info(){}
+user_info() {
 
+fuTITLE "User information"
+sleep 1
 
+fuCHECKS "Current user info"
+currentuser=$(id 2>/dev/null)
+if [ "$currentuser" ]; then fuOK && echo "$currentuser"; else fuNOTOK; fi
 
+fuCHECKS "Users that have also logged onto the system"
+lastloggedonusers=$(lastlog 2>/dev/null | grep -v Never)
+if [ "$lastloggedonusers" ]; then fuOK && echo "$lastloggedonusers"; else fuNOTOK; fi
+
+fuCHECKS "Users that are logged on right now"
+loggedonusers=$(w -h || who || users) 2>/dev/null
+if [ "$loggedonusers" ]; then fuOK && echo "$loggedonusers"; else fuNOTOK; fi
+
+fuCHECKS "All users with a login shell"
+shellusers=$(cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1)
+if [ "$shellusers" ]; then fuOK && echo "$shellusers"; else fuNOTOK; fi
+
+fuCHECKS "All users and the group they belong to"
+allusers=$(cut -d":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done 2>/dev/null | sort)
+if [ "$allusers" ]; then fuOK && echo "$allusers"; else fuNOTOK; fi
+
+fuCHECKS "All users within a admin group (admin, root, sudo, wheel)"
+allusers=$(cut -d":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done 2>/dev/null | sort | grep -E "^adm|admin|root|sudo|wheel")
+if [ "$allusers" ]; then fuOK && echo "$allusers"; else fuNOTOK; fi
+
+fuCHECKS "Last logons"
+lastlogons=$(last -Faiw | head -30 2>/dev/null || last | head -30 2>/dev/null)
+if [ "$lastlogons" ]; then fuOK && echo "$lastlogons"; else fuNOTOK; fi
+
+fuCHECKS "Can we read /etc/shadow file?"
+readshadow=$(cat /etc/shadow 2>/dev/null)
+if [ "$readshadow" ]; then fuOK && echo "$readshadow"; else fuNOTOK; fi
+
+fuCHECKS "Are there hashes in the /etc/passwd file?"
+hashesinpasswd=$(grep -v '^[^:]*:[x]' /etc/passwd 2>/dev/null)
+if [ "$hashesinpasswd" ]; then fuOK && echo "$hashesinpasswd"; else fuNOTOK; fi
+
+fuCHECKS "Can we read /etc/master.passwd file?"
+readmaster=$(cat /etc/master.passwd 2>/dev/null)
+if [ "$readmaster" ]; then fuOK && echo "$readmaster"; else fuNOTOK; fi
+
+fuCHECKS "All root / superuser accounts"
+superuser=$(grep -v -E "^#" /etc/passwd 2>/dev/null | awk -F: '$3 == 0 { print $1}' 2>/dev/null)
+if [ "$superuser" ]; then fuOK && echo "$superuser"; else fuNOTOK; fi
+
+fuCHECKS "Check sudoers configuration"
+sudoers=$(grep -v -e '^$' /etc/sudoers | grep -v "#") 2>/dev/null
+if [ "$sudoers" ]; then fuOK && echo "$sudoers"; else fuNOTOK; fi
+
+fuCHECKS "Check if we can sudo without a password"
+sudopasswd=$(echo "" | sudo -S -l -k) 2>/dev/null
+if [ "$sudopasswd" ]; then fuOK && echo "$sudopasswd"; else fuNOTOK; fi
+
+fuCHECKS "Check who have used sudo in the past"
+whosudo=$(find /home -name .sudo_as_admin_successful 2>/dev/null)
+if [ "$whosudo" ]; then fuOK && echo "$whosudo"; else fuNOTOK; fi
+
+fuCHECKS "Check home directory permissions"
+homedirperms=$(ls -lh /home/ 2>/dev/null)
+if [ "$whosudo" ]; then fuOK && echo "$whosudo"; else fuNOTOK; fi
+
+fuCHECKS "Writable files but not owned by me"
+writablefiles=$(find / -writable ! -user $(whoami) -type f ! -path "/proc/*" ! -path "/sys/*" -exec ls -al {} \; 2>/dev/null)
+if [ "$writablefiles" ]; then fuOK && echo "$writablefiles"; else fuNOTOK; fi
+
+fuCHECKS "Check if root is permitted to login via ssh"
+rootssh=$(grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | awk '{print  $2}')
+if [ "$rootssh" == "yes" ]; then fuOK && grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#"; else fuNOTOK; fi
+
+}
 
 
 #########################
@@ -245,6 +355,8 @@ if [ "$defrouteip" ]; then $defrouteip; fi
 
 
 system_info | tee $mySYSTEMFILE
+network_info | tee $myNETWFILE
+user_info
 
 
 
