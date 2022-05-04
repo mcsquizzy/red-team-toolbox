@@ -101,11 +101,14 @@ fi
 
 PASSED_ARGS=$@
 if [ "$PASSED_ARGS" != "" ]; then
-  while getopts "he:rs:u:p:" opt; do
+  while getopts "h?e:rs:u:p:" opt; do
     case "$opt" in
       h|\?)
         echo
-        echo "Usage: sh $0 [-h] [-e] [-r] [-s] [-u] [-p]"
+        echo "Usage: sh $0 [-h/-?] [-e] [-r] [-s] [-u] [-p]"
+        echo
+        echo "-h/-?"
+        echo "  Show this help message"
         echo
         echo "-e <username>"
         echo "  Elevate privileges of the given user"
