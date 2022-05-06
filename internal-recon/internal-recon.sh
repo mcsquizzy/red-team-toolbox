@@ -70,8 +70,8 @@ fuOK() {
 }
 
 fuNOTOK() {
-  echo "$BRED[NOT OK]$NC"
-  echo "unknown"
+  echo "$BRED[Nope]$NC"
+  echo
 }
 
 # Print error line
@@ -309,12 +309,12 @@ if [ "$shellusers" ]; then fuOK && echo "$shellusers"; else fuNOTOK; fi
 
 # all users
 fuCHECKS "All users and the group they belong to"
-allusers=$(cut -d":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done 2>/dev/null | sort)
+allusers=$(cut -d ":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done 2>/dev/null | sort)
 if [ "$allusers" ]; then fuOK && echo "$allusers"; else fuNOTOK; fi
 
 # all users within a admin group
 fuCHECKS "All users within a admin group (admin, root, sudo, wheel)"
-allusers=$(cut -d":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done 2>/dev/null | sort | grep -E "^adm|admin|root|sudo|wheel")
+allusers=$(cut -d ":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done 2>/dev/null | sort | grep -E "^adm|admin|root|sudo|wheel")
 if [ "$allusers" ]; then fuOK && echo "$allusers"; else fuNOTOK; fi
 
 # user loggon history
@@ -343,7 +343,7 @@ superuser=$(grep -v -E "^#" /etc/passwd 2>/dev/null | awk -F: '$3 == 0 { print $
 if [ "$superuser" ]; then fuOK && echo "$superuser"; else fuNOTOK; fi
 
 # home directory
-fuCHECKS "Check home directory permissions"
+fuCHECKS "Home directory permissions"
 homedirperms=$(ls -lh /home/ 2>/dev/null)
 if [ "$homedirperms" ]; then fuOK && echo "$homedirperms"; else fuNOTOK; fi
 
@@ -362,12 +362,12 @@ if [ "$rootssh" = "yes" ]; then fuOK && (grep "PermitRootLogin " /etc/ssh/sshd_c
 ####################
 
 # sudoers config
-fuCHECKS "Check sudoers configuration"
+fuCHECKS "Sudoers configuration"
 sudoers=$(grep -v -e '^$' /etc/sudoers | grep -v "#") 2>/dev/null
 if [ "$sudoers" ]; then fuOK && echo "$sudoers"; else fuNOTOK; fi
 
 # sudo without password
-fuCHECKS "Check if we can sudo without a password"
+fuCHECKS "Sudo without a password"
 sudopasswd=$(echo "" | sudo -S -l -k) 2>/dev/null
 if [ "$sudopasswd" ]; then fuOK && echo "$sudopasswd"; else fuNOTOK; fi
 
@@ -378,28 +378,59 @@ if [ "$whosudo" ]; then fuOK && echo "$whosudo"; else fuNOTOK; fi
 
 }
 
+############
+# Cronjobs #
+############
 
-#########################
-# Environment Variables #
-#########################
+jobs_info() {
 
+fuTITLE "Information about (cron)jobs and tasks"
+sleep 1
 
+# list all cronjobs configured
+fuCHECKS "Check if there are any cronjobs configured"
+cronjobs=$(ls -lh /etc/cron* 2>/dev/null)
+if [ "$cronjobs" ]; then fuOK && echo "$cronjobs"; else fuNOTOK; fi
 
-################
-# Jobs / Tasks #
-################
+# list all writable cronjobs
+fuCHECKS "Check if there are any writeable cronjobs"
+cronwritable=$(find -L /etc/cron* /etc/anacron /var/spool/cron -writable 2>/dev/null)
+if [ "$cronwritable" ]; then fuOK && echo "$cronwritable"; else fuNOTOK; fi
 
+# show content system-wide crontab
+fuCHECKS "Content of system-wide crontab /etc/crontab"
+crontab=$(cat /etc/crontab 2>/dev/null)
+if [ "$crontab" ]; then fuOK && echo "$crontab"; else fuNOTOK; fi
 
+# /var/spool/cron/crontab/
+fuCHECKS "Interesting files in /var/spool/cron/crontabs/"
+varspoolcrontab=$(ls -lha /var/spool/cron/crontabs 2>/dev/null)
+if [ "$varspoolcrontab" ]; then fuOK && echo "$varspoolcrontab"; else fuNOTOK; fi
 
+# cronjobs of other users
+fuCHECKS "Cronjobs of all users"
+cronusers=$(cut -d ":" -f 1 /etc/passwd | xargs -n1 crontab -l -u 2>/dev/null | grep -v "#")
+if [ "$cronusers" ]; then fuOK && echo "$cronusers"; else fuNOTOK; fi
 
+# anacron
+# are there any anacron jobs
+fuCHECKS "Anacron jobs"
+anacron=$(ls -la /etc/anacrontab 2>/dev/null)
+if [ "$anacron" ]; then fuOK && echo "$anacron"; else fuNOTOK; fi
 
+# systemd timers
+fuCHECKS "Systemd timers"
+systemdtimers=$(systemctl list-timers --all 2>/dev/null)
+if [ "$systemdtimers" ]; then fuOK && echo "$systemdtimers"; else fuNOTOK; fi
+
+}
 
 
 
 system_info | tee $mySYSTEMFILE
 network_info | tee $myNETWFILE
 user_info
-
+jobs_info
 
 
 ##############
