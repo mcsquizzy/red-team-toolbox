@@ -529,16 +529,130 @@ if [ "$flatpak" ]; then fuOK && echo "$flatpak"; fi
 # Interesting Files #
 #####################
 
+interesting_files() {
+
+fuTITLE "Interesting files"
+sleep 1
+
+# useful binaries
+fuCHECKS "Useful tools / binaries for further investigation"
+echo
+command -v nc 2>/dev/null ; command -v netcat 2>/dev/null ; command -v wget 2>/dev/null ; command -v nmap 2>/dev/null ; command -v gcc 2>/dev/null; command -v curl 2>/dev/null
+
+# suid, guid, sticky bit
+# suid files
+fuCHECKS "Files with SUID bit set"
+suid=$(find / -perm -4000 -type f 2>/dev/null)
+if [ "$suid" ]; then fuOK && echo "$suid"; else fuNOTOK; fi
+
+# guid files
+fuCHECKS "Files with GUID bit set"
+guid=$(find / -perm -2000 -type f 2>/dev/null)
+if [ "$guid" ]; then fuOK && echo "$guid"; else fuNOTOK; fi
+
+# sticky bit files
+fuCHECKS "Files with STICKY bit set"
+sticky=$(find / -perm -1000 -type f 2>/dev/null)
+if [ "$sticky" ]; then fuOK && echo "$sticky"; else fuNOTOK; fi
+
+# sticky bit directories
+fuCHECKS "Directories with STICKY bit set"
+stickyd=$(find / -perm -1000 -type d 2>/dev/null)
+if [ "$stickyd" ]; then fuOK && echo "$stickyd"; else fuNOTOK; fi
+
+
+# history files
+# user history
+fuCHECKS "Current user's history files"
+userhistory=$(ls -la $HOME/.*_history 2>/dev/null)
+if [ "$userhistory" ]; then fuOK && echo "$userhistory"; else fuNOTOK; fi
+
+# roots history
+fuCHECKS "Root's history files"
+roothistory=$(ls -la /root/.*_history 2>/dev/null)
+if [ "$roothistory" ]; then fuOK && echo "$roothistory"; else fuNOTOK; fi
+
+# bash history files
+fuCHECKS "Other bash history files"
+bashhistory=$(find /home -name .bash_history 2>/dev/null)
+if [ "$bashhistory" ]; then fuOK && echo "$bashhistory"; else fuNOTOK; fi
+
+
+# private keys
+fuCHECKS "Private keys"
+privatekeys=$(grep -rl "PRIVATE KEY-----" /home 2>/dev/null)
+if [ "$privatekeys" ]; then fuOK && echo "$privatekeys"; else fuNOTOK; fi
+
+# git files
+fuCHECKS "Git credential files"
+gitfiles=$(find / -name ".git-credentials" 2>/dev/null)
+if [ "$gitfiles" ]; then fuOK && echo "$gitfiles"; else fuNOTOK; fi
+
+# .plan files
+fuCHECKS "Files with .plan extension"
+planfiles=$(find / -iname *.plan -exec ls -la {} 2>/dev/null \;)
+if [ "$planfiles" ]; then fuOK && echo "$planfiles"; else fuNOTOK; fi
+
+# bak files
+fuCHECKS "Files with .bak extension"
+bakfiles=$(find / -name *.bak -type f 2>/dev/null)
+if [ "$bakfiles" ]; then fuOK && echo "$bakfiles"; else fuNOTOK; fi
+
+# mail
+fuCHECKS "Accessible mail files"
+mails=$(ls -la /var/mail 2>/dev/null)
+if [ "$mails" ]; then fuOK && echo "$mails"; else fuNOTOK; fi
+
 
 # List Mozilla Firefox Bookmark Database Files on Linux
-#find / -path "*.mozilla/firefox/*/places.sqlite" 2>/dev/null -exec echo {} \;
+fuCHECKS "List firefox bookmarks"
+firefox=$(find / -path "*.mozilla/firefox/*/places.sqlite" 2>/dev/null)
+if [ "$firefox" ]; then fuOK && echo "$firefox"; else fuNOTOK; fi
 
+}
 
 ####################
 # Container Checks #
 ####################
 
+container_info() {
 
+fuTITLE "Information about containers"
+sleep 1
+
+# Docker
+# check if we are in a docker container
+fuCHECKS "Check if we are in a docker container"
+dockercontainer=$(grep -i docker /proc/self/cgroup 2>/dev/null || grep -i docker /proc/1/cgroup 2>/dev/null ; find / -iname "*dockerenv*" 2>/dev/null)
+if [ "$dockercontainer" ]; then fuOK && echo "$dockercontainer"; else fuNOTOK; fi
+
+# check if we are a docker host
+fuCHECKS "Check if we are a docker host"
+dockerhost=$(docker --version 2>/dev/null ; docker ps -a 2>/dev/null)
+if [ "$dockerhost" ]; then fuOK && echo "$dockerhost"; else fuNOTOK; fi
+
+# check if we are member of a docker group
+fuCHECKS "Check if we are member of a docker group"
+dockergroup=$(id | grep -i docker 2>/dev/null)
+if [ "$dockergroup" ]; then fuOK && echo "$dockergroup"; else fuNOTOK; fi
+
+# look for any docker files
+fuCHECKS "Check if there are any docker files"
+dockerfiles=$(find / -iname *Dockerfile* 2>/dev/null ; find / -iname *docker-compose* 2>/dev/null)
+if [ "$dockerfiles" ]; then fuOK && echo "$dockerfiles"; else fuNOTOK; fi
+
+# LXC Container
+# check if we are in a lxc container
+fuCHECKS "Check if we are in a lxc container"
+lxccontainer=$(grep -qa container=lxc /proc/1/environ 2>/dev/null || grep -i lxc /proc/1/cgroup 2>/dev/null)
+if [ "$lxccontainer" ]; then fuOK && echo "$lxccontainer"; else fuNOTOK; fi
+
+# check if we are member of a lxc group
+fuCHECKS "Check if we are member of a lxc group"
+lxcgroup=$(id | grep -i lxc 2>/dev/null)
+if [ "$lxcgroup" ]; then fuOK && echo "$lxcgroup"; else fuNOTOK; fi
+
+}
 
 
 
@@ -547,7 +661,9 @@ if [ "$flatpak" ]; then fuOK && echo "$flatpak"; fi
 #user_info
 #jobs_info
 #services_info
-software_info
+#software_info
+#interesting_files
+container_info
 
 
 ##############
