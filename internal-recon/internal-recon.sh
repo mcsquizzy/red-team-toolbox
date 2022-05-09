@@ -669,14 +669,14 @@ if [ "$lxcgroup" ]; then fuOK && echo "$lxcgroup"; else fuNOTOK; fi
 #############
 
 run_all() {
-#system_info | tee $mySYSTEMFILE
-#network_info | tee $myNETWFILE
+system_info | tee $mySYSTEMFILE
+network_info | tee $myNETWFILE
 user_info | tee $myUSERFILE
-#jobs_info | tee $myJOBSFILE
-#services_info | tee $mySERVICESFILE
-#software_info | tee $mySOFTWAREFILE
-#interesting_files | tee $myINTERESTFILE
-#container_info | tee $myCONTAINERFILE
+jobs_info | tee $myJOBSFILE
+services_info | tee $mySERVICESFILE
+software_info | tee $mySOFTWAREFILE
+interesting_files | tee $myINTERESTFILE
+container_info | tee $myCONTAINERFILE
 }
 
 run_all | tee ${hostname}_all_info.txt
