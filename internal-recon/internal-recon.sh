@@ -67,7 +67,7 @@ fuINFO() {
 # Print info line
 fuCHECKS() {
   echo
-  printf "$BBLUE════$BYELLOW $1 $NC"
+  printf "$BBLUE════ $1 $NC"
 }
 
 fuOK() {
