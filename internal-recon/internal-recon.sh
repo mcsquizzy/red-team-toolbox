@@ -26,6 +26,11 @@ hostname=`hostname 2>/dev/null`
 mySYSTEMFILE="${hostname}_system_info.txt"
 myNETWFILE="${hostname}_network_info.txt"
 myUSERFILE="${hostname}_user_info.txt"
+myJOBSFILE="${hostname}_jobs_info.txt"
+mySERVICESFILE="${hostname}_services_info.txt"
+mySOFTWAREFILE="${hostname}_software_info.txt"
+myINTERESTFILE="${hostname}_interesting_files.txt"
+myCONTAINERFILE="${hostname}_container_info.txt"
 
 
 #############
@@ -82,7 +87,7 @@ fuERROR() {
 # Print results line
 fuRESULT() {
   echo
-  echo "$BBLUE════$BYELLOW $1 $NC"
+  echo "$BBLUE════$NC $1"
 }
 
 # Print next steps line
@@ -347,9 +352,11 @@ homedirperms=$(ls -lh /home/ 2>/dev/null)
 if [ "$homedirperms" ]; then fuOK && echo "$homedirperms"; else fuNOTOK; fi
 
 # writable files
-fuCHECKS "Writable files but not owned by me"
-writablefiles=$(find / -writable ! -user $(whoami) -type f ! -path "/proc/*" ! -path "/sys/*" -exec ls -al {} \; 2>/dev/null)
-if [ "$writablefiles" ]; then fuOK && echo "$writablefiles"; else fuNOTOK; fi
+if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -ne "0" ]) || [ "`whoami 2>/dev/null`" != "root" ]; then
+  fuCHECKS "Writable files but not owned by me"
+  writablefiles=$(find / -writable ! -user $(whoami) -type f ! -path "/proc/*" ! -path "/sys/*" -exec ls -al {} \; 2>/dev/null)
+  if [ "$writablefiles" ]; then fuOK && echo "$writablefiles"; else fuNOTOK; fi
+fi
 
 # is root allowed to login via SSH
 fuCHECKS "Check if root is permitted to login via ssh"
@@ -376,6 +383,7 @@ whosudo=$(find /home -name .sudo_as_admin_successful 2>/dev/null)
 if [ "$whosudo" ]; then fuOK && echo "$whosudo"; else fuNOTOK; fi
 
 }
+
 
 ############
 # Cronjobs #
@@ -611,6 +619,7 @@ if [ "$firefox" ]; then fuOK && echo "$firefox"; else fuNOTOK; fi
 
 }
 
+
 ####################
 # Container Checks #
 ####################
@@ -655,15 +664,59 @@ if [ "$lxcgroup" ]; then fuOK && echo "$lxcgroup"; else fuNOTOK; fi
 }
 
 
+#############
+# Run parts #
+#############
 
+run_all() {
 #system_info | tee $mySYSTEMFILE
 #network_info | tee $myNETWFILE
-#user_info
-#jobs_info
-#services_info
-#software_info
-#interesting_files
-container_info
+user_info | tee $myUSERFILE
+#jobs_info | tee $myJOBSFILE
+#services_info | tee $mySERVICESFILE
+#software_info | tee $mySOFTWAREFILE
+#interesting_files | tee $myINTERESTFILE
+#container_info | tee $myCONTAINERFILE
+}
+
+run_all | tee ${hostname}_all_info.txt
+
+fuINFO "Internal Recon complete"
+
+
+#####################
+# Summarize Results #
+#####################
+
+fuTITLE "Output in following files:"
+if [ -s "$mySYSTEMFILE" ]; then
+  fuRESULT "System information written to: $BYELLOW$mySYSTEMFILE$NC"
+fi
+if [ -s "$myNETWFILE" ]; then
+  fuRESULT "Network information written to: $BYELLOW$myNETWFILE$NC"
+fi
+if [ -s "$myUSERFILE" ]; then
+  fuRESULT "User information written to: $BYELLOW$myUSERFILE$NC"
+fi
+if [ -s "$myJOBSFILE" ]; then
+  fuRESULT "Jobs / Tasks information written to: $BYELLOW$myJOBSFILE$NC"
+fi
+if [ -s "$mySERVICESFILE" ]; then
+  fuRESULT "Service / Process information written to: $BYELLOW$mySERVICESFILE$NC"
+fi
+if [ -s "$mySOFTWAREFILE" ]; then
+  fuRESULT "Software information written to: $BYELLOW$mySOFTWAREFILE$NC"
+fi
+if [ -s "$myINTERESTFILE" ]; then
+  fuRESULT "Information about interesting files written to: $BYELLOW$myINTERESTFILE$NC"
+fi
+if [ -s "$myCONTAINERFILE" ]; then
+  fuRESULT "Information about containers written to: $BYELLOW$myCONTAINERFILE$NC"
+fi
+if [ -s "${hostname}_all_info.txt" ]; then
+  fuRESULT "Report (all information together) written to: $BYELLOW${hostname}_all_info.txt$NC"
+fi
+echo
 
 
 ##############
@@ -679,6 +732,7 @@ echo "
                                       |_|                                          
 "
 
-fuSTEPS "Next steps to do..."
+fuSTEPS "Checkout the found information in one of the files created in the current directory."
+# more to do
 
 echo
