@@ -70,8 +70,7 @@ fuOK() {
 }
 
 fuNOTOK() {
-  echo "$BRED[Nope]$NC"
-  echo
+  echo "$BRED[Failed]$NC"
 }
 
 # Print error line
@@ -339,7 +338,7 @@ if [ "$readmaster" ]; then fuOK && echo "$readmaster"; else fuNOTOK; fi
 
 # all root accounts (uid = 0)
 fuCHECKS "All root / superuser accounts"
-superuser=$(grep -v -E "^#" /etc/passwd 2>/dev/null | awk -F: '$3 == 0 { print $1}' 2>/dev/null)
+superuser=$(grep 'x:0:' /etc/passwd 2>/dev/null)
 if [ "$superuser" ]; then fuOK && echo "$superuser"; else fuNOTOK; fi
 
 # home directory
@@ -426,11 +425,129 @@ if [ "$systemdtimers" ]; then fuOK && echo "$systemdtimers"; else fuNOTOK; fi
 }
 
 
+########################
+# Processes / Services #
+########################
 
-system_info | tee $mySYSTEMFILE
-network_info | tee $myNETWFILE
-user_info
-jobs_info
+services_info() {
+
+fuTITLE "Information about processes and services"
+sleep 1
+
+# all running processes
+fuCHECKS "Running processes"
+processes=$(ps aux 2>/dev/null)
+if [ "$processes" ]; then fuOK && echo "$processes"; else fuNOTOK; fi
+
+# inetd / xinetd manages internet-based services (like ftp, telnet ...)
+# is inetd or xinetd running
+fuCHECKS "Check inetd / xinetd process"
+xinetd=$(ps aux 2>/dev/null | egrep '[xi]netd' || netstat -tulpn 2>/dev/null | grep LISTEN | egrep '[xi]netd')
+if [ "$xinetd" ]; then fuOK && echo "$xinetd"; else fuNOTOK; fi
+
+# check inetd config
+fuCHECKS "Anything useful in inetd.conf"
+inetdconf=$(cat /etc/inetd.conf 2>/dev/null | grep -v "#" | grep -ve "^$")
+if [ "$inetdconf" ]; then fuOK && echo "$inetdconf"; else fuNOTOK; fi
+
+# check xinetd config
+fuCHECKS "Anything useful in xinetd.conf"
+xinetdconf=$(cat /etc/xinetd.conf 2>/dev/null | grep -v "#" | grep -ve "^$")
+if [ "$xinetdconf" ]; then fuOK && echo "$xinetdconf"; else fuNOTOK; fi
+
+# init.d
+fuCHECKS "List contents of /etc/init.d directory"
+initd=$(ls -la /etc/init.d 2>/dev/null)
+if [ "$initd" ]; then fuOK && echo "$initd"; else fuNOTOK; fi
+
+# init.d processes that not belong to root
+fuCHECKS "Init.d files/services not belonging to root"
+initdnotroot=$(find /etc/init.d/ \! -uid 0 -type f 2>/dev/null | xargs -r ls -la 2>/dev/null)
+if [ "$initdnotroot" ]; then fuOK && echo "$initdnotroot"; else fuNOTOK; fi
+
+# check /etc/rc.d/init.d
+fuCHECKS "Check /etc/rc.d/init.d"
+rcd=$(ls -la /etc/rc.d/init.d 2>/dev/null)
+if [ "$rcd" ]; then fuOK && echo "$rcd"; else fuNOTOK; fi
+
+# check /usr/local/etc/rc.d
+fuCHECKS "Check /usr/local/etc/rc.d"
+localrcd=$(ls -la /usr/local/etc/rc.d 2>/dev/null)
+if [ "$localrcd" ]; then fuOK && echo "$localrcd"; else fuNOTOK; fi
+
+}
+
+
+########################
+# Software information #
+########################
+
+software_info() {
+
+fuTITLE "Information about installed software and possible versions"
+sleep 1
+
+# software packages
+fuCHECKS "List installed software packages and versions"
+
+# Arch Linux 
+arch=$(pacman -Q 2>/dev/null)
+if [ "$arch" ]; then fuOK && echo "$arch"; fi
+
+# Alpine Linux
+alpine=$(apk info -v 2>/dev/null)
+if [ "$alpine" ]; then fuOK && echo "$alpine"; fi
+
+# Debian / Ubuntu
+debian=$(dpkg -l 2>/dev/null || apt list --installed 2>/dev/null)
+if [ "$debian" ]; then fuOK && echo "$debian"; fi
+
+# RHEL, Fedora, CentOS
+rhel=$(yum list installed 2>/dev/null || dnf list installed 2>/dev/null)
+if [ "$rhel" ]; then fuOK && echo "$rhel"; fi
+
+# RPM
+rpm=$(rpm -qa 2>/dev/null)
+if [ "$rpm" ]; then fuOK && echo "$rpm"; fi
+
+# openSUSE
+opensuse=$(zypper se --installed-only 2>/dev/null)
+if [ "$opensuse" ]; then fuOK && echo "$opensuse"; fi
+
+# Snap
+snap=$(snap list 2>/dev/null)
+if [ "$snap" ]; then fuOK && echo "$snap"; fi
+
+# Flatpak
+flatpak=$(flatpak list --app 2>/dev/null)
+if [ "$flatpak" ]; then fuOK && echo "$flatpak"; fi
+
+}
+
+
+#####################
+# Interesting Files #
+#####################
+
+
+# List Mozilla Firefox Bookmark Database Files on Linux
+#find / -path "*.mozilla/firefox/*/places.sqlite" 2>/dev/null -exec echo {} \;
+
+
+####################
+# Container Checks #
+####################
+
+
+
+
+
+#system_info | tee $mySYSTEMFILE
+#network_info | tee $myNETWFILE
+#user_info
+#jobs_info
+#services_info
+software_info
 
 
 ##############
