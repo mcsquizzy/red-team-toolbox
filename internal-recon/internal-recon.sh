@@ -308,7 +308,7 @@ if [ "$loggedonusers" ]; then fuOK && echo "$loggedonusers"; else fuNOTOK; fi
 
 # users with a login shell
 fuCHECKS "All users with a login shell"
-shellusers=$(cat /etc/passwd 2>/dev/null | grep -i "sh$" | cut -d ":" -f 1)
+shellusers=$(grep -i "sh$" /etc/passwd 2>/dev/null | cut -d ":" -f1)
 if [ "$shellusers" ]; then fuOK && echo "$shellusers"; else fuNOTOK; fi
 
 # all users
