@@ -337,17 +337,17 @@ pathconfig=$(echo $PATH 2>/dev/null)
 if [ "$pathconfig" ]; then fuOK && echo "$pathconfig"; else fuNOTOK; fi
 
 # other users that have logged onto the system
-fuCHECKS "Users that have also logged onto the system"
+fuCHECKS "Are there users that have also logged onto the system?"
 lastloggedonusers=$(lastlog 2>/dev/null | grep -v Never)
 if [ "$lastloggedonusers" ]; then fuOK && echo "$lastloggedonusers"; else fuNOTOK; fi
 
 # other users that are logged on right now
-fuCHECKS "Users that are logged on right now"
+fuCHECKS "Are there users that are logged on right now?"
 loggedonusers=$(w -h || who || users) 2>/dev/null
 if [ "$loggedonusers" ]; then fuOK && echo "$loggedonusers"; else fuNOTOK; fi
 
 # users with a login shell
-fuCHECKS "All users with a login shell"
+fuCHECKS "Are there users with a login shell?"
 shellusers=$(grep -i "sh$" /etc/passwd 2>/dev/null | cut -d ":" -f1)
 if [ "$shellusers" ]; then fuOK && echo "$shellusers"; else fuNOTOK; fi
 
@@ -357,7 +357,7 @@ allusers=$(cut -d ":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done
 if [ "$allusers" ]; then fuOK && echo "$allusers"; else fuNOTOK; fi
 
 # all users within a admin group
-fuCHECKS "All users within a admin group (admin, root, sudo, wheel)"
+fuCHECKS "Are there users within a admin group? (admin, root, sudo, wheel)"
 allusers=$(cut -d ":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done 2>/dev/null | sort | grep -E "^adm|admin|root|sudo|wheel")
 if [ "$allusers" ]; then fuOK && echo "$allusers"; else fuNOTOK; fi
 
@@ -382,7 +382,7 @@ readmaster=$(cat /etc/master.passwd 2>/dev/null)
 if [ "$readmaster" ]; then fuOK && echo "$readmaster"; else fuNOTOK; fi
 
 # all root accounts (uid = 0)
-fuCHECKS "All root / superuser accounts"
+fuCHECKS "Are there more root / superuser accounts?"
 superuser=$(grep 'x:0:' /etc/passwd 2>/dev/null)
 if [ "$superuser" ]; then fuOK && echo "$superuser"; else fuNOTOK; fi
 
@@ -393,7 +393,7 @@ if [ "$homedirperms" ]; then fuOK && echo "$homedirperms"; else fuNOTOK; fi
 
 # writable files
 if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -ne "0" ]) || [ "`whoami 2>/dev/null`" != "root" ]; then
-  fuCHECKS "Writable files but not owned by me"
+  fuCHECKS "Are there writable files but not owned by me?"
   writablefiles=$(find / -writable ! -user $(whoami) -type f ! -path "/proc/*" ! -path "/sys/*" -exec ls -al {} \; 2>/dev/null)
   if [ "$writablefiles" ]; then fuOK && echo "$writablefiles"; else fuNOTOK; fi
 fi
@@ -408,12 +408,12 @@ if [ "$rootssh" = "yes" ]; then fuOK && (grep "PermitRootLogin " /etc/ssh/sshd_c
 ####################
 
 # sudoers config
-fuCHECKS "Sudoers configuration"
+fuCHECKS "Can we read Sudoers configuration?"
 sudoers=$(grep -v -e '^$' /etc/sudoers | grep -v "#") 2>/dev/null
 if [ "$sudoers" ]; then fuOK && echo "$sudoers"; else fuNOTOK; fi
 
 # sudo without password
-fuCHECKS "Sudo without a password"
+fuCHECKS "Can we sudo without a password?"
 sudopasswd=$(echo "" | sudo -S -l -k) 2>/dev/null
 if [ "$sudopasswd" ]; then fuOK && echo "$sudopasswd"; else fuNOTOK; fi
 
@@ -435,22 +435,22 @@ fuTITLE "Information about (cron)jobs and tasks"
 sleep 1
 
 # list all cronjobs configured
-fuCHECKS "Check if there are any cronjobs configured"
+fuCHECKS "Are there any cronjobs configured?"
 cronjobs=$(ls -lh /etc/cron* 2>/dev/null)
 if [ "$cronjobs" ]; then fuOK && echo "$cronjobs"; else fuNOTOK; fi
 
 # list all writable cronjobs
-fuCHECKS "Check if there are any writeable cronjobs"
+fuCHECKS "Are there any writeable cronjobs?"
 cronwritable=$(find -L /etc/cron* /etc/anacron /var/spool/cron -writable 2>/dev/null)
 if [ "$cronwritable" ]; then fuOK && echo "$cronwritable"; else fuNOTOK; fi
 
 # show content system-wide crontab
-fuCHECKS "Content of system-wide crontab /etc/crontab"
+fuCHECKS "Can we read system-wide crontab /etc/crontab?"
 crontab=$(cat /etc/crontab 2>/dev/null)
 if [ "$crontab" ]; then fuOK && echo "$crontab"; else fuNOTOK; fi
 
 # /var/spool/cron/crontab/
-fuCHECKS "Interesting files in /var/spool/cron/crontabs/"
+fuCHECKS "Are there interesting files in /var/spool/cron/crontabs/?"
 varspoolcrontab=$(ls -lha /var/spool/cron/crontabs 2>/dev/null)
 if [ "$varspoolcrontab" ]; then fuOK && echo "$varspoolcrontab"; else fuNOTOK; fi
 
@@ -461,12 +461,12 @@ if [ "$cronusers" ]; then fuOK && echo "$cronusers"; else fuNOTOK; fi
 
 # anacron
 # are there any anacron jobs
-fuCHECKS "Anacron jobs"
+fuCHECKS "Anacron jobs?"
 anacron=$(ls -la /etc/anacrontab 2>/dev/null)
 if [ "$anacron" ]; then fuOK && echo "$anacron"; else fuNOTOK; fi
 
 # systemd timers
-fuCHECKS "Systemd timers"
+fuCHECKS "Systemd timers?"
 systemdtimers=$(systemctl list-timers --all 2>/dev/null)
 if [ "$systemdtimers" ]; then fuOK && echo "$systemdtimers"; else fuNOTOK; fi
 
@@ -494,12 +494,12 @@ xinetd=$(ps aux 2>/dev/null | egrep '[xi]netd' || netstat -tulpn 2>/dev/null | g
 if [ "$xinetd" ]; then fuOK && echo "$xinetd"; else fuNOTOK; fi
 
 # check inetd config
-fuCHECKS "Anything useful in inetd.conf"
+fuCHECKS "Anything useful in inetd.conf?"
 inetdconf=$(cat /etc/inetd.conf 2>/dev/null | grep -v "#" | grep -ve "^$")
 if [ "$inetdconf" ]; then fuOK && echo "$inetdconf"; else fuNOTOK; fi
 
 # check xinetd config
-fuCHECKS "Anything useful in xinetd.conf"
+fuCHECKS "Anything useful in xinetd.conf?"
 xinetdconf=$(cat /etc/xinetd.conf 2>/dev/null | grep -v "#" | grep -ve "^$")
 if [ "$xinetdconf" ]; then fuOK && echo "$xinetdconf"; else fuNOTOK; fi
 
@@ -632,7 +632,7 @@ privatekeys=$(grep -rl "PRIVATE KEY-----" /home 2>/dev/null)
 if [ "$privatekeys" ]; then fuOK && echo "$privatekeys"; else fuNOTOK; fi
 
 # git files
-fuCHECKS "Git credential files"
+fuCHECKS "Are there any Git credential files?"
 gitfiles=$(find / -name ".git-credentials" 2>/dev/null)
 if [ "$gitfiles" ]; then fuOK && echo "$gitfiles"; else fuNOTOK; fi
 
@@ -653,7 +653,7 @@ if [ "$mails" ]; then fuOK && echo "$mails"; else fuNOTOK; fi
 
 
 # List Mozilla Firefox Bookmark Database Files on Linux
-fuCHECKS "List firefox bookmarks"
+fuCHECKS "Are there firefox bookmarks?"
 firefox=$(find / -path "*.mozilla/firefox/*/places.sqlite" 2>/dev/null)
 if [ "$firefox" ]; then fuOK && echo "$firefox"; else fuNOTOK; fi
 
