@@ -19,6 +19,21 @@ curl -LJO <Host>:8000/internal-recon.sh
 sh internal-recon.sh
 ```
 
+### Parameters
+
+```sh
+sh internal-recon.sh -h
+
+Usage: sh internal-recon.sh [-h/-?] [-c]
+
+-h/-?
+  Show this help message
+
+-c
+  No colours
+  Without colours, the output can probably be read better
+```
+
 ## Checks
 
 Script collecting information about:  
