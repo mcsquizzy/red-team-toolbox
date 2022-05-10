@@ -38,12 +38,18 @@ echo "
 "
 }
 
-# Print output title
+# Print title
 fuTITLE() {
   echo
-  echo "$BBLUE════════════════════════════════════════════════════════════════════════"
-  echo "$BGREEN $1 $BBLUE"
-  echo "════════════════════════════════════════════════════════════════════════$NC"
+  for i in $(seq 80); do
+    echo -n "$BBLUE═$NC"
+  done
+  echo
+  echo "$BGREEN $1 $NC"
+  for i in $(seq 80); do
+    echo -n "$BBLUE═$NC"
+  done
+  echo
 }
 
 # Print info line
