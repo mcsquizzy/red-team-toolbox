@@ -53,9 +53,15 @@ echo "
 # Print output title
 fuTITLE() {
   echo
-  echo "$BBLUE════════════════════════════════════════════════════════════════════════════"
-  echo "$BGREEN $1 $BBLUE"
-  echo "════════════════════════════════════════════════════════════════════════════$NC"
+  for i in $(seq 80); do
+    echo -n "$BBLUE═$NC"
+  done
+  echo
+  echo "$BGREEN $1 $NC"
+  for i in $(seq 80); do
+    echo -n "$BBLUE═$NC"
+  done
+  echo
 }
 
 # Print info line
@@ -64,18 +70,24 @@ fuINFO() {
   echo "$BBLUE════$BGREEN $1 $NC"
 }
 
-# Print info line
+# Print check line
 fuCHECKS() {
   echo
-  printf "$BBLUE════ $1 $NC"
+  local title="$1"
+  echo -n "$BBLUE════ $1 $NC"
+  for i in $(seq $((${#title}+13)) 80); do
+    echo -n "."
+  done
 }
 
 fuOK() {
-  echo "$BGREEN[OK]$NC"
+  echo -n " $BGREEN[yes]$NC"
+  echo
 }
 
 fuNOTOK() {
-  echo "$BRED[Failed]$NC"
+  echo -n "  $BRED[no]$NC"
+  echo
 }
 
 # Print error line
@@ -191,6 +203,32 @@ system_info() {
 fuTITLE "System information"
 sleep 1
 
+# current username
+user=$(id -nu 2>/dev/null || whoami 2>/dev/null || echo $USER 2>/dev/null)
+if [ "$user" ]; then
+  echo "          $BYELLOW User:$NC $user"
+else
+  echo "          $BYELLOW User:$NC unknown"
+fi
+
+# user id
+userid=$(id -u 2>/dev/null || echo $UID 2>/dev/null)
+if [ "$userid" ]; then
+  echo "       $BYELLOW User ID:$NC $userid"
+else
+  echo "       $BYELLOW User ID:$NC unknown"
+fi
+
+# home path
+homepath=$(echo $HOME 2>/dev/null)
+if [ "$homepath" ]; then
+  echo "     $BYELLOW Home Path:$NC $homepath"
+else
+  echo "     $BYELLOW Home Path:$NC unknown"
+fi
+
+echo
+
 # hostname
 hostname=$(hostname 2>/dev/null)
 if [ "$hostname" ]; then
@@ -223,6 +261,8 @@ else
   echo "  $BYELLOW Architecture:$NC unknown"
 fi
 
+sleep 1
+
 # check if selinux is enabled
 fuCHECKS "Check if SELinux is enabled"
 sestatus=$(sestatus 2>/dev/null)
@@ -250,7 +290,7 @@ fuTITLE "Network information"
 sleep 1
 
 # current IP(s)
-fuCHECKS "Current IP"
+fuCHECKS "Current IP(s)"
 currentip=$(ip a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null)
 currentif=$(ifconfig | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null)
 if [ "$currentip" ]; then fuOK && echo "$currentip"; elif [ "$currentif" ]; then fuOK && echo "$currentif"; else fuNOTOK; fi
@@ -544,7 +584,7 @@ sleep 1
 
 # useful binaries
 fuCHECKS "Useful tools / binaries for further investigation"
-echo
+fuOK
 command -v nc 2>/dev/null ; command -v netcat 2>/dev/null ; command -v wget 2>/dev/null ; command -v nmap 2>/dev/null ; command -v gcc 2>/dev/null; command -v curl 2>/dev/null
 
 # suid, guid, sticky bit
@@ -656,9 +696,9 @@ fuCHECKS "Check if we are in a lxc container"
 lxccontainer=$(grep -qa container=lxc /proc/1/environ 2>/dev/null || grep -i lxc /proc/1/cgroup 2>/dev/null)
 if [ "$lxccontainer" ]; then fuOK && echo "$lxccontainer"; else fuNOTOK; fi
 
-# check if we are member of a lxc group
-fuCHECKS "Check if we are member of a lxc group"
-lxcgroup=$(id | grep -i lxc 2>/dev/null)
+# check if we are member of a lxc/lxd group
+fuCHECKS "Check if we are member of a lxc/lxd group"
+lxcgroup=$(id | grep -i "lxc\|lxd" 2>/dev/null)
 if [ "$lxcgroup" ]; then fuOK && echo "$lxcgroup"; else fuNOTOK; fi
 
 }
