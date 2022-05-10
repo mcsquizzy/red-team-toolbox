@@ -26,10 +26,14 @@ sh lin-persistence.sh -h
 ```
 
 ### Parameters
+
 ```sh
 sh lin-persistence.sh -h
 
-Usage: sh lin-persistence.sh [-h] [-e] [-r] [-s] [-u] [-p]
+Usage: sh lin-persistence.sh [-h/-?] [-e] [-r] [-s] [-u] [-p]
+
+-h/-?
+  Show this help message
 
 -e <username>
   Elevate privileges of the given user
