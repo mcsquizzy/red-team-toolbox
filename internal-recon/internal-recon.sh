@@ -50,7 +50,7 @@ echo "
 "
 }
 
-# Print output title
+# Print title
 fuTITLE() {
   echo
   for i in $(seq 80); do
