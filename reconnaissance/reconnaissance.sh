@@ -327,7 +327,7 @@ fi
 fuSTEPS "Search for possible vulnerabilities in directory $BYELLOW\"output/\"$NC."
 fuSTEPS "Check the $BYELLOW../exploitation/README.md$NC file on how to find exploits."
 
-if [ -s "$myVULNFILEXML"]; then
+if [ -s "$myVULNFILEXML" ]; then
   fuSTEPS "Set SEARCHEXPLOIT variable in the $BYELLOW../exploitation/exploitation.conf$NC file to true to let the exploitation script find exploits from nmap vulners scan."
 fi
 
