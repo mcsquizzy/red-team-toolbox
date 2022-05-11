@@ -337,7 +337,7 @@ pathconfig=$(echo $PATH 2>/dev/null)
 if [ "$pathconfig" ]; then fuOK && echo "$pathconfig"; else fuNOTOK; fi
 
 # other users that have logged onto the system
-fuCHECKS "Are there users that have also logged onto the system?"
+fuCHECKS "Other users that have also logged onto the system"
 lastloggedonusers=$(lastlog 2>/dev/null | grep -v Never)
 if [ "$lastloggedonusers" ]; then fuOK && echo "$lastloggedonusers"; else fuNOTOK; fi
 
