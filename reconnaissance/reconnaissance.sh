@@ -37,12 +37,12 @@ function fuBANNER {
 function fuTITLE {
   echo
   for i in $(seq 80); do
-    echo -n "$BBLUE═$NC"
+    echo -en "$BBLUE═$NC"
   done
   echo
-  echo "$BGREEN $1 $NC"
+  echo -e "$BGREEN $1 $NC"
   for i in $(seq 80); do
-    echo -n "$BBLUE═$NC"
+    echo -en "$BBLUE═$NC"
   done
   echo
 }
@@ -319,8 +319,12 @@ fi
 
 fuBANNER "Next Steps To Do ..."
 
+if [ -s "targetIP.txt" ] && [ "$IP" == "" ]; then
+  fuSTEPS "There are IP addresses with open ports! Set one of these specific IP address in \"$myCONF_FILE\" to gather more detailed information."
+fi
+
 if [ "$IP" == "" ]; then
-  fuSTEPS "No specific IP set. Try to set a specific ip address to gather more detailed information."
+  fuSTEPS "No specific IP set. Try to set a specific IP address to gather more detailed information."
 fi
 
 if [ ! "$VULN" ]; then
