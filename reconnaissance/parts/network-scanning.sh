@@ -15,7 +15,6 @@ myDHCPFILE="output/dhcp-findings.txt"
 myPORTFILE="output/port-findings.txt"
 myUPORTFILE="output/uport-findings.txt"
 
-
 #############
 # Functions #
 #############
@@ -86,14 +85,14 @@ function fuNmapNULLScan {
 
 # Print scan result to usable list
 function fuPrepareTargetIP {
-  fuINFO "Write ip list of result to targetIP.txt ..."
-  cat ip-grepable.txt | awk '/open/ {print $2$3}' | cat > targetIP.txt && rm ip-grepable.txt
+  fuINFO "Write IP list of result to targetIP.txt ..."
+  cat ip-grepable.txt | awk '/open/ {print $2}' | cat > targetIP.txt && rm ip-grepable.txt
   fuINFO "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
 function fuPrepareTargetIPAppend {
-  fuINFO "Write ip list of result to targetIP.txt ..."
-  cat ip-grepable.txt | awk '/open/ {print $2$3}' | cat >> targetIP.txt && rm ip-grepable.txt
+  fuINFO "Write IP list of result to targetIP.txt ..."
+  cat ip-grepable.txt | awk '/open/ {print $2}' | cat >> targetIP.txt && rm ip-grepable.txt
   fuINFO "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
@@ -185,20 +184,20 @@ fi
 # ICMP Scan (Network Layer)
 # fping
 if [ "$IP" != "" ] && [ "$NETDEVICE" == "" ]; then
-  fuTITLE "Check if ip address $IP is reachable ..."
+  fuTITLE "Check if IP address $IP is reachable ..."
   fping -s $IP | tee -a $myNETADDRFILE
 
 elif [ "$IP" != "" ] && [ "$NETDEVICE" != "" ]; then
-  fuTITLE "Check if ip address $IP is reachable ..."
+  fuTITLE "Check if IP address $IP is reachable ..."
   fping -s $IP -I $NETDEVICE | tee -a $myNETADDRFILE
 
 elif [ "$IP" == "" ] && [ "$NETDEVICE" != "" ] && [ "$IPRANGE" != "" ]; then
-  fuTITLE "Check which ip addresses of range $IPRANGE are reachable ..."
-  fping -asg $IPRANGE -I $NETDEVICE -q | tee -a $myNETADDRFILE
+  fuTITLE "Check which IP addresses of range $IPRANGE are reachable ..."
+  fping -asgq $IPRANGE -I $NETDEVICE | tee -a $myNETADDRFILE
 
 elif [ "$IP" == "" ] && [ "$NETDEVICE" == "" ] && [ "$IPRANGE" != "" ]; then
-  fuTITLE "Check which ip addresses of range $IPRANGE are reachable ..."
-  fping -asg $IPRANGE -q | tee -a $myNETADDRFILE
+  fuTITLE "Check which IP addresses of range $IPRANGE are reachable ..."
+  fping -asgq $IPRANGE | tee -a $myNETADDRFILE
 fi
 
 
@@ -335,6 +334,7 @@ fi
 #####################
 
 fuTITLE "Findings in following files:"
+
 if [ -s $myDNSFILE ]; then
   fuRESULT "DNS information: $myDNSFILE"
 fi
@@ -344,6 +344,9 @@ fi
 if [ -s "$mySECAPPLFILE" ]; then
   fuRESULT "Security Appliances information: $mySECAPPLFILE"
 fi
+if [ -s "$myDHCPFILE" ]; then
+  fuRESULT "DHCP information: $myDHCPFILE"
+fi
 if [ -s "$myPORTFILE" ]; then
   fuRESULT "Port information: $myPORTFILE"
 fi
@@ -351,9 +354,10 @@ if [ -s "targetPort.txt" ]; then
   fuRESULT "List of all open ports: targetPort.txt"
 fi
 if [ -s "targetIP.txt" ]; then
-  fuRESULT "List of all ip addresses with open ports: targetIP.txt"
+  fuRESULT "List of all IP addresses with open ports: targetIP.txt"
 fi
-if [ ! -s $myDNSFILE ] && [ ! -s $myNETADDRFILE ] && [ ! -s "$mySECAPPLFILE" ] && [ ! -s "$myPORTFILE" ]; then
+
+if [ ! -s $myDNSFILE ] && [ ! -s $myNETADDRFILE ] && [ ! -s "$mySECAPPLFILE" ] && [ ! -s "$myDHCPFILE" ] && [ ! -s "$myPORTFILE" ]; then
   fuERROR "No network information found."
 fi
 echo
