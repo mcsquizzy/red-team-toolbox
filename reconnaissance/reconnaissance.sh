@@ -33,6 +33,12 @@ function fuBANNER {
   echo
 }
 
+function fuADVISORY {
+  echo
+  echo -e "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
+  echo
+}
+
 # Print title
 function fuTITLE {
   echo
@@ -50,19 +56,19 @@ function fuTITLE {
 # Print info line
 function fuINFO {
   echo
-  echo -e "$BBLUE═══$BGREEN $1 $NC"
+  echo -e "$BBLUE════$BGREEN $1 $NC"
 }
 
 # Print error line
 function fuERROR {
   echo
-  echo -e "$BBLUE═══$BRED $1 $NC"
+  echo -e "$BBLUE════$BRED $1 $NC"
 }
 
 # Print results line
 function fuRESULT {
   echo
-  echo -e "$BBLUE═══$BYELLOW $1 $NC"
+  echo -e "$BBLUE════$BYELLOW $1 $NC"
 }
 
 # Print next steps line
@@ -73,12 +79,12 @@ function fuSTEPS {
 
 # Print message line
 function fuMESSAGE {
-  echo -e "$BBLUE---$NC $1 $NC"
+  echo -e "$BBLUE----$NC $1 $NC"
 }
 
 # Print attention message line
 function fuATTENTION {
-  echo -e "$BLUE---$YELLOW $1 $NC"
+  echo -e "$BLUE----$YELLOW $1 $NC"
 }
 
 # Check for root permissions
@@ -178,22 +184,16 @@ elif ! [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
   exit
 fi
 
-##########
-# Banner #
-##########
+
+#########################################
+# Banner, Advisory, Check for root, ... #
+#########################################
 
 fuBANNER "RECONNAISSANCE"
-echo
-echo -e "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
-echo
-sleep 1
-
-#####################
-# Checking for root #
-#####################
-
+fuADVISORY
 fuGOT_ROOT
 sleep 1
+
 
 ####################################
 # Checking for internet connection #
