@@ -113,15 +113,7 @@ sleep 1
 ###########
 
 # copied from https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS
-
-echo "
-  _     _       ____  _____    _    ____  
- | |   (_)_ __ |  _ \| ____|  / \  / ___| 
- | |   | | '_ \| |_) |  _|   / _ \ \___ \ 
- | |___| | | | |  __/| |___ / ___ \ ___) |
- |_____|_|_| |_|_|   |_____/_/   \_\____/ 
-                                          
-"
+linPEAS() {
 
 VERSION="ng"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission."
@@ -4837,14 +4829,10 @@ echo ''
 echo ''
 if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
 
+}
 
-
-
-
-
-
-
-
+# run linpeas
+linPEAS
 
 
 ##############
