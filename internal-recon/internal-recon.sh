@@ -301,6 +301,11 @@ currentip=$(ip a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}
 currentif=$(ifconfig | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null)
 if [ "$currentip" ]; then fuOK && echo "$currentip"; elif [ "$currentif" ]; then fuOK && echo "$currentif"; else fuNOTOK; fi
 
+# network interfaces / devices
+fuCHECKS "Network interfaces / devices"
+netinterfaces=$(cat /etc/networks 2>/dev/null ; (ip -br link || ifconfig -s || netstat -i) 2>/dev/null)
+if [ "$netinterfaces" ]; then fuOK && echo "$netinterfaces"; else fuNOTOK; fi
+
 # dns info
 fuCHECKS "DNS info"
 dnsinfo=$(grep "nameserver" /etc/resolv.conf 2>/dev/null || systemd-resolve --status 2>/dev/null)
@@ -501,12 +506,12 @@ if [ "$xinetd" ]; then fuOK && echo "$xinetd"; else fuNOTOK; fi
 
 # check inetd config
 fuCHECKS "Anything useful in inetd.conf?"
-inetdconf=$(cat /etc/inetd.conf 2>/dev/null | grep -v "#" | grep -ve "^$")
+inetdconf=$(cat /etc/inetd.conf 2>/dev/null | grep -v "^#" | grep -ve "^$")
 if [ "$inetdconf" ]; then fuOK && echo "$inetdconf"; else fuNOTOK; fi
 
 # check xinetd config
 fuCHECKS "Anything useful in xinetd.conf?"
-xinetdconf=$(cat /etc/xinetd.conf 2>/dev/null | grep -v "#" | grep -ve "^$")
+xinetdconf=$(cat /etc/xinetd.conf 2>/dev/null | grep -v "^#" | grep -ve "^$")
 if [ "$xinetdconf" ]; then fuOK && echo "$xinetdconf"; else fuNOTOK; fi
 
 # init.d
