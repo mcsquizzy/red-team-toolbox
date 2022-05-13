@@ -7,7 +7,6 @@ Available parts:
 - Create a root shell
 - Modify ssh keys
 - Create local user
-- Serve a local web server
 
 ## Usage
 
@@ -30,7 +29,7 @@ sh persistence.sh -h
 ```sh
 sh persistence.sh -h
 
-Usage: sh persistence.sh [-h/-?] [-e] [-r] [-s] [-u] [-p] [-w] [-q]
+Options:
 
 -h/-?
   Show this help message
