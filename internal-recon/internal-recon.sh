@@ -50,6 +50,12 @@ echo "
 "
 }
 
+fuADVISORY() {
+  echo
+  echo "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
+  echo
+}
+
 # Print title
 fuTITLE() {
   echo
@@ -139,11 +145,11 @@ fi
 
 PASSED_ARGS=$@
 if [ "$PASSED_ARGS" != "" ]; then
-  while getopts "h?c" opt; do
+  while getopts "h?cqw" opt; do
     case "$opt" in
       h|\?)
         echo
-        echo "Usage: sh $0 [-h/-?] [-c]"
+        echo "Options:"
         echo
         echo "-h/-?"
         echo "  Show this help message"
@@ -152,8 +158,16 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo "  No colours"
         echo "  Without colours, the output can probably be read better"
         echo
+        echo "-q"
+        echo "  Quiet. No banner and no advisory displayed"
+        echo
+        echo "-w"
+        echo "  Serves an local web server for transferring files"
+        echo
         exit;;
       c) NOCOLOUR="1";;
+      w) SERVE="1";QUIET="1";;
+      q) QUIET="1";;
       esac
   done
 else
@@ -177,22 +191,14 @@ if [ "$NOCOLOUR" ]; then
   BBLUE=""
 fi
 
-##########
-# Banner #
-##########
 
-fuBANNER
-echo
-echo "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
-echo
+#########################################
+# Banner, Advisory, Check for root, ... #
+#########################################
+
+if [ ! "$QUIET" ]; then fuBANNER; fuADVISORY; fuGOT_ROOT; fi
 sleep 1
 
-#####################
-# Checking for root #
-#####################
-
-fuGOT_ROOT
-sleep 1
 
 ######################
 # System Information #
@@ -724,6 +730,26 @@ run_all | tee ${hostname}_all_info.txt
 fuINFO "Internal Recon complete"
 
 
+##########################
+# Serve local web server #
+##########################
+
+if [ "$SERVE" ]; then
+  
+  fuTITLE "Serving a local web server on port 8000 ..."
+
+  if command -v python3 1>/dev/null 2>&1; then
+    python3 -m http.server 8000
+  elif command -v python2 &>/dev/null 2>&1; then
+    python2 -m SimpleHTTPServer 8000
+  elif command -v php &>/dev/null 2>&1; then
+    php -S 0.0.0.0:8000
+  else
+    fuERROR "Aborting! No python nor php is installed."
+  fi
+fi
+
+
 #####################
 # Summarize Results #
 #####################
@@ -763,7 +789,7 @@ echo
 # Next Steps #
 ##############
   
-echo "
+if [ ! "$QUIET" ]; then echo "
    _   _           _     ____  _                   _____       ____                
   | \ | | _____  _| |_  / ___|| |_ ___ _ __  ___  |_   _|__   |  _ \  ___          
   |  \| |/ _ \ \/ / __| \___ \| __/ _ \ '_ \/ __|   | |/ _ \  | | | |/ _ \         
@@ -771,6 +797,7 @@ echo "
   |_| \_|\___/_/\_\ __| |____/ \__\___| .__/|___/   |_|\___/  |____/ \___/  (_|_|_)
                                       |_|                                          
 "
+fi
 
 fuSTEPS "Checkout the found information in one of the files created in the current directory."
 # more to do
