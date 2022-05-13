@@ -60,19 +60,19 @@ fuTITLE() {
 # Print info line
 fuINFO() {
   echo
-  echo "$BBLUE═══$BGREEN $1 $NC"
+  echo "$BBLUE════$BGREEN $1 $NC"
 }
 
 # Print error line
 fuERROR() {
   echo
-  echo "$BBLUE═══$BRED $1 $NC"
+  echo "$BBLUE════$BRED $1 $NC"
 }
 
 # Print results line
 fuRESULT() {
   echo
-  echo "$BBLUE═══$BYELLOW $1 $NC"
+  echo "$BBLUE════$BYELLOW $1 $NC"
 }
 
 # Print next steps line
@@ -83,12 +83,12 @@ fuSTEPS() {
 
 # Print message line
 fuMESSAGE() {
-  echo "$BBLUE---$NC $1 $NC"
+  echo "$BBLUE----$NC $1 $NC"
 }
 
 # Print attention message line
 fuATTENTION() {
-  echo "$BLUE---$YELLOW $1 $NC"
+  echo "$BLUE----$YELLOW $1 $NC"
 }
 
 # Check for root permissions
