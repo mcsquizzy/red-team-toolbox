@@ -38,6 +38,12 @@ echo "
 "
 }
 
+fuADVISORY() {
+  echo
+  echo "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
+  echo
+}
+
 # Print title
 fuTITLE() {
   echo
@@ -107,11 +113,11 @@ fi
 
 PASSED_ARGS=$@
 if [ "$PASSED_ARGS" != "" ]; then
-  while getopts "h?e:rs:u:p:" opt; do
+  while getopts "h?e:rs:u:p:wq" opt; do
     case "$opt" in
       h|\?)
         echo
-        echo "Usage: sh $0 [-h/-?] [-e] [-r] [-s] [-u] [-p]"
+        echo "Usage: sh $0 [-h/-?] [-e] [-r] [-s] [-u] [-p] [-w] [-q]"
         echo
         echo "-h/-?"
         echo "  Show this help message"
@@ -136,12 +142,20 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo "  Only useful in combination with -u parameter"
         echo "  Root needed!"
         echo
+        echo "-w"
+        echo "  Serves an local web server for transferring files"
+        echo
+        echo "-q"
+        echo "  Quiet. No banner and no advisory displayed"
+        echo
         exit;;
       e) ELEVATEPRIV="1";PRIVUSER=$OPTARG;;
       r) ROOTSHELL="1";;
       s) SSH="1";PUBKEY=$OPTARG;;
       u) ADDUSER="1";USERNAME=$OPTARG;;
       p) ADDPW="1";PW=$OPTARG;;
+      w) SERVE="1";QUIET="1";;
+      q) QUIET="1";;
       esac
   done
 else
@@ -154,22 +168,11 @@ fi
 # todo
 
 
-##########
-# Banner #
-##########
+#########################################
+# Banner, Advisory, Check for root, ... #
+#########################################
 
-fuBANNER
-echo
-echo "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
-echo
-sleep 1
-
-
-#####################
-# Checking for root #
-#####################
-
-fuGOT_ROOT
+if [ ! "$QUIET" ]; then fuBANNER; fuADVISORY; fuGOT_ROOT; fi
 sleep 1
 
 
@@ -178,14 +181,14 @@ sleep 1
 #################
 
 if [ "$ADDUSER" ]; then
-  echo "
+  if [ ! "$QUIET" ]; then echo "
       _       _     _   _                    _      _                             _   
      / \   __| | __| | | |    ___   ___ __ _| |    / \   ___ ___ ___  _   _ _ __ | |_ 
     / _ \ / _\` |/ _\` | | |   / _ \ / __/ _\` | |   / _ \ / __/ __/ _ \| | | | \'_ \| __|
    / ___ \ (_| | (_| | | |__| (_) | (_| (_| | |  / ___ \ (_| (_| (_) | |_| | | | | |_ 
   /_/   \_\__,_|\__,_| |_____\___/ \___\__,_|_| /_/   \_\___\___\___/ \__,_|_| |_|\__|
   "
-  sleep 1
+  fi
 
   # check -p parameter
   if [ ! "$ADDPW" ]; then fuERROR "Aborting! No password given. You cannot login to that user until you set a password. Use the -p parameter" && exit; fi
@@ -255,7 +258,7 @@ fi
 ######################
 
 if [ "$ELEVATEPRIV" ]; then
-  echo "
+  if [ ! "$QUIET" ]; then echo "
    _____ _                 _         ____       _       _ _                      
   | ____| | _____   ____ _| |_ ___  |  _ \ _ __(_)_   _(_) | ___  __ _  ___  ___ 
   |  _| | |/ _ \ \ / / _\` | __/ _ \ | |_) | '__| \ \ / / | |/ _ \/ _\` |/ _ \/ __|
@@ -263,6 +266,7 @@ if [ "$ELEVATEPRIV" ]; then
   |_____|_|\___| \_/ \__,_|\__\___| |_|   |_|  |_| \_/ |_|_|\___|\__, |\___||___/
                                                                   |___/           
   "
+  fi
  
   fuTITLE "Trying to add user \"$PRIVUSER\" to sudo group ..."
   sleep 2
@@ -290,7 +294,7 @@ fi
 ############
 
 if [ "$SSH" ]; then
-  echo "
+  if [ ! "$QUIET" ]; then echo "
     __  __           _ _  __         ____ ____  _   _   _  __                      
    |  \/  | ___   __| (_)/ _|_   _  / ___/ ___|| | | | | |/ /___ _   _ ___         
    | |\/| |/ _ \ / _\` | | |_| | | | \___ \___ \| |_| | | ' // _ \ | | / __|        
@@ -298,7 +302,7 @@ if [ "$SSH" ]; then
    |_|  |_|\___/ \__,_|_|_|  \__, | |____/____/|_| |_| |_|\_\___|\__, |___/ 
                              |___/                               |___/             
   "
-  sleep 1
+  fi
 
   # check if sudo
   if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
@@ -368,7 +372,7 @@ fi
 #####################
 
 if [ "$ROOTSHELL" ]; then
-  echo "
+  if [ ! "$QUIET" ]; then echo "
      ____                _         ____             _     ____  _          _ _ 
     / ___|_ __ ___  __ _| |_ ___  |  _ \ ___   ___ | |_  / ___|| |__   ___| | |
    | |   | '__/ _ \/ _\` | __/ _ \ | |_) / _ \ / _ \| __| \___ \| '_ \ / _ \ | |
@@ -376,6 +380,7 @@ if [ "$ROOTSHELL" ]; then
     \____|_|  \___|\__,_|\__\___| |_| \_\___/ \___/ \__| |____/|_| |_|\___|_|_|
                                                                              
   "
+  fi
 
   TMPDIR="/var/tmp"
   GCC=$(command -v gcc 2>/dev/null)
@@ -406,11 +411,30 @@ if [ "$ROOTSHELL" ]; then
 fi
 
 
+##########################
+# Serve local web server #
+##########################
+
+if [ "$SERVE" ]; then
+  
+  fuTITLE "Serving a local web server on port 8000 ..."
+
+  if command -v python3 1>/dev/null 2>&1; then
+    python3 -m http.server 8000
+  elif command -v python2 &>/dev/null 2>&1; then
+    python2 -m SimpleHTTPServer 8000
+  elif command -v php &>/dev/null 2>&1; then
+    php -S 0.0.0.0:8000
+  else
+    fuERROR "Aborting! No python nor php is installed."
+  fi
+fi
+
 ##############
 # Next Steps #
 ##############
   
-echo "
+if [ ! "$QUIET" ]; then echo "
    _   _           _     ____  _                   _____       ____                
   | \ | | _____  _| |_  / ___|| |_ ___ _ __  ___  |_   _|__   |  _ \  ___          
   |  \| |/ _ \ \/ / __| \___ \| __/ _ \ '_ \/ __|   | |/ _ \  | | | |/ _ \         
@@ -418,6 +442,7 @@ echo "
   |_| \_|\___/_/\_\ __| |____/ \__\___| .__/|___/   |_|\___/  |____/ \___/  (_|_|_)
                                       |_|                                          
 "
+fi
 
 if [ "$ADDUSER" ]; then
   if [ "$ADDUSEROK" ]; then
