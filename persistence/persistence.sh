@@ -112,7 +112,7 @@ fi
 
 PASSED_ARGS=$@
 if [ "$PASSED_ARGS" != "" ]; then
-  while getopts "h?e:rs:u:p:wq" opt; do
+  while getopts "h?e:rs:u:p:qw" opt; do
     case "$opt" in
       h|\?)
         echo
@@ -141,11 +141,11 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo "  Only useful in combination with -u parameter"
         echo "  Root needed!"
         echo
-        echo "-w"
-        echo "  Serves an local web server for transferring files"
-        echo
         echo "-q"
         echo "  Quiet. No banner and no advisory displayed"
+        echo
+        echo "-w"
+        echo "  Serves an local web server for transferring files"
         echo
         exit;;
       e) ELEVATEPRIV="1";PRIVUSER=$OPTARG;;
