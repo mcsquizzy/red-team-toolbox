@@ -303,8 +303,8 @@ if [ "$currentip" ]; then fuOK && echo "$currentip"; elif [ "$currentif" ]; then
 
 # network interfaces / devices
 fuCHECKS "Network interfaces / devices"
-netinterfaces=$(cat /etc/networks 2>/dev/null ; (ip -br link || ifconfig -s || netstat -i) 2>/dev/null)
-if [ "$netinterfaces" ]; then fuOK && echo "$netinterfaces"; else fuNOTOK; fi
+netdevices=$(cat /etc/networks 2>/dev/null ; (ip -br link || ifconfig -s || netstat -i) 2>/dev/null)
+if [ "$netdevices" ]; then fuOK && echo "$netdevices"; else fuNOTOK; fi
 
 # dns info
 fuCHECKS "DNS info"
