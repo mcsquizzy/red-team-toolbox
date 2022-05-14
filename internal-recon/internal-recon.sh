@@ -325,6 +325,7 @@ if [ "$tcplisten" ]; then fuOK && echo "$tcplisten"; else fuNOTOK; fi
 fuCHECKS "Listening UDP connections"
 udplisten=$(netstat -ulpn || ss -uln) 2>/dev/null
 if [ "$udplisten" ]; then fuOK && echo "$udplisten"; else fuNOTOK; fi
+
 }
 
 
