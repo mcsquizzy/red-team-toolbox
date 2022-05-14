@@ -192,9 +192,9 @@ if [ ! "$QUIET" ]; then fuBANNER; fuADVISORY; fuGOT_ROOT; fi
 sleep 1
 
 
-#######################
-# Network Information #
-#######################
+#############################
+# Basic Network Information #
+#############################
 
 # current IP(s)
 fuTITLE "Current IP(s) ..."
@@ -205,10 +205,15 @@ else
   fuERROR "No IP(s) found"
 fi
 
-# network neighbors
+
+######################
+# Network Neighbours #
+######################
+
+# network neighbours
 # arp
 fuTITLE "Neighboring network addresses from arp table (arp cache) ..."
-neighbour=$(ip neigh || arp -e | grep -vi incomplete || arp -a | grep -vi incomplete) 2>/dev/null
+neighbour=$(ip neigh | grep -vi failed || arp -e | grep -vi incomplete || arp -a | grep -vi incomplete) 2>/dev/null
 if [ "$neighbour" ]; then
   echo "$neighbour"
 else
@@ -216,22 +221,39 @@ else
 fi
 
 # reachable IP(s) with ping / fping
-PING=$(command -v ping 2>/dev/null)
-FPING=$(command -v fping 2>/dev/null)
+PING=$(command -v pinfg 2>/dev/null)
+FPING=$(command -v fpding 2>/dev/null)
 
-if [ "$FPING" ]; then
+if [ "$PING" ] || [ "$FPING" ]; then
   echo "$current_ips" | while read current_ip; do
     if ! [ -z "$current_ip" ]; then
-      fuTITLE "Discovering hosts in $current_ip/24"
+      fuTITLE "Reachable IPs (ICMP) in $current_ip/24 ..."
+      
       # fping
-      $FPING -asgq $current_ip/24
+      if [ "$FPING" ]; then
+        $FPING -asgq $current_ip/24
+      
+      # ping
+      elif [ "$PING" ]; then
+        # replace last address section with 255
+        ip3=$(echo $current_ip | cut -d "." -f 1,2,3)
+        
+        # ping /24 subnet
+        for i in $(seq 255); do
+          $PING -w 1 -b -c 1 $ip3.$i
+        done
+      fi
     fi
   done
+else
+  fuERROR "No ping nor fping installed, no addresses can be searched"
 fi
 
 
 
-#Reconnaissance von kompromittiertem Host aus.
+##############
+# Port Scans #
+##############
 
 
 #first: check if nmap is installed!!
