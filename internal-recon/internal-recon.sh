@@ -805,6 +805,7 @@ if [ ! "$QUIET" ]; then echo "
 fi
 
 fuSTEPS "Checkout the found information in one of the files created in the current directory."
+fuSTEPS "Now, that you've got information about the current host/system, run lateral movement to gain information about systems around you."
 # more to do
 
 echo
