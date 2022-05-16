@@ -150,19 +150,12 @@ if [ "$PASSED_ARGS" != "" ]; then
       h|\?)
         echo
         echo "Options:"
+        echo "-h    Show this help message"
+        echo "-w    Serves an local web server for transferring files"
         echo
-        echo "-h/-?"
-        echo "  Show this help message"
-        echo
-        echo "-c"
-        echo "  No colours"
-        echo "  Without colours, the output can probably be read better"
-        echo
-        echo "-q"
-        echo "  Quiet. No banner and no advisory displayed"
-        echo
-        echo "-w"
-        echo "  Serves an local web server for transferring files"
+        echo "Output:"
+        echo "-c    No colours. Without colours, the output can probably be read better"
+        echo "-q    Quiet. No banner and no advisory displayed"
         echo
         exit;;
       c) NOCOLOUR="1";;

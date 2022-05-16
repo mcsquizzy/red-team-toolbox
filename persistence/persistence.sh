@@ -116,36 +116,25 @@ if [ "$PASSED_ARGS" != "" ]; then
     case "$opt" in
       h|\?)
         echo
+        echo "Usage: $0 [options]"
+        echo
         echo "Options:"
+        echo "-h                Show this help message"
+        echo "-e <username>     Elevate privileges of the given user"
+        echo "                  Root needed!"
+        echo "-r                Create a root shell"
+        echo "                  Root needed!"
+        echo "-s <ssh pub key>  Trying to add ssh public key to authorized_keys of current user"
+        echo "                  Put the contents of your public key in quotes like: -s \"ssh-rsa AAAAB3NcaDkL......\""
+        echo "-u <username>     Add a local account/user"
+        echo "                  Root needed!"
+        echo "-p <password>     Set this password to new user"
+        echo "                  Only useful in combination with -u parameter"
+        echo "                  Root needed!"
+        echo "-w                Serves an local web server for transferring files"
         echo
-        echo "-h/-?"
-        echo "  Show this help message"
-        echo
-        echo "-e <username>"
-        echo "  Elevate privileges of the given user"
-        echo "  Root needed!"
-        echo
-        echo "-r"
-        echo "  Create a root shell"
-        echo "  Root needed!"
-        echo
-        echo "-s <ssh public key / content of id_rsa.pub>"
-        echo "  Trying to add ssh public key to authorized_keys of current user"
-        echo
-        echo "-u <username>"
-        echo "  Add a local account/user"
-        echo "  Root needed!"
-        echo
-        echo "-p <password>"
-        echo "  Set this password to new user"
-        echo "  Only useful in combination with -u parameter"
-        echo "  Root needed!"
-        echo
-        echo "-q"
-        echo "  Quiet. No banner and no advisory displayed"
-        echo
-        echo "-w"
-        echo "  Serves an local web server for transferring files"
+        echo "Output:"
+        echo "-q                Quiet. No banner and no advisory displayed"
         echo
         exit;;
       e) ELEVATEPRIV="1";PRIVUSER=$OPTARG;;
