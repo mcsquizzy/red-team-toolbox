@@ -193,7 +193,7 @@ sleep 1
 # Basic Network Information #
 #############################
 
-basic_netw_info() {
+current_ip() {
 
 # current IP(s)
 fuTITLE "Current IP(s) ..."
@@ -233,16 +233,20 @@ fi
 reachable_ips() {
 
 # display and set $current_ips
-basic_netw_info
+current_ip
 
 # reachable IP(s) with ping / fping
 PING=$(command -v ping 2>/dev/null)
-FPING=$(command -v fpding 2>/dev/null)
+FPING=$(command -v fping 2>/dev/null)
 
 if [ "$PING" ] || [ "$FPING" ]; then
   echo "$current_ips" | while read current_ip; do
     if ! [ -z "$current_ip" ]; then
-      fuTITLE "Reachable IPs (ICMP) in $current_ip/24 ..."
+      
+      # replace last address section with 255
+      ip3=$(echo $current_ip | cut -d "." -f 1,2,3)
+      
+      fuTITLE "Reachable IPs (ICMP) in $ip3.0/24 ..."
       
       # fping
       if [ "$FPING" ]; then
@@ -250,17 +254,15 @@ if [ "$PING" ] || [ "$FPING" ]; then
       
       # ping
       elif [ "$PING" ]; then
-        # replace last address section with 255
-        ip3=$(echo $current_ip | cut -d "." -f 1,2,3)
         for i in $(seq 254); do
-          timeout 1 $PING -b $ip3.$i | awk '/from/ {print $4}' | tr -d ":" &
+          $PING -b -w 1 $ip3.$i | awk '/from/ {print $4}' | tr -d ":" &
         done
         wait
       fi
     fi
   done
 else
-  fuERROR "No ping nor fping installed, no addresses can be searched"
+  fuERROR "No fping nor ping installed, no addresses can be searched"
 fi
 
 }
