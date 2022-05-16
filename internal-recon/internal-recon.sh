@@ -149,6 +149,8 @@ if [ "$PASSED_ARGS" != "" ]; then
     case "$opt" in
       h|\?)
         echo
+        echo "Usage: $0 [options]"
+        echo
         echo "Options:"
         echo "-h    Show this help message"
         echo "-w    Serves an local web server for transferring files"
