@@ -246,32 +246,32 @@ SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 ######################
 
 # BETA!!!
-if [ "$IP" != "" ] && ! expr "${IP}" : '^\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)$' >/dev/null; then
+if [ "$IP" != "" ] && ! expr "${IP}" : '^\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)$' 2>/dev/null; then
   fuERROR "Aborting. Invalid IPv4, check \"$myCONF_FILE\"."
   echo
   exit
 fi
-if [ "$IPRANGE" != "" ] && ! expr "${IPRANGE}" : '^\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}\)$' >/dev/null; then
+if [ "$IPRANGE" != "" ] && ! expr "${IPRANGE}" : '^\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}\)$' 2>/dev/null; then
   fuERROR "Aborting. Invalid IP Range, check \"$myCONF_FILE\"."
   echo
   exit
 fi
-if [ "$TCPPORT" != "" ] && ! expr "${TCPPORT}" : '^\([0-9]\{1,5\}\)$' >/dev/null; then
+if [ "$TCPPORT" != "" ] && ! expr "${TCPPORT}" : '^\([0-9]\{1,5\}\)$' 2>/dev/null; then
   fuERROR "Aborting. Invalid TCP Port, check \"$myCONF_FILE\"."
   echo
   exit
 fi
-if [ "$UDPPORT" != "" ] && ! expr "${UDPPORT}" : '^\([0-9]\{1,5\}\)$' >/dev/null; then
+if [ "$UDPPORT" != "" ] && ! expr "${UDPPORT}" : '^\([0-9]\{1,5\}\)$' 2>/dev/null; then
   fuERROR "Aborting. Invalid UDP Port, check \"$myCONF_FILE\"."
   echo
   exit
 fi
-if [ "$PORTRANGE" != "" ] && ! expr "${PORTRANGE}" : '^\([0-9]\{1,5\}\-[0-9]\{1,5\}\)$' >/dev/null; then
+if [ "$PORTRANGE" != "" ] && ! expr "${PORTRANGE}" : '^\([0-9]\{1,5\}\-[0-9]\{1,5\}\)$' 2>/dev/null; then
   fuERROR "Aborting. Invalid Port Range, check \"$myCONF_FILE\"."
   echo
   exit
 fi
-if [ "$DOMAIN" != "" ] && ! expr "${DOMAIN}" : '^\(\([[:alnum:]-]\{1,63\}\.\)*[[:alpha:]]\{2,6\}\)$' >/dev/null; then
+if [ "$DOMAIN" != "" ] && ! expr "${DOMAIN}" : '^\(\([[:alnum:]-]\{1,63\}\.\)*[[:alpha:]]\{2,6\}\)$' 2>/dev/null; then
   fuERROR "Aborting. Invalid Domain / URL, check \"$myCONF_FILE\"."
   echo
   exit
