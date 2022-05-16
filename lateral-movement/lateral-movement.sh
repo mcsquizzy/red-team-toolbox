@@ -239,7 +239,7 @@ fi
 
 reachable_ips() {
 
-# display and set current ip
+# display and set $current_ips
 basic_netw_info
 
 # reachable IP(s) with ping / fping
@@ -271,8 +271,6 @@ else
 fi
 
 }
-
-
 
 
 ##############
@@ -317,6 +315,37 @@ wait
 #install nmap binary
 
 
+###################
+# SSH Information #
+###################
+
+ssh_info() {
+
+# private keys
+fuTITLE "Search for files containing private keys ..."
+privatekeys=$(grep -rl "PRIVATE KEY-----" /home 2>/dev/null)
+if [ "$privatekeys" ]; then
+  echo "$privatekeys"
+fi
+
+# looking for known hosts
+fuTITLE "Search for known hosts or files that may contain known hosts ..."
+
+etchosts=$(cat /etc/hosts 2>/dev/null | grep -v "#" 2>/dev/null)
+if [ "$etchosts" ]; then
+  fuINFO "Content of /etc/hosts:"
+  echo "$etchosts"
+fi
+
+knownhosts=$(find / -iname ".bash_history" 2>/dev/null ; find / -iname ".known_hosts" 2>/dev/null ; find / -iname "known_hosts" 2>/dev/null ; find / -iname ".ssh/config" 2>/dev/null)
+if [ "$knownhosts" ]; then
+  fuINFO "Files that may contain known hosts:"
+  echo "$knownhosts"
+fi
+
+if ! ( [ "$etchosts" ] || [ "$knownhosts" ] ); then fuMESSAGE "Nothing found"; fi
+
+}
 
 
 #############
@@ -326,7 +355,7 @@ wait
 netw_neighbours
 reachable_ips
 if [ "$PORTSCAN" ]; then port_scan $IP; fi
-
+ssh_info
 
 
 ##########################
