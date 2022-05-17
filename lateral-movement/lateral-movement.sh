@@ -71,26 +71,6 @@ fuINFO() {
   echo "$BBLUE════$BGREEN $1 $NC"
 }
 
-# Print check line
-#fuCHECKS() {
-#  echo
-#  local title="$1"
-#  echo -n "$BBLUE════ $1 $NC"
-#  for i in $(seq $((${#title}+13)) 80); do
-#    echo -n "."
-#  done
-#}
-
-#fuOK() {
-#  echo -n " $BGREEN[yes]$NC"
-#  echo
-#}
-
-#fuNOTOK() {
-#  echo -n "  $BRED[no]$NC"
-#  echo
-#}
-
 # Print error line
 fuERROR() {
   echo
@@ -321,10 +301,10 @@ ssh_info() {
 
 # private keys
 fuTITLE "Search for files containing private keys ..."
+
 privatekeys=$(grep -rl "PRIVATE KEY-----" /home 2>/dev/null)
 if [ "$privatekeys" ]; then
   echo "$privatekeys"
-  privatekeysok="1"
 fi
 
 # looking for known hosts
@@ -334,14 +314,12 @@ etchosts=$(cat /etc/hosts 2>/dev/null | grep -v "#" 2>/dev/null)
 if [ "$etchosts" ]; then
   fuINFO "Content of /etc/hosts:"
   echo "$etchosts"
-  etchostsok="1"
 fi
 
 knownhosts=$(find / -iname ".bash_history" 2>/dev/null ; find / -iname ".known_hosts" 2>/dev/null ; find / -iname "known_hosts" 2>/dev/null ; find / -iname ".ssh/config" 2>/dev/null)
 if [ "$knownhosts" ]; then
   fuINFO "Files that may contain known hosts:"
   echo "$knownhosts"
-  knownhostsok="1"
 fi
 
 if ! ( [ "$etchosts" ] || [ "$knownhosts" ] ); then fuMESSAGE "Nothing found"; fi
@@ -358,8 +336,9 @@ reachable_ips | tee $myIPFILE
 if [ "$PORTSCAN" ]; then port_scan $IP | tee $myPORTSFILE; fi
 ssh_info | tee $mySSHFILE
 
+echo
 fuINFO "Lateral Movement Scan complete"
-
+echo
 
 ##########################
 # Serve local web server #
@@ -421,8 +400,8 @@ if [ ! "$PORTSCAN" ]; then
   fuSTEPS "If you found reachable IP addresses from this host, try a port scan with the -p option on a specific IP address."
 fi
 
-if [ "$privatekeysok" ] && ( [ "$etchostsok" ] || [ "$knownhostsok" ] ); then
-  fuSTEPS "You found files containing private keys. Maybe they can be applied to one of the found known hosts."
+if [ "$mySSHFILE" ]; then
+  fuSTEPS "Check the \"$mySSHFILE\" for files containing private keys. Maybe they can be applied to one of the found known hosts."
 fi
 
 echo
