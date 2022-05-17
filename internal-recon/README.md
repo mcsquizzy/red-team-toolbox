@@ -1,6 +1,8 @@
 # Internal Reconnaissance Phase
 
-Definition...  
+Definition Internal Reconnaissance...
+
+This script reveals various information ([see Checks](#checks)) of a Linux system that may be useful in Internal Reconnaissance.
 
 ## Usage
 
@@ -59,7 +61,7 @@ The script uses /bin/sh syntax and is fully POSIX compatible so can run on most 
 
 ## Additional Information
 
-### Search files and directories in linux
+### Search files and directories in Linux
 
 Examples:
 ```
