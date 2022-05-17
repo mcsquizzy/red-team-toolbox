@@ -23,7 +23,10 @@ NORMAL="\033[0;39m"
 # Get hostname
 hostname=`hostname 2>/dev/null`
 
-mySYSTEMFILE="${hostname}_system_info.txt"
+myNEIGHBOURSFILE="${hostname}_neighbours_info.txt"
+myIPFILE="${hostname}_reachable_ips.txt"
+myPORTSFILE="${IP}_ports_info.txt"
+mySSHFILE="${hostname}_ssh_info.txt"
 
 
 #############
@@ -321,6 +324,7 @@ fuTITLE "Search for files containing private keys ..."
 privatekeys=$(grep -rl "PRIVATE KEY-----" /home 2>/dev/null)
 if [ "$privatekeys" ]; then
   echo "$privatekeys"
+  privatekeysok="1"
 fi
 
 # looking for known hosts
@@ -330,12 +334,14 @@ etchosts=$(cat /etc/hosts 2>/dev/null | grep -v "#" 2>/dev/null)
 if [ "$etchosts" ]; then
   fuINFO "Content of /etc/hosts:"
   echo "$etchosts"
+  etchostsok="1"
 fi
 
 knownhosts=$(find / -iname ".bash_history" 2>/dev/null ; find / -iname ".known_hosts" 2>/dev/null ; find / -iname "known_hosts" 2>/dev/null ; find / -iname ".ssh/config" 2>/dev/null)
 if [ "$knownhosts" ]; then
   fuINFO "Files that may contain known hosts:"
   echo "$knownhosts"
+  knownhostsok="1"
 fi
 
 if ! ( [ "$etchosts" ] || [ "$knownhosts" ] ); then fuMESSAGE "Nothing found"; fi
@@ -347,10 +353,12 @@ if ! ( [ "$etchosts" ] || [ "$knownhosts" ] ); then fuMESSAGE "Nothing found"; f
 # Run parts #
 #############
 
-netw_neighbours
-reachable_ips
-if [ "$PORTSCAN" ]; then port_scan $IP; fi
-ssh_info
+netw_neighbours | tee $myNEIGHBOURSFILE
+reachable_ips | tee $myIPFILE
+if [ "$PORTSCAN" ]; then port_scan $IP | tee $myPORTSFILE; fi
+ssh_info | tee $mySSHFILE
+
+fuINFO "Lateral Movement Scan complete"
 
 
 ##########################
@@ -377,6 +385,22 @@ fi
 # Summarize Results #
 #####################
 
+fuTITLE "Output in following files:"
+
+if [ -s "$myNEIGHBOURSFILE" ]; then
+  fuRESULT "Information about the neighbour table written to: $BYELLOW$myNEIGHBOURSFILE$NC"
+fi
+if [ -s "$myIPFILE" ]; then
+  fuRESULT "Information about reachable IP addresses written to: $BYELLOW$myIPFILE$NC"
+fi
+if [ -s "$myPORTSFILE" ]; then
+  fuRESULT "Information about ports from scanned IP address written to: $BYELLOW$myPORTSFILE$NC"
+fi
+if [ -s "$mySSHFILE" ]; then
+  fuRESULT "Information about SSH private keys and known hosts written to: $BYELLOW$mySSHFILE$NC"
+fi
+
+echo
 
 
 ##############
@@ -393,6 +417,12 @@ if [ ! "$QUIET" ]; then echo "
 "
 fi
 
-# todo
+if [ ! "$PORTSCAN" ]; then
+  fuSTEPS "If you found reachable IP addresses from this host, try a port scan with the -p option on a specific IP address."
+fi
+
+if [ "$privatekeysok" ] && ( [ "$etchostsok" ] || [ "$knownhostsok" ] ); then
+  fuSTEPS "You found files containing private keys. Maybe they can be applied to one of the found known hosts."
+fi
 
 echo
