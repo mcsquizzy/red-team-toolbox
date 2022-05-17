@@ -1,8 +1,11 @@
 # Persistence Phase
 
-Definition...  
+Definition Persistence...
 
-Available parts:
+With this script it is possible to apply some persistence techniques to get a foothold on a system.
+
+## Features
+
 - Elevate privileges
 - Create a root shell
 - Modify ssh keys
