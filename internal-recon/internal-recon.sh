@@ -756,6 +756,7 @@ fi
 #####################
 
 fuTITLE "Output in following files:"
+
 if [ -s "$mySYSTEMFILE" ]; then
   fuRESULT "System information written to: $BYELLOW$mySYSTEMFILE$NC"
 fi
@@ -783,6 +784,7 @@ fi
 if [ -s "${hostname}_all_info.txt" ]; then
   fuRESULT "Report (all information together) written to: $BYELLOW${hostname}_all_info.txt$NC"
 fi
+
 echo
 
 
