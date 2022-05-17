@@ -728,7 +728,9 @@ container_info | tee $myCONTAINERFILE
 
 run_all | tee ${hostname}_all_info.txt
 
+echo
 fuINFO "Internal Recon complete"
+echo
 
 
 ##########################
