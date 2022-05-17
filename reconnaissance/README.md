@@ -1,9 +1,9 @@
 # Reconnaissance Phase
 
-Definition
-Environment variables controlled bash script
+Definition Reconnaissance...
 
-Available parts:
+This environment variables controlled bash script serves as a tool for receiving important information about a specific host or a network. The script can gain the following information:
+
 - Identity
 - Host
 - Network
@@ -15,10 +15,6 @@ Available parts:
 - Bypassing Firewall Rules: Network scan tries Nmap exotic scan flags if ports are filtered
 - Run as root or non-root: Both is possible, but some scans are not executed without root
 - 
-
-## Results
-
-Results saved to output/ directory.
 
 ## Usage
 
@@ -32,9 +28,14 @@ cp ./reconnaissance.conf.dist reconnaissance.conf
 ./reconnaissance.sh -c reconnaissance.conf
 ```
 
+## Results
+
+Results saved to output/ directory.
+
 ## Tools used
 
 All tools used are preinstalled on latest Kali Linux Version 2022.1:  
+
 - sherlock
 - spiderfoot
 - whois
