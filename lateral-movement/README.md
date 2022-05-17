@@ -1,8 +1,11 @@
 # Lateral Movement Phase
 
-Definition...  
+Definition Lateral Movement...
 
-Available parts:
+This script serves as a tool for receiving some information that may be important for Lateral Movement.
+
+## Features
+
 - Get network neighbours (from arp table)
 - Get reachable IP addresses
 - Port scan of a given IP address
@@ -12,7 +15,7 @@ Available parts:
 
 From github:
 ```sh
-curl -LJO ...
+curl -LJO https://github.com/McSquizzy/red-team-toolbox/tree/main/lateral-movement
 sh 
 ```
 Local network:
