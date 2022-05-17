@@ -3,24 +3,25 @@
 Definition...  
 
 Available parts:
-- 
-
+- Get network neighbours (from arp table)
+- Get reachable IP addresses
+- Port scan of a given IP address
+- Get SSH information about private keys and known hosts
 
 ## Usage
 
 From github:
 ```sh
-curl -LJO 
+curl -LJO ...
 sh 
 ```
 Local network:
 ```sh
 # Host
-python -m SimpleHTTPServer 8000 #or
-python3 -m http.server 8000
+sh lateral-movement.sh -w
 # Target
 curl -LJO <Host>:8000/
-sh 
+sh lateral-movement.sh
 ```
 
 ### Parameters
@@ -28,12 +29,21 @@ sh
 ```sh
 sh lateral-movement.sh -h
 
+Usage: lateral-movement.sh [options]
 
+Options:
+-h               Show this help message
+-p <IP address>  Do a port scan of the given IP address
+-w               Serves an local web server for transferring files
+
+Output:
+-c               No colours. Without colours, the output can probably be read better
+-q               Quiet. No banner and no advisory displayed
 ```
 
 ## Results
 
-Results saved to ....
+Results saved to files in current directory and printed to stdout.
 
 ## Compatibility
 
