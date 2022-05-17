@@ -1,6 +1,6 @@
 # Red Team Toolbox
 
-Definition todo
+This Repo contains a suite of scripts that cover the phases of a Red Team Attack Lifecycle. 
 
 ## Supported Platforms
 
@@ -8,7 +8,7 @@ Definition todo
 
 ## Composition
 
-Setup of all components ...
+The script suite covers the following phases:
 
 1. Reconnaissance
 1. Exploitation
@@ -16,3 +16,4 @@ Setup of all components ...
 1. Escalate Privileges
 1. Internal Recon
 1. Lateral Movement
+1. Action on Objectives
