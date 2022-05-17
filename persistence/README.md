@@ -29,36 +29,25 @@ sh persistence.sh -h
 ```sh
 sh persistence.sh -h
 
+Usage: persistence.sh [options]
+
 Options:
+-h                Show this help message
+-e <username>     Elevate privileges of the given user
+                  Root needed!
+-r                Create a root shell
+                  Root needed!
+-s <ssh pub key>  Trying to add ssh public key to authorized_keys of current user
+                  Put the contents of your public key in quotes like: -s "ssh-rsa AAAAB3NcaDkL......"
+-u <username>     Add a local account/user
+                  Root needed!
+-p <password>     Set this password to new user
+                  Only useful in combination with -u parameter
+                  Root needed!
+-w                Serves an local web server for transferring files
 
--h/-?
-  Show this help message
-
--e <username>
-  Elevate privileges of the given user
-  Root needed!
-
--r
-  Create a root shell
-  Root needed!
-
--s <ssh public key / content of id_rsa.pub>
-  Trying to add ssh public key to authorized_keys of current user
-
--u <username>
-  Add a local account/user
-  Root needed!
-
--p <password>
-  Set this password to new user
-  Only useful in combination with -u parameter
-  Root needed!
-
--w
-  Serves an local web server for transferring files
-
--q
-  Quiet. No banner and no advisory displayed
+Output:
+-q                Quiet. No banner and no advisory displayed
 ```
 
 ## Results
