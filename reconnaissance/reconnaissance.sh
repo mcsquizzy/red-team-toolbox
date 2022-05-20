@@ -22,6 +22,7 @@ BBLUE='\033[1;34m'
 BOLD=$(tput bold)
 NORMAL='\033[0;39m'
 
+
 #############
 # Functions #
 #############
@@ -101,12 +102,14 @@ else
 fi
 }
 
+# Check internet connection
 function fuCHECK_INET {
-wget -q --tries=10 --timeout=20 --spider http://google.com
-if [[ $? -eq 0 ]]; then
-  fuMESSAGE "Internet connection: [ OK ]"
+if wget -q --tries=10 --timeout=20 --spider http://google.com; then
+  INET="1"
+  fuMESSAGE "Internet connection: $BGREEN[ OK ]$NC"
 else
-  fuMESSAGE "Internet connection: [ NOT OK ]"
+  INET=""
+  fuMESSAGE "Internet connection: $BRED[ NOT OK ]$NC"
 fi
 }
 
@@ -202,8 +205,10 @@ sleep 1
 
 if [ "$IAMROOT" ]; then
   fuCHECK_INET
-  if [[ $? -eq 0 ]]; then
+  if [ "$INET" ]; then
     fuGET_DEPS
+  else
+    fuMESSAGE "Installation of dependencies skipped."
   fi
 else
   fuMESSAGE "Not root. Installation of dependencies skipped."
@@ -244,6 +249,7 @@ sleep 3
 # set nmap spoofing variable
 SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 
+
 ######################
 # Validate variables #
 ######################
@@ -280,6 +286,7 @@ if [ "$DOMAIN" != "" ] && ! expr "${DOMAIN}" : '^\(\([[:alnum:]-]\{1,63\}\.\)*[[
   exit
 fi
 
+
 ###############################
 # Gather Identity Information #
 ###############################
@@ -288,6 +295,7 @@ if [ "$IDENTITY" ]; then
   fuBANNER "Gather Identity Information ..."
   source ./parts/identity-information.sh
 fi
+
 
 ##############################
 # Gather Network Information #
@@ -298,6 +306,7 @@ if [ "$NETWORK" ]; then
   source ./parts/network-scanning.sh
 fi
 
+
 ###########################
 # Gather Host Information #
 ###########################
@@ -307,6 +316,7 @@ if [ "$HOST" ]; then
   source ./parts/host-scanning.sh
 fi
 
+
 ####################################
 # Gather Vulnerability Information #
 ####################################
@@ -315,6 +325,7 @@ if [ "$VULN" ]; then
   fuBANNER "Gather Vulnerability Information ..."
   source ./parts/vulnerability-scanning.sh
 fi
+
 
 ##############
 # Next Steps #
