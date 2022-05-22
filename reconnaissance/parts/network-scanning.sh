@@ -5,7 +5,7 @@
 # Global variables #
 ####################
 
-DEPENDENCIES="whois dnsenum amass python3-dnspython fping netdiscover nmap"
+DEPENDENCIES="whois dnsenum amass python3-dnspython fping netdiscover responder nmap"
 
 myDNSFILE="output/dns-findings.txt"
 myWHOISFILE="output/whois-findings.txt"
@@ -14,6 +14,7 @@ mySECAPPLFILE="output/sec-appliance-findings.txt"
 myDHCPFILE="output/dhcp-findings.txt"
 myPORTFILE="output/port-findings.txt"
 myUPORTFILE="output/uport-findings.txt"
+
 
 #############
 # Functions #
@@ -113,7 +114,12 @@ function fuPrepareTargetPortAppend {
 # Installation of Dependencies #
 ################################
 
-#fuGET_DEPS
+if [ "$IAMROOT" ] && [ "$INET" ]; then
+  fuGET_DEPS
+else
+  fuMESSAGE "Installation of dependencies skipped."
+fi
+
 
 ###########################
 # Create output directory #
@@ -123,6 +129,7 @@ if [ ! -d "output/" ]; then
   fuINFO "creating \"output/\" directory"
   mkdir output && echo "[ OK ]"
 fi
+
 
 ##############################
 # DNS Properties/Enumeration #
@@ -143,7 +150,7 @@ fi
 # DNS enumeration
 # dnsenum
 if [ "$DOMAIN" != "" ]; then
-  fuTITLE "Searching information (host addresses, nameservers, subdomains, ...) about $DOMAIN ..."
+  fuTITLE "Searching DNS information (host addresses, nameservers, subdomains, ...) about $DOMAIN ..."
   dnsenum $DOMAIN --nocolor | tee -a $myDNSFILE
 fi
 
@@ -177,6 +184,7 @@ fi
 
 # traceroute, check if needed?
 
+
 ################
 # IP Addresses #
 ################
@@ -184,19 +192,19 @@ fi
 # ICMP Scan (Network Layer)
 # fping
 if [ "$IP" != "" ] && [ "$NETDEVICE" == "" ]; then
-  fuTITLE "Check if IP address $IP is reachable ..."
+  fuTITLE "ICMP check if IP address $IP is reachable ..."
   fping -s $IP | tee -a $myNETADDRFILE
 
 elif [ "$IP" != "" ] && [ "$NETDEVICE" != "" ]; then
-  fuTITLE "Check if IP address $IP is reachable ..."
+  fuTITLE "ICMP check if IP address $IP is reachable ..."
   fping -s $IP -I $NETDEVICE | tee -a $myNETADDRFILE
 
 elif [ "$IP" == "" ] && [ "$NETDEVICE" != "" ] && [ "$IPRANGE" != "" ]; then
-  fuTITLE "Check which IP addresses of range $IPRANGE are reachable ..."
+  fuTITLE "ICMP check which IP addresses of range $IPRANGE are reachable ..."
   fping -asgq $IPRANGE -I $NETDEVICE | tee -a $myNETADDRFILE
 
 elif [ "$IP" == "" ] && [ "$NETDEVICE" == "" ] && [ "$IPRANGE" != "" ]; then
-  fuTITLE "Check which IP addresses of range $IPRANGE are reachable ..."
+  fuTITLE "ICMP check which IP addresses of range $IPRANGE are reachable ..."
   fping -asgq $IPRANGE | tee -a $myNETADDRFILE
 fi
 
@@ -208,14 +216,29 @@ fi
 # identifies and fingerprints Web Application Firewall (WAF)
 # wafw00f
 if [ "$DOMAIN" != "" ]; then
-  fuTITLE "Identifying Web Application Firewalls in front of $DOMAIN ..."
+  fuTITLE "Identifying Web Application Firewalls in front of $DOMAIN using HTTP requests ..."
   wafw00f -a $DOMAIN -o $mySECAPPLFILE
+fi
+
+# nmap
+# waf detection with nmap --script http-waf-detect
+if [ "$IP" != "" ]; then
+  fuTITLE "Nmap HTTP WAF scan of $IP ..."
+  nmap -Pn --script http-waf-detect $IP -oN $mySECAPPLFILE $SPOOFINGPARAMETERS | awk -v RS= '/^Nmap.*waf.*/'
+
+elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ]; then
+  fuTITLE "Nmap HTTP WAF scan of $DOMAIN ..."
+  nmap -Pn --script http-waf-detect $DOMAIN -oN $mySECAPPLFILE --append-output $SPOOFINGPARAMETERS | awk -v RS= '/^Nmap.*waf.*/'
+
+elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ]; then
+  fuTITLE "Nmap HTTP WAF scan of $IPRANGE ..."
+  nmap --script http-waf-detect $IPRANGE -oN $mySECAPPLFILE $SPOOFINGPARAMETERS | awk -v RS= '/^Nmap.*waf.*/'
 fi
 
 # load balancing detection
 # lbd
 # todo, check if needed?
-# waf detection with nmap --script http-waf-*
+
 
 #################
 # DHCP Scanning #
@@ -227,6 +250,7 @@ if [ "$IAMROOT" ]; then
 else
   fuERROR "You're not root. Script \"broadcast-dhcp-discover\" needs root privileges. Try \"sudo $0\""
 fi
+
 
 #################
 # Port Scanning #
@@ -328,6 +352,7 @@ if [ "$UDP" ]; then
     fuPrepareTargetPortAppend $myUPORTFILE
   fi
 fi
+
 
 #####################
 # Summarize results #
