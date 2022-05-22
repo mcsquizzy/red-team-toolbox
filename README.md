@@ -1,6 +1,8 @@
 # Red Team Toolbox
 
-This Repo contains a suite of scripts that cover the phases of a Red Team Attack Lifecycle. 
+This Repo contains a suite of bash or shell scripts that cover the phases of a Red Team Attack Lifecycle.  
+
+**No Installation. No Agents.**
 
 ## Supported Platforms
 
