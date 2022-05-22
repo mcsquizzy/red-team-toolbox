@@ -7,11 +7,17 @@
 
 DEPENDENCIES="sherlock spiderfoot"
 
+
 ################################
 # Installation of Dependencies #
 ################################
 
-fuGET_DEPS
+if [ "$IAMROOT" ] && [ "$INET" ]; then
+  fuGET_DEPS
+else
+  fuMESSAGE "Installation of dependencies skipped."
+fi
+
 
 ###########################
 # Create output directory #
@@ -21,6 +27,7 @@ if [ ! -d "output/" ]; then
   fuINFO "creating \"output/\" directory"
   mkdir output && echo "[ OK ]"
 fi
+
 
 ##########################
 # User interaction phase #
@@ -44,6 +51,7 @@ fi
 #fi
 
 #dialog --clear
+
 
 ###############
 # Credentials #
@@ -70,6 +78,7 @@ if [ "$NAME" != "" ]; then
 #  echo "Searching for usernames from name "$myNAME" ..."
 #  spiderfoot -s "$myNAME" -t USERNAME -f -q | tee -a usernames-of-${myNAME}.txt
 fi
+
 
 ###################
 # Email Addresses #

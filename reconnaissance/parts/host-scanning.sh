@@ -33,6 +33,7 @@ NMAPMYSQLSCRIPTS="mysql-databases,mysql-dump-hashes,mysql-empty-password,mysql-e
 NMAPSSHSCRIPTS="ssh-hostkey,ssh-auth-methods"
 NMAPVNCSCRIPTS="vnc-info,realvnc-auth-bypass,vnc-title"
 
+
 #############
 # Functions #
 #############
@@ -52,11 +53,17 @@ function fuNmapHttpEnumScan {
   nmap --script http-enum -oN $myDIRFILE --append-output $SPOOFINGPARAMETERS $*
 }
 
+
 ################################
 # Installation of Dependencies #
 ################################
 
-#fuGET_DEPS
+if [ "$IAMROOT" ] && [ "$INET" ]; then
+  fuGET_DEPS
+else
+  fuMESSAGE "Installation of dependencies skipped."
+fi
+
 
 ###########################
 # Create output directory #
@@ -66,6 +73,7 @@ if [ ! -d "output/" ]; then
   fuINFO "creating \"output/\" directory"
   mkdir output && echo "[ OK ]"
 fi
+
 
 #####################
 # Software Versions #
@@ -90,6 +98,7 @@ elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORT
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
   fuNmapSoftwareScan $IP -p$PORTRANGE
 fi
+
 
 #####################################
 # Directory Enumeration (Webserver) #
@@ -166,6 +175,7 @@ elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "3306" ] || grep -q -w 3306 "target
   nmap -sV --script $NMAPMYSQLSCRIPTS $DOMAIN -p3306 -oN $myMYSQLFILE $SPOOFINGPARAMETERS
 fi
 
+
 ################
 # SMB Analysis #
 ################
@@ -181,6 +191,7 @@ for i in $SMBPORTS; do
   fi
 done
 
+
 #################
 # SMTP Analysis #
 #################
@@ -192,6 +203,7 @@ for i in $SMTPPORTS; do
     nmap -sV --script $NMAPSMTPSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $mySMTPFILE
   fi
 done
+
 
 #################
 # SNMP Analysis #
@@ -211,6 +223,7 @@ for i in $SNMPPORTS; do
   fi
 done
 
+
 ################
 # SSH Analysis #
 ################
@@ -223,6 +236,7 @@ elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w 22 "targetPor
   fuTITLE "Nmap SSH scan of $DOMAIN and port 22 ..."
   nmap -sV --script $NMAPSSHSCRIPTS $DOMAIN -p22 $SPOOFINGPARAMETERS -oN $mySSHFILE
 fi
+
 
 ################
 # SSL Analysis #
@@ -237,6 +251,7 @@ elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w 443 "targetP
   fuTITLE "SSL scan (protocols, supported ciphers, certificates, etc.) of $DOMAIN ..."
   sslscan $DOMAIN --no-colour | tee $mySSLFILE
 fi
+
 
 ################
 # VNC Analysis #
@@ -269,6 +284,7 @@ done
 #    msfdb init
 #    msfconsole -x "use auxiliary/scanner/vnc/vnc_none_auth; set rhost $IPRANGE; run; exit" -q -o output/vuln-findings-vnc.txt
 #fi
+
 
 #####################
 # Summarize results #
