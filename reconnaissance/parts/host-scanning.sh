@@ -7,16 +7,17 @@
 
 DEPENDENCIES="nmap gobuster smbmap"
 
-mySOFTWAREFILE="output/software-findings.txt"
-myDIRFILE="output/directory-findings.txt"
-myLDAPFILE="output/ldap-findings.txt"
-myMYSQLFILE="output/mysql-findings.txt"
-mySMBFILE="output/smb-findings.txt"
-mySNMPFILE="output/snmp-findings.txt"
-mySMTPFILE="output/smtp-findings.txt"
-mySSHFILE="output/ssh-findings.txt"
-mySSLFILE="output/ssl-findings.txt"
-myVNCFILE="output/vnc-findings.txt"
+myVERSIONFILE="output/software-infos/version-findings.txt"
+myDIRFILE="output/software-infos/directory-findings.txt"
+myLDAPFILE="output/software-infos/ldap-findings.txt"
+myFTPFILE="output/software-infos/fdp-findings.txt"
+myMYSQLFILE="output/software-infos/mysql-findings.txt"
+mySMBFILE="output/software-infos/smb-findings.txt"
+mySNMPFILE="output/software-infos/snmp-findings.txt"
+mySMTPFILE="output/software-infos/smtp-findings.txt"
+mySSHFILE="output/software-infos/ssh-findings.txt"
+mySSLFILE="output/software-infos/ssl-findings.txt"
+myVNCFILE="output/software-infos/vnc-findings.txt"
 
 WEBPORTS="80 81 300 443 591 593 832 981 1010 1311 1099 2082 2095 2096 2480 3000 3128 3333 4243 4567 4711 4712 4993 5000 5104 5108 5280 5281 5800 6543 7000 7396 7474 8000 8001 8008 8014 8042 8069 8080 8081 8083 8088 8090 8091 8118 8123 8172 8222 8243 8280 8281 8333 8337 8443 8500 8834 8880 8888 8983 9000 9043 9060 9080 9090 9091 9200 9443 9800 9981 10000 11371 12443 16080 18091 18092 20720 55672"
 LDAPPORTS="389 636 3268 3269"
@@ -38,9 +39,9 @@ NMAPVNCSCRIPTS="vnc-info,realvnc-auth-bypass,vnc-title"
 # Functions #
 #############
 
-function fuNmapSoftwareScan {
+function fuNmapVersionScan {
   fuTITLE "Nmap scan with OS and version detection of $* ..."
-  nmap -A -Pn -oN $mySOFTWAREFILE $SPOOFINGPARAMETERS $*
+  nmap -O -sV -Pn -oN $myVERSIONFILE $SPOOFINGPARAMETERS $*
 }
 
 function fuGobusterScan {
@@ -70,8 +71,14 @@ fi
 ###########################
 
 if [ ! -d "output/" ]; then
-  fuINFO "creating \"output/\" directory"
-  mkdir output && echo "[ OK ]"
+  fuINFO "Creating \"./output/software-infos\" directory"
+  mkdir output
+  mkdir output/software-infos && echo "[ OK ]"
+  echo
+else
+  fuINFO "Creating \"./output/software-infos\" directory"
+  mkdir output/software-infos && echo "[ OK ]"
+  echo
 fi
 
 
@@ -82,21 +89,20 @@ fi
 # Host detection
 # nmap 
 # OS detection, version detection, script scanning, and traceroute
-
 if [ "$IP" != "" ] && [ "$TCPPORT" != "" ] && [ "$UDPPORT" != "" ]; then
-  fuNmapSoftwareScan $IP -p$TCPPORT,$UDPPORT
+  fuNmapVersionScan $IP -p$TCPPORT,$UDPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" != "" ] && [ "$UDPPORT" == "" ]; then
-  fuNmapSoftwareScan $IP -p$TCPPORT
+  fuNmapVersionScan $IP -p$TCPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" != "" ]; then
-  fuNmapSoftwareScan $IP -p$UDPPORT
+  fuNmapVersionScan $IP -p$UDPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
-  fuNmapSoftwareScan $IP
+  fuNmapVersionScan $IP
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapSoftwareScan $IP -p$PORTRANGE
+  fuNmapVersionScan $IP -p$PORTRANGE
 fi
 
 
@@ -138,7 +144,10 @@ fi
 ###################
 
 # nmap
-#nmap --script ftp-* -p 21 <ip>
+if [ "$IP" != "" ] && ( grep -q -w 21 "targetPort.txt" || [ "$TCPPORT" == "21" ] ); then
+  fuTITLE "Nmap FTP scan of $IP and port 21 ..."
+  nmap -sV --script "ftp-* and not brute" $IP -p 21 $SPOOFINGPARAMETERS -oN $myFTPFILE
+fi
 
 
 ####################
@@ -291,8 +300,9 @@ done
 #####################
 
 fuTITLE "Findings in following files:"
-if [ -s "$mySOFTWAREFILE" ]; then
-  fuRESULT "Software and version information: $mySOFTWAREFILE"
+
+if [ -s "$myVERSIONFILE" ]; then
+  fuRESULT "Software and version information: $myVERSIONFILE"
 fi
 if [ -s "$myDIRFILE" ]; then
   fuRESULT "Web Directory information: $myDIRFILE"
@@ -318,7 +328,8 @@ fi
 if [ -s "$myVNCFILE" ]; then
   fuRESULT "VNC information: $myVNCFILE"
 fi
-if [ ! -s "$mySOFTWAREFILE" ] && [ ! -s "$myDIRFILE" ] && [ ! -s "$myLDAPFILE" ] && [ ! -s "$myMYSQLFILE" ] && [ ! -s "$mySMBFILE" ] && [ ! -s "$mySNMPFILE" ] && [ ! -s "$mySMTPFILE" ] && [ ! -s "$mySSHFILE" ] && [ ! -s "$mySSLFILE" ] && [ ! -s "$myVNCFILE" ]; then 
+
+if [ ! -s "$myVERSIONFILE" ] && [ ! -s "$myDIRFILE" ] && [ ! -s "$myLDAPFILE" ] && [ ! -s "$myMYSQLFILE" ] && [ ! -s "$mySMBFILE" ] && [ ! -s "$mySNMPFILE" ] && [ ! -s "$mySMTPFILE" ] && [ ! -s "$mySSHFILE" ] && [ ! -s "$mySSLFILE" ] && [ ! -s "$myVNCFILE" ]; then 
   fuERROR "No host/software information found."
 fi
 echo
