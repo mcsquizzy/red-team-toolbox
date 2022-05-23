@@ -111,30 +111,30 @@ fi
 #####################################
 
 # Gobuster
-if [ "$IP" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w "443" targetPort.txt ); then
   fuGobusterScan https://$IP
-elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
+elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w "443" targetPort.txt ); then
   fuGobusterScan https://$DOMAIN
 fi
 
-if [ "$IP" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "80" ] || grep -q -w "80" targetPort.txt ); then
   fuGobusterScan $IP
-elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
+elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "80" ] || grep -q -w "80" targetPort.txt ); then
   fuGobusterScan http://$DOMAIN
 fi
 
 # nmap
-if [ "$IP" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w "443" targetPort.txt ); then
   fuNmapHttpEnumScan $IP -p443
 
-elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt"); then
+elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w "443" targetPort.txt ); then
   fuNmapHttpEnumScan $DOMAIN -p443
 fi
 
-if [ "$IP" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "80" ] || grep -q -w "80" targetPort.txt ); then
   fuNmapHttpEnumScan $IP -p80
 
-elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "80" ] || grep -q -w 80 "targetPort.txt"); then
+elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "80" ] || grep -q -w "80" targetPort.txt ); then
   fuNmapHttpEnumScan $DOMAIN -p443
 fi
 
@@ -144,7 +144,7 @@ fi
 ###################
 
 # nmap
-if [ "$IP" != "" ] && ( grep -q -w 21 "targetPort.txt" || [ "$TCPPORT" == "21" ] ); then
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "21" ] || grep -q -w "21" targetPort.txt ); then
   fuTITLE "Nmap FTP scan of $IP and port 21 ..."
   nmap -sV --script "ftp-* and not brute" $IP -p 21 $SPOOFINGPARAMETERS -oN $myFTPFILE
 fi
@@ -156,10 +156,10 @@ fi
 
 #todo
 # nmap
-for i in $LDAPPORTS; do
-  if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
-    fuTITLE "Nmap LDAP scan (public information) of $IP and port $i ..."
-    nmap -sV --script "ldap* and not brute" $IP -p$i $SPOOFINGPARAMETERS -oN $myLDAPFILE
+for ldapport in $LDAPPORTS; do
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$ldapport" ] || grep -q -w "$ldapport" targetPort.txt ); then
+    fuTITLE "Nmap LDAP scan (public information) of $IP and port $ldapport ..."
+    nmap -sV --script "ldap* and not brute" $IP -p$ldapport $SPOOFINGPARAMETERS -oN $myLDAPFILE
   fi
 done
 
@@ -175,11 +175,11 @@ done
 ##################
 
 # nmap
-if [ "$IP" != "" ] && ([ "$TCPPORT" == "3306" ] || grep -q -w 3306 "targetPort.txt"); then
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "3306" ] || grep -q -w "3306" targetPort.txt ); then
   fuTITLE "Nmap MySQL scan of $IP and port 3306 ..."
   nmap -sV --script $NMAPMYSQLSCRIPTS $IP -p3306 -oN $myMYSQLFILE $SPOOFINGPARAMETERS
 
-elif [ "$DOMAIN" != "" ] && ([ "$TCPPORT" == "3306" ] || grep -q -w 3306 "targetPort.txt"); then
+elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "3306" ] || grep -q -w "3306" targetPort.txt ); then
   fuTITLE "Nmap MySQL scan of $DOMAIN and port 3306 ..."
   nmap -sV --script $NMAPMYSQLSCRIPTS $DOMAIN -p3306 -oN $myMYSQLFILE $SPOOFINGPARAMETERS
 fi
@@ -191,12 +191,12 @@ fi
 
 # smbmap
 # nmap
-for i in $SMBPORTS; do
-  if [ "$IP" != "" ] && ( grep -q -w $i "targetPort.txt" || [ "$TCPPORT" == "$i" ] ); then
-    fuTITLE "Enumerate Samba Shares of $IP and port $i ..."
-    smbmap -H $IP -P $i -q | tee -a $mySMBFILE
-    fuTITLE "Nmap SMB scan of $IP and port $i ..."
-    nmap -sV --script $NMAPSMBSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $mySMBFILE --append-output
+for smbport in $SMBPORTS; do
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$smbport" ] || grep -q -w "$smbport" targetPort.txt ); then
+    fuTITLE "Enumerate Samba Shares of $IP and port $smbport ..."
+    smbmap -H $IP -P $smbport -q | tee -a $mySMBFILE
+    fuTITLE "Nmap SMB scan of $IP and port $smbport ..."
+    nmap -sV --script $NMAPSMBSCRIPTS $IP -p$smbport $SPOOFINGPARAMETERS -oN $mySMBFILE --append-output
   fi
 done
 
@@ -206,10 +206,10 @@ done
 #################
 
 # nmap
-for i in $SMTPPORTS; do
-  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-    fuTITLE "Nmap SMTP scan of $IP and port $i ..."
-    nmap -sV --script $NMAPSMTPSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $mySMTPFILE
+for smtpport in $SMTPPORTS; do
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$smtpport" ] || grep -q -w "$smtpport" targetPort.txt ); then
+    fuTITLE "Nmap SMTP scan of $IP and port $smtpport ..."
+    nmap -sV --script $NMAPSMTPSCRIPTS $IP -p$smtpport $SPOOFINGPARAMETERS -oN $mySMTPFILE
   fi
 done
 
@@ -219,15 +219,15 @@ done
 #################
 
 # nmap
-for i in $SNMPPORTS; do
-  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-    fuTITLE "Nmap SNMP scan of $IP and port $i ..."
-    nmap -sV --script snmp-info $IP -p$i $SPOOFINGPARAMETERS -oN $mySNMPFILE
+for snmpport in $SNMPPORTS; do
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$snmpport" ] || [ "$UDPPORT" == "$snmpport" ] || grep -q -w "$snmpport" targetPort.txt ); then
+    fuTITLE "Nmap SNMP scan of $IP and port $snmpport ..."
+    nmap -sV --script snmp-info $IP -p$snmpport $SPOOFINGPARAMETERS -oN $mySNMPFILE
     #snmp-check
 
-  elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-    fuTITLE "Nmap SNMP scan of $DOMAIN and port $i ..."
-    nmap -sV --script snmp-info $DOMAIN -p$i $SPOOFINGPARAMETERS -oN $mySNMPFILE
+  elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "$snmpport" ] || [ "$UDPPORT" == "$snmpport" ] || grep -q -w "$snmpport" targetPort.txt ); then
+    fuTITLE "Nmap SNMP scan of $DOMAIN and port $snmpport ..."
+    nmap -sV --script snmp-info $DOMAIN -p$snmpport $SPOOFINGPARAMETERS -oN $mySNMPFILE
     # snmp-check
   fi
 done
@@ -238,10 +238,11 @@ done
 ################
 
 # nmap
-if [ "$IP" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w 22 "targetPort.txt" ); then
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w "22" targetPort.txt ); then
   fuTITLE "Nmap SSH scan of $IP and port 22 ..."
   nmap -sV --script $NMAPSSHSCRIPTS $IP -p22 $SPOOFINGPARAMETERS -oN $mySSHFILE
-elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w 22 "targetPort.txt" ); then
+
+elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "22" ] || grep -q -w "22" targetPort.txt ); then
   fuTITLE "Nmap SSH scan of $DOMAIN and port 22 ..."
   nmap -sV --script $NMAPSSHSCRIPTS $DOMAIN -p22 $SPOOFINGPARAMETERS -oN $mySSHFILE
 fi
@@ -253,10 +254,11 @@ fi
 
 #todo
 # sslscan
-if [ "$IP" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt" ); then
+if [ "$IP" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w "443" targetPort.txt ); then
   fuTITLE "SSL scan (SSL/TLS protocols, supported ciphers, certificates, etc.) of $IP ..."
   sslscan $IP --no-colour | tee $mySSLFILE
-elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w 443 "targetPort.txt" ); then
+
+elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "443" ] || grep -q -w "443" targetPort.txt ); then
   fuTITLE "SSL scan (protocols, supported ciphers, certificates, etc.) of $DOMAIN ..."
   sslscan $DOMAIN --no-colour | tee $mySSLFILE
 fi
@@ -267,24 +269,24 @@ fi
 ################
 
 # nmap
-for i in $VNCPORTS; do
-  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-  fuTITLE "Nmap VNC scan of $IP and port $i ..."
-  nmap -sV --script $NMAPVNCSCRIPTS $IP -p$i $SPOOFINGPARAMETERS -oN $myVNCFILE
+for vncport in $VNCPORTS; do
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$vncport" ] || [ "$UDPPORT" == "$vncport" ] || grep -q -w "$vncport" targetPort.txt ); then
+  fuTITLE "Nmap VNC scan of $IP and port $vncport ..."
+  nmap -sV --script $NMAPVNCSCRIPTS $IP -p$vncport $SPOOFINGPARAMETERS -oN $myVNCFILE
   
-  elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
-  fuTITLE "Nmap VNC scan of $DOMAIN and port $i ..."
-  nmap -sV --script $NMAPVNCSCRIPTS $DOMAIN -p$i $SPOOFINGPARAMETERS -oN $myVNCFILE
+  elif [ "$DOMAIN" != "" ] && ( [ "$TCPPORT" == "$vncport" ] || [ "$UDPPORT" == "$vncport" ] || grep -q -w "$vncport" targetPort.txt ); then
+  fuTITLE "Nmap VNC scan of $DOMAIN and port $vncport ..."
+  nmap -sV --script $NMAPVNCSCRIPTS $DOMAIN -p$vncport $SPOOFINGPARAMETERS -oN $myVNCFILE
   fi
 done
 
 # VNC Authentication
 # metasploit
-for i in $VNCPORTS; do
-  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$i" ] || [ "$UDPPORT" == "$i" ] || grep -q -w $i "targetPort.txt" ); then
+for vncport in $VNCPORTS; do
+  if [ "$IP" != "" ] && ( [ "$TCPPORT" == "$vncport" ] || [ "$UDPPORT" == "$vncport" ] || grep -q -w "$vncport" targetPort.txt ); then
     fuTITLE "Looking for target $IP if a VNC Server is running ..."
     msfdb init
-    msfconsole -x "use auxiliary/scanner/vnc/vnc_none_auth; set rhost $IP; set rport $i; run; exit" -q -o $myVNCFILE
+    msfconsole -x "use auxiliary/scanner/vnc/vnc_none_auth; set rhost $IP; set rport $vncport; run; exit" -q -o $myVNCFILE
   fi
 done
 
