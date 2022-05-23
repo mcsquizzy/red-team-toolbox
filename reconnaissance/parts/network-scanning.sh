@@ -7,13 +7,13 @@
 
 DEPENDENCIES="whois dnsenum amass python3-dnspython fping netdiscover responder nmap"
 
-myDNSFILE="output/dns-findings.txt"
-myWHOISFILE="output/whois-findings.txt"
-myNETADDRFILE="output/net-addr-findings.txt"
-mySECAPPLFILE="output/sec-appliance-findings.txt"
-myDHCPFILE="output/dhcp-findings.txt"
-myPORTFILE="output/port-findings.txt"
-myUPORTFILE="output/uport-findings.txt"
+myDNSFILE="output/network-infos/dns-findings.txt"
+myWHOISFILE="output/network-infos/whois-findings.txt"
+myNETADDRFILE="output/network-infos/net-addr-findings.txt"
+mySECAPPLFILE="output/network-infos/sec-appliance-findings.txt"
+myDHCPFILE="output/network-infos/dhcp-findings.txt"
+myPORTFILE="output/network-infos/port-findings.txt"
+myUPORTFILE="output/network-infos/uport-findings.txt"
 
 
 #############
@@ -126,8 +126,14 @@ fi
 ###########################
 
 if [ ! -d "output/" ]; then
-  fuINFO "creating \"output/\" directory"
-  mkdir output && echo "[ OK ]"
+  fuINFO "Creating \"./output/network-infos\" directory"
+  mkdir output
+  mkdir output/network-infos && echo "[ OK ]"
+  echo
+else
+  fuINFO "Creating \"./output/network-infos\" directory"
+  mkdir output/network-infos && echo "[ OK ]"
+  echo
 fi
 
 
