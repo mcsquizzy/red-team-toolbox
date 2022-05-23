@@ -232,11 +232,6 @@ if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
   fi
   if [ "$VULN" ]; then
     fuMESSAGE "Vulnerability Scanning"
-    if [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
-    echo
-    fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port, unless you've already run it once. The Vuln Scanning takes data from the Network Scanning about open ports."
-    echo
-    fi
   fi
 else
   fuERROR "Aborting. No main variable in \"$myCONF_FILE\" set to true. Nothing to do."
@@ -313,7 +308,11 @@ fi
 
 if [ "$HOST" ]; then
   fuBANNER "Gather Host Information ..."
-  source ./parts/host-scanning.sh
+  if [ "$IP" != "" ] || [ "$DOMAIN" != "" ]; then
+    source ./parts/host-scanning.sh
+  else
+    fuERROR "No IP or Domain is set in \"$myCONF_FILE\". Host Scanning is not executed!"
+  fi
 fi
 
 
@@ -323,7 +322,16 @@ fi
 
 if [ "$VULN" ]; then
   fuBANNER "Gather Vulnerability Information ..."
-  source ./parts/vulnerability-scanning.sh
+  if [ "$IP" != "" ] || [ "$DOMAIN" != "" ]; then
+    if [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
+      echo
+      fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port, unless you've already run it once. The Vuln Scanning takes data from the Network Scanning about open ports."
+      echo
+    fi
+    source ./parts/vulnerability-scanning.sh
+  else
+    fuERROR "No IP or Domain is set in \"$myCONF_FILE\". Vulnerability Scanning is not executed!"
+  fi
 fi
 
 
