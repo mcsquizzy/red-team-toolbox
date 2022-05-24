@@ -40,7 +40,6 @@ All tools used are preinstalled on latest Kali Linux Version 2022.1:
 - spiderfoot
 - whois
 - dnsenum
-#- amass
 - fping
 - netdiscover
 - nmap
