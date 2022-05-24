@@ -24,4 +24,8 @@ The script suite covers the following phases:
 
 ## Supported Platforms
 
+Scripts in *Reconnaissance* and *Exploitation* phases only tested on:
+
 - Kali Linux (tested on version 2022.1)
+
+Scripts in all other phases are fully POSIX compatible so they can run on most unix-based (POSIX/Unix/Linux) systems.
