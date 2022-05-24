@@ -23,14 +23,9 @@ fi
 # Create output directory #
 ###########################
 
-if [ ! -d "output/" ]; then
+if [ ! -d "output/osint" ]; then
   fuINFO "Creating \"./output/osint\" directory"
-  mkdir output
-  mkdir output/osint && echo "[ OK ]"
-  echo
-else
-  fuINFO "Creating \"./output/osint\" directory"
-  mkdir output/osint && echo "[ OK ]"
+  mkdir -p output/osint && echo "[ OK ]"
   echo
 fi
 

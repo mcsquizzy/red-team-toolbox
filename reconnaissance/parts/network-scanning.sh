@@ -125,14 +125,9 @@ fi
 # Create output directory #
 ###########################
 
-if [ ! -d "output/" ]; then
+if [ ! -d "output/network-infos" ]; then
   fuINFO "Creating \"./output/network-infos\" directory"
-  mkdir output
-  mkdir output/network-infos && echo "[ OK ]"
-  echo
-else
-  fuINFO "Creating \"./output/network-infos\" directory"
-  mkdir output/network-infos && echo "[ OK ]"
+  mkdir -p output/network-infos && echo "[ OK ]"
   echo
 fi
 

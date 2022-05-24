@@ -70,14 +70,9 @@ fi
 # Create output directory #
 ###########################
 
-if [ ! -d "output/" ]; then
+if [ ! -d "output/software-infos" ]; then
   fuINFO "Creating \"./output/software-infos\" directory"
-  mkdir output
-  mkdir output/software-infos && echo "[ OK ]"
-  echo
-else
-  fuINFO "Creating \"./output/software-infos\" directory"
-  mkdir output/software-infos && echo "[ OK ]"
+  mkdir -p output/software-infos && echo "[ OK ]"
   echo
 fi
 
