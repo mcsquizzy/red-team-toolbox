@@ -2,7 +2,6 @@
 
 This Repo contains a suite of bash and shell scripts that cover the phases of a Red Team Attack Lifecycle. It is structured according to the phases of this Attack Lifecycle. Each phase contains an executable script and partly additional information about the respective phase.
 
----
 **No Installation. No Agents.**
 
 ## Usage
