@@ -5,8 +5,6 @@ This Repo contains a suite of bash and shell scripts that cover the phases of a 
 ---
 **No Installation. No Agents.** 
 
----
-
 ## Usage
 
 To use this repo, go to the individual phases (directories) and read the instructions there.
