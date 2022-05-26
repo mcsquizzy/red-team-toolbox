@@ -468,6 +468,8 @@ if [ "$ROOTSHELLOK" ]; then
   fuRESULT "A local root shell was created"
 fi
 
+echo
+
 
 ##############
 # Next Steps #

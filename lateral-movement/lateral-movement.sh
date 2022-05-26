@@ -359,9 +359,9 @@ if [ "$SERVE" ]; then
 
   if command -v python3 1>/dev/null 2>&1; then
     python3 -m http.server 8000
-  elif command -v python2 &>/dev/null 2>&1; then
+  elif command -v python2 1>/dev/null 2>&1; then
     python2 -m SimpleHTTPServer 8000
-  elif command -v php &>/dev/null 2>&1; then
+  elif command -v php 1>/dev/null 2>&1; then
     php -S 0.0.0.0:8000
   else
     fuERROR "Aborting! No python nor php is installed."
