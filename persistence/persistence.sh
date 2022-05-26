@@ -160,7 +160,11 @@ fi
 # Banner, Advisory, Check for root, ... #
 #########################################
 
-if [ ! "$QUIET" ]; then fuBANNER; fuADVISORY; fuGOT_ROOT; fi
+if [ ! "$QUIET" ]; then
+  fuBANNER
+  fuADVISORY
+  fuGOT_ROOT
+fi
 sleep 1
 
 
@@ -417,6 +421,7 @@ if [ "$SERVE" ]; then
     fuERROR "Aborting! No python nor php is installed."
   fi
 fi
+
 
 ##############
 # Next Steps #
