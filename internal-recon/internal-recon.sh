@@ -191,7 +191,11 @@ fi
 # Banner, Advisory, Check for root, ... #
 #########################################
 
-if [ ! "$QUIET" ]; then fuBANNER; fuADVISORY; fuGOT_ROOT; fi
+if [ ! "$QUIET" ]; then 
+  fuBANNER
+  fuADVISORY
+  fuGOT_ROOT
+fi
 sleep 1
 
 
