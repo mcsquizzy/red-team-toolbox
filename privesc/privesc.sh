@@ -81,25 +81,6 @@ fuMESSAGE() {
 }
 
 
-#####################################
-# Check the command line parameters #
-#####################################
-
-#while getopts "hs:" opt; do
-#  case "$opt" in
-#    h|\?)
-#      echo
-#      echo "Usage: sh $0 [-h] [-xxxx]"
-#      echo
-#      echo "-xxx <xxxxx>"
-#      echo "  Trying to xxxx"
-#      echo
-#    x) blablabla;;
-##      exit;;
-#    esac
-#done
-
-
 ##########
 # Banner #
 ##########
@@ -112,8 +93,9 @@ sleep 1
 # linPEAS #
 ###########
 
-# copied from https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS
-#linPEAS() {
+fuTITLE "Execute LinPEAS from carlospolop/PEASS-ng GitHub repo ..."
+
+# copied from https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS and deactivated the network scanning parts
 
 VERSION="ng"
 ADVISORY="This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission."
@@ -194,21 +176,16 @@ ${NC}This tool enum and search possible misconfigurations$DG (known vulns, user,
       ${YELLOW}-P${BLUE} Indicate a password that will be used to run 'sudo -l' and to bruteforce other users accounts via 'su'
       ${YELLOW}-o${BLUE} Only execute selected checks (system_information,container,procs_crons_timers_srvcs_sockets,network_information,users_information,software_information,interesting_files). Select a comma separated list.
       ${YELLOW}-L${BLUE} Force linpeas execution.
-      ${YELLOW}-M${BLUE} Force macpeas execution.
-      ${YELLOW}-d <IP/NETMASK>${BLUE} Discover hosts using fping or ping.$DG Ex: -d 192.168.0.1/24
-      ${YELLOW}-p <PORT(s)> -d <IP/NETMASK>${BLUE} Discover hosts looking for TCP open ports (via nc). By default ports 22,80,443,445,3389 and another one indicated by you will be scanned (select 22 if you don't want to add more). You can also add a list of ports.$DG Ex: -d 192.168.0.1/24 -p 53,139
-      ${YELLOW}-i <IP> [-p <PORT(s)>]${BLUE} Scan an IP using nc. By default (no -p), top1000 of nmap will be scanned, but you can select a list of ports instead.$DG Ex: -i 127.0.0.1 -p 53,80,443,8000,8080
-      ${YELLOW}-t${BLUE} Automatic network scan (host discovery and port scanning) - This option writes to files
-      $GREEN Notice${BLUE} that if you specify some network scan (options -d/-p/-i but NOT -t), no PE check will be performed$NC"
+      ${YELLOW}-M${BLUE} Force macpeas execution.$NC"
 
-while getopts "h?asd:p:i:P:qo:LMwNDte" opt; do
+while getopts "h?asd:p:i:P:qo:LMwNDtel" opt; do
   case "$opt" in
     h|\?) printf "%s\n\n" "$HELP$NC"; exit 0;;
     a)  FAST="";EXTRA_CHECKS="1";;
     s)  SUPERFAST=1;;
-    d)  DISCOVERY=$OPTARG;;
-    p)  PORTS=$OPTARG;;
-    i)  IP=$OPTARG;;
+    #d)  DISCOVERY=$OPTARG;;
+    #p)  PORTS=$OPTARG;;
+    #i)  IP=$OPTARG;;
     P)  PASSWORD=$OPTARG;;
     q)  QUIET=1;;
     o)  CHECKS=$OPTARG;;
@@ -217,7 +194,7 @@ while getopts "h?asd:p:i:P:qo:LMwNDte" opt; do
     w)  WAIT=1;;
     N)  NOCOLOR="1";;
     D)  DEBUG="1";;
-    t)  AUTO_NETWORK_SCAN="1";;
+    #t)  AUTO_NETWORK_SCAN="1";;
     e)  EXTRA_CHECKS="1";;
     esac
 done
@@ -4829,10 +4806,13 @@ echo ''
 echo ''
 if [ "$WAIT" ]; then echo "Press enter to continue"; read "asd"; fi
 
-#}
 
-# run linpeas
-#linPEAS
+#####################
+# Summarize Results #
+#####################
+
+# the LinPEAS script summarizes the findings with colors
+# nothing to summarize here
 
 
 ##############
@@ -4848,5 +4828,9 @@ echo "
                                       |_|                                          
 "
 
-#todo
+fuSTEPS "Check the output of this script an look for possible privilege escalation vectors. These vectors are colored depending on the probability of success"
+fuMESSAGE "Checkout the description at: https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS#colors"
+
+fuSTEPS "If you successfully extended your privileges, continue in the attack lifecycle or improve/secure your persistence"
+
 echo
