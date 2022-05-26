@@ -43,11 +43,11 @@ Options:
 -s <ssh pub key>  Trying to add ssh public key to authorized_keys of current user
                   Put the contents of your public key in quotes like: -s "ssh-rsa AAAAB3NcaDkL......"
 -u <username>     Add a local account/user
+                  Only useful in combination with -p parameter
                   Root needed!
--p <password>     Set this password to new user
-                  Only useful in combination with -u parameter
+-p <password>     Set this password to new or existent user
                   Root needed!
--w                Serves an local web server for transferring files
+-w                Serves a local web server for transferring files
 
 Output:
 -q                Quiet. No banner and no advisory displayed
