@@ -129,7 +129,7 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo "Options:"
         echo "-h               Show this help message"
         echo "-p <IP address>  Do a port scan of the given IP address"
-        echo "-w               Serves an local web server for transferring files"
+        echo "-w               Serves a local web server for transferring files"
         echo
         echo "Output:"
         echo "-c               No colours. Without colours, the output can probably be read better"

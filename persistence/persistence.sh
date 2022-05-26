@@ -131,7 +131,7 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo "-p <password>     Set this password to new user"
         echo "                  Only useful in combination with -u parameter"
         echo "                  Root needed!"
-        echo "-w                Serves an local web server for transferring files"
+        echo "-w                Serves a local web server for transferring files"
         echo
         echo "Output:"
         echo "-q                Quiet. No banner and no advisory displayed"
