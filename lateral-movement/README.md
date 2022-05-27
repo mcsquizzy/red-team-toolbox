@@ -15,8 +15,8 @@ This script serves as a tool for receiving some information that may be importan
 
 From github:
 ```sh
-curl -LJO https://github.com/McSquizzy/red-team-toolbox/tree/main/lateral-movement
-sh 
+curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/lateral-movement/lateral-movement.sh
+sh lateral-movement.sh -h
 ```
 Local network:
 ```sh
@@ -24,7 +24,7 @@ Local network:
 sh lateral-movement.sh -w
 # Target
 curl -LJO <Host>:8000/
-sh lateral-movement.sh
+sh lateral-movement.sh -h
 ```
 
 ### Parameters
