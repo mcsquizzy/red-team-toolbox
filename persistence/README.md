@@ -13,13 +13,13 @@ With this script it is possible to apply some persistence techniques to get a fo
 
 ## Usage
 
+From github:
 ```sh
-# From github
 curl -LJO https://github.com/McSquizzy/red-team-toolbox/blob/main/persistence/persistence.sh
 sh persistence.sh -h
 ```
+Local network:
 ```sh
-# Local network
 # Host:
 sh persistence.sh -w
 # Target:
