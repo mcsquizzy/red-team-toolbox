@@ -2,7 +2,7 @@
 
 Definition Internal Reconnaissance...
 
-This script reveals various information ([see Checks](#checks)) of a Linux system that may be useful in Internal Reconnaissance.
+This script reveals various information ([see Checks](#checks)) of a Linux system that may be useful in Internal Reconnaissance. For windows systems there is also a powershell script available. Check the [Windows](#windows) part for more information.
 
 ## Usage
 
@@ -56,6 +56,45 @@ Results saved to files in current directory and printed to stdout.
 ## Compatibility
 
 The script uses /bin/sh syntax and is fully POSIX compatible so can run on most unix-based (POSIX/Unix/Linux) systems.
+
+-----
+
+## Windows
+
+This powershell script is intended to serve as a template and is far from a finished script. 
+It does simple internal recon.
+
+### Usage
+
+From github:  
+Download powershell script from github and run it:
+```
+.\internal-recon.ps1
+```
+Local network:  
+Start webserver with -w
+```
+# Host
+sh internal-recon.sh -w
+```
+Download script from `http://<Host>:8000/` an run it:
+```
+.\internal-recon.ps1
+```
+
+## Results
+
+Results saved to files in current directory and printed to terminal.
+
+### Execution Policy Bypass
+
+If there are problems with the Execution Policy on Windows, try:
+```
+Set-Executionpolicy -Scope CurrentUser -ExecutionPolicy UnRestricted
+# or
+Get-Content .\internal-recon.ps1 | PowerShell.exe -noprofile -
+```
+or check https://gist.github.com/adithyan-ak/b5d0f2f98784e55f6edee248c85b4c5f for possible bypass commands.
 
 -----
 
