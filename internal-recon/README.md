@@ -1,6 +1,6 @@
 # Internal Reconnaissance Phase
 
-Definition Internal Reconnaissance...
+An internal investigation is carried out to gain knowledge about the compromised system. The aim is to obtain information that may be of interest for further action. System-specific tools are often used for this purpose.
 
 This script reveals various information ([see Checks](#checks)) of a Linux system that may be useful in Internal Reconnaissance. For windows systems there is also a powershell script available. Check the [Windows](#windows) part for more information.
 

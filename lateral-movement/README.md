@@ -1,6 +1,6 @@
 # Lateral Movement Phase
 
-Definition Lateral Movement...
+Lateral Movement is about the ability to move around the network. It is possible that the actual target cannot be reached from or on the initially compromised host. In this case, access must be gained to one or more remote systems. To do this, the network must be explored. Similar to Internal Reconnaissance, information is gathered here, but about the current network and surrounding systems.
 
 This script serves as a tool for receiving some information that may be important for Lateral Movement.
 
@@ -62,7 +62,7 @@ Todo...
 
 Pivoting: 
 proxychains
-
+todooo
 and so on...
 
 

@@ -1,6 +1,6 @@
 # Privilege Escalation Phase
 
-Definition Privilege Escalation...
+This phase is about expanding your own authorizations. Access to a system is often only possible with low authorizations. However, tasks from other phases of the attack lifecycle often require increased authorizations. In order for the authorizations to be increased, vulnerabilities in the system, misconfigurations or other security holes must be found.
 
 This script implements *LinPEAS* from [PEASS-ng](https://github.com/carlospolop/PEASS-ng).
 
@@ -38,4 +38,4 @@ less -r /output/file.txt
 
 ## Compatibility
 
-The script uses /bin/sh syntax and is fully POSIX compatible so can run on most unix-based (POSIX/Unix/Linux) systems. 
+The script uses /bin/sh syntax and is fully POSIX compatible so can run on most unix-based (POSIX/Unix/Linux) systems.

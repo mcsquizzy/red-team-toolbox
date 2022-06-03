@@ -1,6 +1,6 @@
 # Reconnaissance Phase
 
-Definition Reconnaissance...
+The reconnaissance phase attempts to gather information about a target (person, network, host, etc.) that can be used for the upcoming phases. This includes technical as well as non-technical information, which is collected using various techniques (active and passive scanning, open source intelligence (OSINT), etc.).
 
 This environment variables controlled bash script serves as a tool for receiving important information about a specific host or a network. The script can gain the following information:
 

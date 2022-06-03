@@ -1,6 +1,6 @@
 # Persistence Phase
 
-Definition Persistence...
+In this phase, an attempt is made to maintain persistence on the host or network. This is to maintain access to the compromised system, even if the system is rebooted or credentials are changed, for example. This includes creating new accounts or securing access via SSH, among other things.
 
 With this script it is possible to apply some persistence techniques to get a foothold on a system.
 
