@@ -730,11 +730,12 @@ interesting_files | tee $myINTERESTFILE
 container_info | tee $myCONTAINERFILE
 }
 
-run_all | tee ${hostname}_all_info.txt
-
-echo
-fuINFO "Internal Recon complete"
-echo
+if [ ! "$SERVE" ]; then 
+  run_all | tee ${hostname}_all_info.txt
+  echo
+  fuINFO "Internal Recon complete"
+  echo
+fi
 
 
 ##########################
