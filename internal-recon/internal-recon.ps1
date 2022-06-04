@@ -110,13 +110,6 @@ Get-Service | where{$_.Status -eq "Running"}
 }
 
 
-####################
-# Execution Policy #
-####################
-
-#powershell.exe -ExecutionPolicy Bypass
-
-
 #############
 # Run parts #
 #############
