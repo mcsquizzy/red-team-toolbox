@@ -5,7 +5,7 @@
 # Global variables #
 ####################
 
-DEPENDENCIES="toilet"
+DEPENDENCIES="toilet macchanger"
 
 # colors
 RED='\033[0;31m'
@@ -28,20 +28,20 @@ NORMAL='\033[0;39m'
 #############
 
 # Print banner
-function fuBANNER {
+function print_banner {
   echo
   toilet -tf standard $1 -F metal
   echo
 }
 
-function fuADVISORY {
+function print_advisory {
   echo
   echo -e "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
   echo
 }
 
 # Print title
-function fuTITLE {
+function print_title {
   echo
   for i in $(seq 80); do
     echo -en "$BBLUE═$NC"
@@ -55,69 +55,69 @@ function fuTITLE {
 }
 
 # Print info line
-function fuINFO {
+function print_info {
   echo
   echo -e "$BBLUE════$BGREEN $1 $NC"
 }
 
 # Print error line
-function fuERROR {
+function print_error {
   echo
   echo -e "$BBLUE════$BRED $1 $NC"
 }
 
 # Print results line
-function fuRESULT {
+function print_result {
   echo
   echo -e "$BBLUE════$BYELLOW $1 $NC"
 }
 
-# Print next steps line
-function fuSTEPS {
+# Print next step line
+function print_step {
   echo
   echo -e "$BBLUE[X]$NC $1 $NC"
 }
 
 # Print message line
-function fuMESSAGE {
+function print_message {
   echo -e "$BBLUE----$NC $1 $NC"
 }
 
 # Print attention message line
-function fuATTENTION {
+function print_attention {
   echo -e "$BLUE----$YELLOW $1 $NC"
 }
 
 # Check for root permissions
-function fuGOT_ROOT {
-fuINFO "Checking for root"
+function check_root {
+print_info "Checking for root"
 if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
   IAMROOT="1"
-  fuMESSAGE "You are root"
+  print_message "You are root"
   echo
 else
   IAMROOT=""
-  fuMESSAGE "You are not root"
+  print_message "You are not root"
   echo
 fi
 }
 
 # Check internet connection
-function fuCHECK_INET {
+function check_inet {
 if wget -q --tries=10 --timeout=20 --spider http://google.com; then
   INET="1"
-  fuMESSAGE "Internet connection: $BGREEN[ OK ]$NC"
+  print_message "Internet connection: $BGREEN[ OK ]$NC"
 else
   INET=""
-  fuMESSAGE "Internet connection: $BRED[ NOT OK ]$NC"
+  print_message "Internet connection: $BRED[ NOT OK ]$NC"
 fi
 }
 
 # Install dependencies
-function fuGET_DEPS {
-  fuINFO "Upgrading packages"
+function install_deps {
+  print_info "Upgrading packages"
   apt -y update
-  fuINFO "Installing dependencies"
+  print_info "Installing dependencies"
   apt -y install $DEPENDENCIES
 }
 
@@ -138,6 +138,23 @@ function fuNmapSpoofingParameters {
     echo "-g$SOURCEPORT"
   else
     echo ""
+  fi
+}
+
+function change_mac {
+  if [ "$NETDEVICE" == "" ]; then
+    print_error "Set a network device in \"$myCONF_FILE\" of which you would like to change the MAC address"
+    echo
+    exit
+  elif [ ! "$IAMROOT" ]; then
+    print_error "Change MAC address needs root privileges. Try \"sudo $0\""
+    echo
+    exit
+  else
+    if macchanger -r $NETDEVICE; then
+      print_info "MAC address changed successfully"
+      print_attention "Attention, after changing the MAC address, there could be connection problems"
+    fi
   fi
 }
 
@@ -193,9 +210,9 @@ fi
 # Banner, Advisory, Check for root, ... #
 #########################################
 
-fuBANNER "RECONNAISSANCE"
-fuADVISORY
-fuGOT_ROOT
+print_banner "RECONNAISSANCE"
+print_advisory
+check_root
 sleep 1
 
 
@@ -204,14 +221,14 @@ sleep 1
 ################################
 
 if [ "$IAMROOT" ]; then
-  fuCHECK_INET
+  check_inet
   if [ "$INET" ]; then
-    fuGET_DEPS
+    install_deps
   else
-    fuMESSAGE "Installation of dependencies skipped."
+    print_message "Installation of dependencies skipped."
   fi
 else
-  fuMESSAGE "Not root. Installation of dependencies skipped."
+  print_message "Not root. Installation of dependencies skipped."
 fi
 
 
@@ -220,30 +237,41 @@ fi
 #########################################
 
 if [ "$IDENTITY" ] || [ "$NETWORK" ] || [ "$HOST" ] || [ "$VULN" ]; then
-  fuTITLE "Following parts will be executed:"
+  print_title "Following parts will be executed:"
   if [ "$IDENTITY" ]; then
-    fuMESSAGE "Identity Scanning"
+    print_message "Identity Scanning"
   fi
   if [ "$NETWORK" ]; then
-    fuMESSAGE "Network Scanning"
+    print_message "Network Scanning"
   fi
   if [ "$HOST" ]; then
-    fuMESSAGE "Host Scanning"
+    print_message "Host Scanning"
   fi
   if [ "$VULN" ]; then
-    fuMESSAGE "Vulnerability Scanning"
+    print_message "Vulnerability Scanning"
   fi
 else
-  fuERROR "Aborting. No main variable in \"$myCONF_FILE\" set to true. Nothing to do."
-  fuINFO "Specify your configuration in \"$myCONF_FILE\" and run script again."
+  print_error "Aborting. No main variable in \"$myCONF_FILE\" set to true. Nothing to do."
+  print_info "Specify your configuration in \"$myCONF_FILE\" and run script again."
   echo
   exit
 fi
 sleep 3
 
+
+########################
+# Spoofing and Evasion #
+########################
+
 # set nmap spoofing variable
 SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 
+# change MAC address
+if [ "$CHANGEMAC" ]; then
+  print_title "Changing MAC address ..."
+  change_mac
+fi
+sleep 2
 
 ######################
 # Validate variables #
@@ -251,32 +279,32 @@ SPOOFINGPARAMETERS=$(fuNmapSpoofingParameters)
 
 # BETA!!!
 if [ "$IP" != "" ] && ! expr "${IP}" : '^\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\)$' &>/dev/null; then
-  fuERROR "Aborting. Invalid IPv4, check \"$myCONF_FILE\"."
+  print_error "Aborting. Invalid IPv4, check \"$myCONF_FILE\"."
   echo
   exit
 fi
 if [ "$IPRANGE" != "" ] && ! expr "${IPRANGE}" : '^\([0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\/[0-9]\{1,2\}\)$' &>/dev/null; then
-  fuERROR "Aborting. Invalid IP Range, check \"$myCONF_FILE\"."
+  print_error "Aborting. Invalid IP Range, check \"$myCONF_FILE\"."
   echo
   exit
 fi
 if [ "$TCPPORT" != "" ] && ! expr "${TCPPORT}" : '^\([0-9]\{1,5\}\)$' &>/dev/null; then
-  fuERROR "Aborting. Invalid TCP Port, check \"$myCONF_FILE\"."
+  print_error "Aborting. Invalid TCP Port, check \"$myCONF_FILE\"."
   echo
   exit
 fi
 if [ "$UDPPORT" != "" ] && ! expr "${UDPPORT}" : '^\([0-9]\{1,5\}\)$' &>/dev/null; then
-  fuERROR "Aborting. Invalid UDP Port, check \"$myCONF_FILE\"."
+  print_error "Aborting. Invalid UDP Port, check \"$myCONF_FILE\"."
   echo
   exit
 fi
 if [ "$PORTRANGE" != "" ] && ! expr "${PORTRANGE}" : '^\([0-9]\{1,5\}\-[0-9]\{1,5\}\)$' &>/dev/null; then
-  fuERROR "Aborting. Invalid Port Range, check \"$myCONF_FILE\"."
+  print_error "Aborting. Invalid Port Range, check \"$myCONF_FILE\"."
   echo
   exit
 fi
 if [ "$DOMAIN" != "" ] && ! expr "${DOMAIN}" : '^\(\([[:alnum:]-]\{1,63\}\.\)*[[:alpha:]]\{2,6\}\)$' &>/dev/null; then
-  fuERROR "Aborting. Invalid Domain / URL, check \"$myCONF_FILE\"."
+  print_error "Aborting. Invalid Domain / URL, check \"$myCONF_FILE\"."
   echo
   exit
 fi
@@ -287,7 +315,7 @@ fi
 ###############################
 
 if [ "$IDENTITY" ]; then
-  fuBANNER "Gather Identity Information ..."
+  print_banner "Gather Identity Information ..."
   source ./parts/identity-information.sh
 fi
 
@@ -297,7 +325,7 @@ fi
 ##############################
 
 if [ "$NETWORK" ]; then
-  fuBANNER "Gather Network Information ..."
+  print_banner "Gather Network Information ..."
   source ./parts/network-scanning.sh
 fi
 
@@ -307,11 +335,11 @@ fi
 ###########################
 
 if [ "$HOST" ]; then
-  fuBANNER "Gather Host Information ..."
+  print_banner "Gather Host Information ..."
   if [ "$IP" != "" ] || [ "$DOMAIN" != "" ]; then
     source ./parts/host-scanning.sh
   else
-    fuERROR "No IP or Domain is set in \"$myCONF_FILE\". Host Scanning is not executed!"
+    print_error "No IP or Domain is set in \"$myCONF_FILE\". Host Scanning is not executed!"
   fi
 fi
 
@@ -321,16 +349,16 @@ fi
 ####################################
 
 if [ "$VULN" ]; then
-  fuBANNER "Gather Vulnerability Information ..."
+  print_banner "Gather Vulnerability Information ..."
   if [ "$IP" != "" ] || [ "$DOMAIN" != "" ]; then
     if [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
       echo
-      fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port, unless you've already run it once. The Vuln Scanning takes data from the Network Scanning about open ports."
+      print_attention "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port, unless you've already run it once. The Vuln Scanning takes data from the Network Scanning about open ports."
       echo
     fi
     source ./parts/vulnerability-scanning.sh
   else
-    fuERROR "No IP or Domain is set in \"$myCONF_FILE\". Vulnerability Scanning is not executed!"
+    print_error "No IP or Domain is set in \"$myCONF_FILE\". Vulnerability Scanning is not executed!"
   fi
 fi
 
@@ -339,28 +367,28 @@ fi
 # Next Steps #
 ##############
 
-fuBANNER "Next Steps To Do ..."
+print_banner "Next Steps To Do ..."
 
 if [ -s "targetIP.txt" ] && [ "$IP" == "" ]; then
-  fuSTEPS "There are IP addresses with open ports! Set one of these specific IP address in \"$myCONF_FILE\" to gather more detailed information."
+  print_step "There are IP addresses with open ports! Set one of these specific IP address in \"$myCONF_FILE\" to gather more detailed information."
 fi
 
 if [ "$IP" == "" ]; then
-  fuSTEPS "No specific IP set. Try to set a specific IP address to gather more detailed information."
+  print_step "No specific IP set. Try to set a specific IP address to gather more detailed information."
 fi
 
 if [ ! "$VULN" ]; then
-  fuSTEPS "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
+  print_step "No vulnerability information gathered. Try set \"VULN\" variable to true and run script again."
 elif [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
   echo
-  fuATTENTION "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port, unless you've already run it once. The Vuln Scanning takes data from the Network Scanning about open ports."
+  print_attention "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port, unless you've already run it once. The Vuln Scanning takes data from the Network Scanning about open ports."
 fi
 
-fuSTEPS "Search for possible vulnerabilities in directory $BYELLOW\"output/\"$NC."
-fuSTEPS "Check the $BYELLOW../exploitation/README.md$NC file on how to find exploits."
+print_step "Search for possible vulnerabilities in directory $BYELLOW\"output/\"$NC."
+print_step "Check the $BYELLOW../exploitation/README.md$NC file on how to find exploits."
 
 if [ -s "$myVULNFILEXML" ]; then
-  fuSTEPS "Set SEARCHEXPLOIT variable in the $BYELLOW../exploitation/exploitation.conf$NC file to true to let the exploitation script find exploits from nmap vulners scan."
+  print_step "Set SEARCHEXPLOIT variable in the $BYELLOW../exploitation/exploitation.conf$NC file to true to let the exploitation script find exploits from nmap vulners scan."
 fi
 
 echo
