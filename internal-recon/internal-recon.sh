@@ -38,7 +38,7 @@ myCONTAINERFILE="${hostname}_container_info.txt"
 #############
 
 # Print banner
-fuBANNER() {
+print_banner() {
 # http://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something
 echo "
   ___ _   _ _____ _____ ____  _   _    _    _       ____  _____ ____ ___  _   _ _   _    _    ___ ____ ____    _    _   _  ____ _____ 
@@ -50,14 +50,14 @@ echo "
 "
 }
 
-fuADVISORY() {
+print_advisory() {
   echo
   echo "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
   echo
 }
 
 # Print title
-fuTITLE() {
+print_title() {
   echo
   for i in $(seq 80); do
     echo -n "$BBLUE═$NC"
@@ -71,13 +71,13 @@ fuTITLE() {
 }
 
 # Print info line
-fuINFO() {
+print_info() {
   echo
   echo "$BBLUE════$BGREEN $1 $NC"
 }
 
 # Print check line
-fuCHECKS() {
+print_check() {
   echo
   local title="$1"
   echo -n "$BBLUE════ $1 $NC"
@@ -86,54 +86,54 @@ fuCHECKS() {
   done
 }
 
-fuOK() {
+print_ok() {
   echo -n " $BGREEN[yes]$NC"
   echo
 }
 
-fuNOTOK() {
+print_notok() {
   echo -n "  $BRED[no]$NC"
   echo
 }
 
 # Print error line
-fuERROR() {
+print_error() {
   echo
   echo "$BBLUE════$BRED $1 $NC"
 }
 
 # Print results line
-fuRESULT() {
+print_result() {
   echo
   echo "$BBLUE════$NC $1"
 }
 
 # Print next steps line
-fuSTEPS() {
+print_step() {
   echo
   echo "$BBLUE[X]$NC $1 $NC"
 }
 
 # Print message line
-fuMESSAGE() {
+print_message() {
   echo "$BBLUE----$NC $1 $NC"
 }
 
 # Print attention message line
-fuATTENTION() {
+print_attention() {
   echo "$BLUE----$YELLOW $1 $NC"
 }
 
 # Check for root permissions
-fuGOT_ROOT() {
-fuINFO "Checking for root"
+check_root() {
+print_info "Checking for root"
 if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
   IAMROOT="1"
-  fuMESSAGE "You are root"
+  print_message "You are root"
   echo
 else
   IAMROOT=""
-  fuMESSAGE "You are not root"
+  print_message "You are not root"
   echo
 fi
 }
@@ -192,9 +192,9 @@ fi
 #########################################
 
 if [ ! "$QUIET" ]; then 
-  fuBANNER
-  fuADVISORY
-  fuGOT_ROOT
+  print_banner
+  print_advisory
+  check_root
 fi
 sleep 1
 
@@ -205,7 +205,7 @@ sleep 1
 
 system_info() {
 
-fuTITLE "System information"
+print_title "System information"
 sleep 1
 
 # current username
@@ -269,19 +269,19 @@ fi
 sleep 1
 
 # check if selinux is enabled
-fuCHECKS "Check if SELinux is enabled"
+print_check "Check if SELinux is enabled"
 sestatus=$(sestatus 2>/dev/null)
-if [ "$sestatus" ]; then fuOK && echo "$sestatus"; else fuNOTOK; fi
+if [ "$sestatus" ]; then print_ok && echo "$sestatus"; else print_notok; fi
 
 # list available shells
-fuCHECKS "All available shells"
+print_check "All available shells"
 shells=$(cat /etc/shells 2>/dev/null)
-if [ "$shells" ]; then fuOK && echo "$shells"; else fuNOTOK; fi
+if [ "$shells" ]; then print_ok && echo "$shells"; else print_notok; fi
 
 # password policy
-fuCHECKS "Password policy and password encryption method"
+print_check "Password policy and password encryption method"
 pwpolicy=$(grep "^PASS_MAX_DAYS\|^PASS_MIN_DAYS\|^PASS_WARN_AGE\|^LOGIN_RETRIES\|^ENCRYPT_METHOD" /etc/login.defs 2>/dev/null)
-if [ "$pwpolicy" ]; then fuOK && echo "$pwpolicy"; else fuNOTOK; fi
+if [ "$pwpolicy" ]; then print_ok && echo "$pwpolicy"; else print_notok; fi
 
 }
 
@@ -291,39 +291,39 @@ if [ "$pwpolicy" ]; then fuOK && echo "$pwpolicy"; else fuNOTOK; fi
 
 network_info() {
 
-fuTITLE "Network information"
+print_title "Network information"
 sleep 1
 
 # current IP(s)
-fuCHECKS "Current IP(s)"
+print_check "Current IP(s)"
 currentip=$(ip a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null)
 currentif=$(ifconfig | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\." 2>/dev/null)
-if [ "$currentip" ]; then fuOK && echo "$currentip"; elif [ "$currentif" ]; then fuOK && echo "$currentif"; else fuNOTOK; fi
+if [ "$currentip" ]; then print_ok && echo "$currentip"; elif [ "$currentif" ]; then print_ok && echo "$currentif"; else print_notok; fi
 
 # network interfaces / devices
-fuCHECKS "Network interfaces / devices"
+print_check "Network interfaces / devices"
 netdevices=$(cat /etc/networks 2>/dev/null ; (ip -br link || ifconfig -s || netstat -i) 2>/dev/null)
-if [ "$netdevices" ]; then fuOK && echo "$netdevices"; else fuNOTOK; fi
+if [ "$netdevices" ]; then print_ok && echo "$netdevices"; else print_notok; fi
 
 # dns info
-fuCHECKS "DNS info"
+print_check "DNS info"
 dnsinfo=$(grep "nameserver" /etc/resolv.conf 2>/dev/null || systemd-resolve --status 2>/dev/null)
-if [ "$dnsinfo" ]; then fuOK && echo "$dnsinfo"; else fuNOTOK; fi
+if [ "$dnsinfo" ]; then print_ok && echo "$dnsinfo"; else print_notok; fi
 
 # route info
-fuCHECKS "Route info"
+print_check "Route info"
 defroute=$(route || ip r | grep default) 2>/dev/null
-if [ "$defroute" ]; then fuOK && echo "$defroute"; else fuNOTOK; fi
+if [ "$defroute" ]; then print_ok && echo "$defroute"; else print_notok; fi
 
 # open TCP connections
-fuCHECKS "Listening TCP connections"
+print_check "Listening TCP connections"
 tcplisten=$(netstat -tlpn || ss -tln) 2>/dev/null
-if [ "$tcplisten" ]; then fuOK && echo "$tcplisten"; else fuNOTOK; fi
+if [ "$tcplisten" ]; then print_ok && echo "$tcplisten"; else print_notok; fi
 
 # open UDP connections
-fuCHECKS "Listening UDP connections"
+print_check "Listening UDP connections"
 udplisten=$(netstat -ulpn || ss -uln) 2>/dev/null
-if [ "$udplisten" ]; then fuOK && echo "$udplisten"; else fuNOTOK; fi
+if [ "$udplisten" ]; then print_ok && echo "$udplisten"; else print_notok; fi
 
 }
 
@@ -334,104 +334,104 @@ if [ "$udplisten" ]; then fuOK && echo "$udplisten"; else fuNOTOK; fi
 
 user_info() {
 
-fuTITLE "User information"
+print_title "User information"
 sleep 1
 
 # current user info
-fuCHECKS "Current user info"
+print_check "Current user info"
 currentuser=$(id 2>/dev/null)
-if [ "$currentuser" ]; then fuOK && echo "$currentuser"; else fuNOTOK; fi
+if [ "$currentuser" ]; then print_ok && echo "$currentuser"; else print_notok; fi
 
 # check path variable of current user
-fuCHECKS "Path config of current user"
+print_check "Path config of current user"
 pathconfig=$(echo $PATH 2>/dev/null)
-if [ "$pathconfig" ]; then fuOK && echo "$pathconfig"; else fuNOTOK; fi
+if [ "$pathconfig" ]; then print_ok && echo "$pathconfig"; else print_notok; fi
 
 # other users that have logged onto the system
-fuCHECKS "Other users that have also logged onto the system"
+print_check "Other users that have also logged onto the system"
 lastloggedonusers=$(lastlog 2>/dev/null | grep -v Never)
-if [ "$lastloggedonusers" ]; then fuOK && echo "$lastloggedonusers"; else fuNOTOK; fi
+if [ "$lastloggedonusers" ]; then print_ok && echo "$lastloggedonusers"; else print_notok; fi
 
 # other users that are logged on right now
-fuCHECKS "Are there users that are logged on right now?"
+print_check "Are there users that are logged on right now?"
 loggedonusers=$(w -h || who || users) 2>/dev/null
-if [ "$loggedonusers" ]; then fuOK && echo "$loggedonusers"; else fuNOTOK; fi
+if [ "$loggedonusers" ]; then print_ok && echo "$loggedonusers"; else print_notok; fi
 
 # users with a login shell
-fuCHECKS "Are there users with a login shell?"
+print_check "Are there users with a login shell?"
 shellusers=$(grep -i "sh$" /etc/passwd 2>/dev/null | cut -d ":" -f1)
-if [ "$shellusers" ]; then fuOK && echo "$shellusers"; else fuNOTOK; fi
+if [ "$shellusers" ]; then print_ok && echo "$shellusers"; else print_notok; fi
 
 # all users
-fuCHECKS "All users and the group they belong to"
+print_check "All users and the group they belong to"
 allusers=$(cut -d ":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done 2>/dev/null | sort)
-if [ "$allusers" ]; then fuOK && echo "$allusers"; else fuNOTOK; fi
+if [ "$allusers" ]; then print_ok && echo "$allusers"; else print_notok; fi
 
 # all users within a admin group
-fuCHECKS "Are there users within a admin group? (admin, root, sudo, wheel)"
+print_check "Are there users within a admin group? (admin, root, sudo, wheel)"
 allusers=$(cut -d ":" -f1 /etc/passwd 2>/dev/null | while read i; do id $i; done 2>/dev/null | sort | grep -E "^adm|admin|root|sudo|wheel")
-if [ "$allusers" ]; then fuOK && echo "$allusers"; else fuNOTOK; fi
+if [ "$allusers" ]; then print_ok && echo "$allusers"; else print_notok; fi
 
 # user loggon history
-fuCHECKS "Last logons"
+print_check "Last logons"
 lastlogons=$(last -Faiw | head -30 2>/dev/null || last | head -30 2>/dev/null)
-if [ "$lastlogons" ]; then fuOK && echo "$lastlogons"; else fuNOTOK; fi
+if [ "$lastlogons" ]; then print_ok && echo "$lastlogons"; else print_notok; fi
 
 # is /etc/shadow readable
-fuCHECKS "Can we read /etc/shadow file?"
+print_check "Can we read /etc/shadow file?"
 readshadow=$(cat /etc/shadow 2>/dev/null)
-if [ "$readshadow" ]; then fuOK && echo "$readshadow"; else fuNOTOK; fi
+if [ "$readshadow" ]; then print_ok && echo "$readshadow"; else print_notok; fi
 
 # hashes in /etc/passwd
-fuCHECKS "Are there hashes in the /etc/passwd file?"
+print_check "Are there hashes in the /etc/passwd file?"
 hashesinpasswd=$(grep -v '^[^:]*:[x]' /etc/passwd 2>/dev/null)
-if [ "$hashesinpasswd" ]; then fuOK && echo "$hashesinpasswd"; else fuNOTOK; fi
+if [ "$hashesinpasswd" ]; then print_ok && echo "$hashesinpasswd"; else print_notok; fi
 
 # is /etc/master.passwd readable
-fuCHECKS "Can we read /etc/master.passwd file?"
+print_check "Can we read /etc/master.passwd file?"
 readmaster=$(cat /etc/master.passwd 2>/dev/null)
-if [ "$readmaster" ]; then fuOK && echo "$readmaster"; else fuNOTOK; fi
+if [ "$readmaster" ]; then print_ok && echo "$readmaster"; else print_notok; fi
 
 # all root accounts (uid = 0)
-fuCHECKS "Are there more root / superuser accounts?"
+print_check "Are there more root / superuser accounts?"
 superuser=$(grep 'x:0:' /etc/passwd 2>/dev/null)
-if [ "$superuser" ]; then fuOK && echo "$superuser"; else fuNOTOK; fi
+if [ "$superuser" ]; then print_ok && echo "$superuser"; else print_notok; fi
 
 # home directory
-fuCHECKS "Home directory permissions"
+print_check "Home directory permissions"
 homedirperms=$(ls -lh /home/ 2>/dev/null)
-if [ "$homedirperms" ]; then fuOK && echo "$homedirperms"; else fuNOTOK; fi
+if [ "$homedirperms" ]; then print_ok && echo "$homedirperms"; else print_notok; fi
 
 # writable files
 if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -ne "0" ]) || [ "`whoami 2>/dev/null`" != "root" ]; then
-  fuCHECKS "Are there writable files but not owned by me?"
+  print_check "Are there writable files but not owned by me?"
   writablefiles=$(find / -writable ! -user $(whoami) -type f ! -path "/proc/*" ! -path "/sys/*" -exec ls -al {} \; 2>/dev/null)
-  if [ "$writablefiles" ]; then fuOK && echo "$writablefiles"; else fuNOTOK; fi
+  if [ "$writablefiles" ]; then print_ok && echo "$writablefiles"; else print_notok; fi
 fi
 
 # is root allowed to login via SSH
-fuCHECKS "Check if root is permitted to login via ssh"
+print_check "Check if root is permitted to login via ssh"
 rootssh=$(grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#" | awk '{print  $2}')
-if [ "$rootssh" = "yes" ]; then fuOK && (grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#"); else fuNOTOK; fi
+if [ "$rootssh" = "yes" ]; then print_ok && (grep "PermitRootLogin " /etc/ssh/sshd_config 2>/dev/null | grep -v "#"); else print_notok; fi
 
 ####################
 # Sudo Information #
 ####################
 
 # sudoers config
-fuCHECKS "Can we read Sudoers configuration?"
+print_check "Can we read Sudoers configuration?"
 sudoers=$(grep -v -e '^$' /etc/sudoers | grep -v "#") 2>/dev/null
-if [ "$sudoers" ]; then fuOK && echo "$sudoers"; else fuNOTOK; fi
+if [ "$sudoers" ]; then print_ok && echo "$sudoers"; else print_notok; fi
 
 # sudo without password
-fuCHECKS "Can we sudo without a password?"
+print_check "Can we sudo without a password?"
 sudopasswd=$(echo "" | sudo -S -l -k) 2>/dev/null
-if [ "$sudopasswd" ]; then fuOK && echo "$sudopasswd"; else fuNOTOK; fi
+if [ "$sudopasswd" ]; then print_ok && echo "$sudopasswd"; else print_notok; fi
 
 # past sudo uses
-fuCHECKS "Check who have used sudo in the past"
+print_check "Check who have used sudo in the past"
 whosudo=$(find /home -name .sudo_as_admin_successful 2>/dev/null)
-if [ "$whosudo" ]; then fuOK && echo "$whosudo"; else fuNOTOK; fi
+if [ "$whosudo" ]; then print_ok && echo "$whosudo"; else print_notok; fi
 
 }
 
@@ -442,44 +442,44 @@ if [ "$whosudo" ]; then fuOK && echo "$whosudo"; else fuNOTOK; fi
 
 jobs_info() {
 
-fuTITLE "Information about (cron)jobs and tasks"
+print_title "Information about (cron)jobs and tasks"
 sleep 1
 
 # list all cronjobs configured
-fuCHECKS "Are there any cronjobs configured?"
+print_check "Are there any cronjobs configured?"
 cronjobs=$(ls -lh /etc/cron* 2>/dev/null)
-if [ "$cronjobs" ]; then fuOK && echo "$cronjobs"; else fuNOTOK; fi
+if [ "$cronjobs" ]; then print_ok && echo "$cronjobs"; else print_notok; fi
 
 # list all writable cronjobs
-fuCHECKS "Are there any writeable cronjobs?"
+print_check "Are there any writeable cronjobs?"
 cronwritable=$(find -L /etc/cron* /etc/anacron /var/spool/cron -writable 2>/dev/null)
-if [ "$cronwritable" ]; then fuOK && echo "$cronwritable"; else fuNOTOK; fi
+if [ "$cronwritable" ]; then print_ok && echo "$cronwritable"; else print_notok; fi
 
 # show content system-wide crontab
-fuCHECKS "Can we read system-wide crontab /etc/crontab?"
+print_check "Can we read system-wide crontab /etc/crontab?"
 crontab=$(cat /etc/crontab 2>/dev/null)
-if [ "$crontab" ]; then fuOK && echo "$crontab"; else fuNOTOK; fi
+if [ "$crontab" ]; then print_ok && echo "$crontab"; else print_notok; fi
 
 # /var/spool/cron/crontab/
-fuCHECKS "Are there interesting files in /var/spool/cron/crontabs/?"
+print_check "Are there interesting files in /var/spool/cron/crontabs/?"
 varspoolcrontab=$(ls -lha /var/spool/cron/crontabs 2>/dev/null)
-if [ "$varspoolcrontab" ]; then fuOK && echo "$varspoolcrontab"; else fuNOTOK; fi
+if [ "$varspoolcrontab" ]; then print_ok && echo "$varspoolcrontab"; else print_notok; fi
 
 # cronjobs of other users
-fuCHECKS "Cronjobs of all users"
+print_check "Cronjobs of all users"
 cronusers=$(cut -d ":" -f 1 /etc/passwd | xargs -n1 crontab -l -u 2>/dev/null | grep -v "#")
-if [ "$cronusers" ]; then fuOK && echo "$cronusers"; else fuNOTOK; fi
+if [ "$cronusers" ]; then print_ok && echo "$cronusers"; else print_notok; fi
 
 # anacron
 # are there any anacron jobs
-fuCHECKS "Anacron jobs?"
+print_check "Anacron jobs?"
 anacron=$(ls -la /etc/anacrontab 2>/dev/null)
-if [ "$anacron" ]; then fuOK && echo "$anacron"; else fuNOTOK; fi
+if [ "$anacron" ]; then print_ok && echo "$anacron"; else print_notok; fi
 
 # systemd timers
-fuCHECKS "Systemd timers?"
+print_check "Systemd timers?"
 systemdtimers=$(systemctl list-timers --all 2>/dev/null)
-if [ "$systemdtimers" ]; then fuOK && echo "$systemdtimers"; else fuNOTOK; fi
+if [ "$systemdtimers" ]; then print_ok && echo "$systemdtimers"; else print_notok; fi
 
 }
 
@@ -490,49 +490,49 @@ if [ "$systemdtimers" ]; then fuOK && echo "$systemdtimers"; else fuNOTOK; fi
 
 services_info() {
 
-fuTITLE "Information about processes and services"
+print_title "Information about processes and services"
 sleep 1
 
 # all running processes
-fuCHECKS "Running processes"
+print_check "Running processes"
 processes=$(ps aux 2>/dev/null)
-if [ "$processes" ]; then fuOK && echo "$processes"; else fuNOTOK; fi
+if [ "$processes" ]; then print_ok && echo "$processes"; else print_notok; fi
 
 # inetd / xinetd manages internet-based services (like ftp, telnet ...)
 # is inetd or xinetd running
-fuCHECKS "Check inetd / xinetd process"
+print_check "Check inetd / xinetd process"
 xinetd=$(ps aux 2>/dev/null | egrep '[xi]netd' || netstat -tulpn 2>/dev/null | grep LISTEN | egrep '[xi]netd')
-if [ "$xinetd" ]; then fuOK && echo "$xinetd"; else fuNOTOK; fi
+if [ "$xinetd" ]; then print_ok && echo "$xinetd"; else print_notok; fi
 
 # check inetd config
-fuCHECKS "Anything useful in inetd.conf?"
+print_check "Anything useful in inetd.conf?"
 inetdconf=$(cat /etc/inetd.conf 2>/dev/null | grep -v "^#" | grep -ve "^$")
-if [ "$inetdconf" ]; then fuOK && echo "$inetdconf"; else fuNOTOK; fi
+if [ "$inetdconf" ]; then print_ok && echo "$inetdconf"; else print_notok; fi
 
 # check xinetd config
-fuCHECKS "Anything useful in xinetd.conf?"
+print_check "Anything useful in xinetd.conf?"
 xinetdconf=$(cat /etc/xinetd.conf 2>/dev/null | grep -v "^#" | grep -ve "^$")
-if [ "$xinetdconf" ]; then fuOK && echo "$xinetdconf"; else fuNOTOK; fi
+if [ "$xinetdconf" ]; then print_ok && echo "$xinetdconf"; else print_notok; fi
 
 # init.d
-fuCHECKS "List contents of /etc/init.d directory"
+print_check "List contents of /etc/init.d directory"
 initd=$(ls -la /etc/init.d 2>/dev/null)
-if [ "$initd" ]; then fuOK && echo "$initd"; else fuNOTOK; fi
+if [ "$initd" ]; then print_ok && echo "$initd"; else print_notok; fi
 
 # init.d processes that not belong to root
-fuCHECKS "Init.d files/services not belonging to root"
+print_check "Init.d files/services not belonging to root"
 initdnotroot=$(find /etc/init.d/ \! -uid 0 -type f 2>/dev/null | xargs -r ls -la 2>/dev/null)
-if [ "$initdnotroot" ]; then fuOK && echo "$initdnotroot"; else fuNOTOK; fi
+if [ "$initdnotroot" ]; then print_ok && echo "$initdnotroot"; else print_notok; fi
 
 # check /etc/rc.d/init.d
-fuCHECKS "Check /etc/rc.d/init.d"
+print_check "Check /etc/rc.d/init.d"
 rcd=$(ls -la /etc/rc.d/init.d 2>/dev/null)
-if [ "$rcd" ]; then fuOK && echo "$rcd"; else fuNOTOK; fi
+if [ "$rcd" ]; then print_ok && echo "$rcd"; else print_notok; fi
 
 # check /usr/local/etc/rc.d
-fuCHECKS "Check /usr/local/etc/rc.d"
+print_check "Check /usr/local/etc/rc.d"
 localrcd=$(ls -la /usr/local/etc/rc.d 2>/dev/null)
-if [ "$localrcd" ]; then fuOK && echo "$localrcd"; else fuNOTOK; fi
+if [ "$localrcd" ]; then print_ok && echo "$localrcd"; else print_notok; fi
 
 }
 
@@ -543,43 +543,43 @@ if [ "$localrcd" ]; then fuOK && echo "$localrcd"; else fuNOTOK; fi
 
 software_info() {
 
-fuTITLE "Information about installed software and possible versions"
+print_title "Information about installed software and possible versions"
 sleep 1
 
 # software packages
-fuCHECKS "List installed software packages and versions"
+print_check "List installed software packages and versions"
 
 # Arch Linux 
 arch=$(pacman -Q 2>/dev/null)
-if [ "$arch" ]; then fuOK && echo "$arch"; fi
+if [ "$arch" ]; then print_ok && echo "$arch"; fi
 
 # Alpine Linux
 alpine=$(apk info -v 2>/dev/null)
-if [ "$alpine" ]; then fuOK && echo "$alpine"; fi
+if [ "$alpine" ]; then print_ok && echo "$alpine"; fi
 
 # Debian / Ubuntu
 debian=$(dpkg -l 2>/dev/null || apt list --installed 2>/dev/null)
-if [ "$debian" ]; then fuOK && echo "$debian"; fi
+if [ "$debian" ]; then print_ok && echo "$debian"; fi
 
 # RHEL, Fedora, CentOS
 rhel=$(yum list installed 2>/dev/null || dnf list installed 2>/dev/null)
-if [ "$rhel" ]; then fuOK && echo "$rhel"; fi
+if [ "$rhel" ]; then print_ok && echo "$rhel"; fi
 
 # RPM
 rpm=$(rpm -qa 2>/dev/null)
-if [ "$rpm" ]; then fuOK && echo "$rpm"; fi
+if [ "$rpm" ]; then print_ok && echo "$rpm"; fi
 
 # openSUSE
 opensuse=$(zypper se --installed-only 2>/dev/null)
-if [ "$opensuse" ]; then fuOK && echo "$opensuse"; fi
+if [ "$opensuse" ]; then print_ok && echo "$opensuse"; fi
 
 # Snap
 snap=$(snap list 2>/dev/null)
-if [ "$snap" ]; then fuOK && echo "$snap"; fi
+if [ "$snap" ]; then print_ok && echo "$snap"; fi
 
 # Flatpak
 flatpak=$(flatpak list --app 2>/dev/null)
-if [ "$flatpak" ]; then fuOK && echo "$flatpak"; fi
+if [ "$flatpak" ]; then print_ok && echo "$flatpak"; fi
 
 }
 
@@ -590,83 +590,83 @@ if [ "$flatpak" ]; then fuOK && echo "$flatpak"; fi
 
 interesting_files() {
 
-fuTITLE "Interesting files"
+print_title "Interesting files"
 sleep 1
 
 # useful binaries
-fuCHECKS "Useful tools / binaries for further investigation"
-fuOK
+print_check "Useful tools / binaries for further investigation"
+print_ok
 command -v nc 2>/dev/null ; command -v netcat 2>/dev/null ; command -v wget 2>/dev/null ; command -v nmap 2>/dev/null ; command -v gcc 2>/dev/null; command -v curl 2>/dev/null
 
 # suid, guid, sticky bit
 # suid files
-fuCHECKS "Files with SUID bit set"
+print_check "Files with SUID bit set"
 suid=$(find / -perm -4000 -type f 2>/dev/null)
-if [ "$suid" ]; then fuOK && echo "$suid"; else fuNOTOK; fi
+if [ "$suid" ]; then print_ok && echo "$suid"; else print_notok; fi
 
 # guid files
-fuCHECKS "Files with GUID bit set"
+print_check "Files with GUID bit set"
 guid=$(find / -perm -2000 -type f 2>/dev/null)
-if [ "$guid" ]; then fuOK && echo "$guid"; else fuNOTOK; fi
+if [ "$guid" ]; then print_ok && echo "$guid"; else print_notok; fi
 
 # sticky bit files
-fuCHECKS "Files with STICKY bit set"
+print_check "Files with STICKY bit set"
 sticky=$(find / -perm -1000 -type f 2>/dev/null)
-if [ "$sticky" ]; then fuOK && echo "$sticky"; else fuNOTOK; fi
+if [ "$sticky" ]; then print_ok && echo "$sticky"; else print_notok; fi
 
 # sticky bit directories
-fuCHECKS "Directories with STICKY bit set"
+print_check "Directories with STICKY bit set"
 stickyd=$(find / -perm -1000 -type d 2>/dev/null)
-if [ "$stickyd" ]; then fuOK && echo "$stickyd"; else fuNOTOK; fi
+if [ "$stickyd" ]; then print_ok && echo "$stickyd"; else print_notok; fi
 
 
 # history files
 # user history
-fuCHECKS "Current user's history files"
+print_check "Current user's history files"
 userhistory=$(ls -la $HOME/.*_history 2>/dev/null)
-if [ "$userhistory" ]; then fuOK && echo "$userhistory"; else fuNOTOK; fi
+if [ "$userhistory" ]; then print_ok && echo "$userhistory"; else print_notok; fi
 
 # roots history
-fuCHECKS "Root's history files"
+print_check "Root's history files"
 roothistory=$(ls -la /root/.*_history 2>/dev/null)
-if [ "$roothistory" ]; then fuOK && echo "$roothistory"; else fuNOTOK; fi
+if [ "$roothistory" ]; then print_ok && echo "$roothistory"; else print_notok; fi
 
 # bash history files
-fuCHECKS "Other bash history files"
+print_check "Other bash history files"
 bashhistory=$(find /home -name .bash_history 2>/dev/null)
-if [ "$bashhistory" ]; then fuOK && echo "$bashhistory"; else fuNOTOK; fi
+if [ "$bashhistory" ]; then print_ok && echo "$bashhistory"; else print_notok; fi
 
 
 # private keys
-fuCHECKS "Private keys"
+print_check "Private keys"
 privatekeys=$(grep -rl "PRIVATE KEY-----" /home 2>/dev/null)
-if [ "$privatekeys" ]; then fuOK && echo "$privatekeys"; else fuNOTOK; fi
+if [ "$privatekeys" ]; then print_ok && echo "$privatekeys"; else print_notok; fi
 
 # git files
-fuCHECKS "Are there any Git credential files?"
+print_check "Are there any Git credential files?"
 gitfiles=$(find / -name ".git-credentials" 2>/dev/null)
-if [ "$gitfiles" ]; then fuOK && echo "$gitfiles"; else fuNOTOK; fi
+if [ "$gitfiles" ]; then print_ok && echo "$gitfiles"; else print_notok; fi
 
 # .plan files
-fuCHECKS "Files with .plan extension"
+print_check "Files with .plan extension"
 planfiles=$(find / -iname *.plan -exec ls -la {} 2>/dev/null \;)
-if [ "$planfiles" ]; then fuOK && echo "$planfiles"; else fuNOTOK; fi
+if [ "$planfiles" ]; then print_ok && echo "$planfiles"; else print_notok; fi
 
 # bak files
-fuCHECKS "Files with .bak extension"
+print_check "Files with .bak extension"
 bakfiles=$(find / -name *.bak -type f 2>/dev/null)
-if [ "$bakfiles" ]; then fuOK && echo "$bakfiles"; else fuNOTOK; fi
+if [ "$bakfiles" ]; then print_ok && echo "$bakfiles"; else print_notok; fi
 
 # mail
-fuCHECKS "Accessible mail files"
+print_check "Accessible mail files"
 mails=$(ls -la /var/mail 2>/dev/null)
-if [ "$mails" ]; then fuOK && echo "$mails"; else fuNOTOK; fi
+if [ "$mails" ]; then print_ok && echo "$mails"; else print_notok; fi
 
 
 # List Mozilla Firefox Bookmark Database Files on Linux
-fuCHECKS "Are there firefox bookmarks?"
+print_check "Are there firefox bookmarks?"
 firefox=$(find / -path "*.mozilla/firefox/*/places.sqlite" 2>/dev/null)
-if [ "$firefox" ]; then fuOK && echo "$firefox"; else fuNOTOK; fi
+if [ "$firefox" ]; then print_ok && echo "$firefox"; else print_notok; fi
 
 }
 
@@ -677,40 +677,40 @@ if [ "$firefox" ]; then fuOK && echo "$firefox"; else fuNOTOK; fi
 
 container_info() {
 
-fuTITLE "Information about containers"
+print_title "Information about containers"
 sleep 1
 
 # Docker
 # check if we are in a docker container
-fuCHECKS "Check if we are in a docker container"
+print_check "Check if we are in a docker container"
 dockercontainer=$(grep -i docker /proc/self/cgroup 2>/dev/null || grep -i docker /proc/1/cgroup 2>/dev/null ; find / -iname "*dockerenv*" 2>/dev/null)
-if [ "$dockercontainer" ]; then fuOK && echo "$dockercontainer"; else fuNOTOK; fi
+if [ "$dockercontainer" ]; then print_ok && echo "$dockercontainer"; else print_notok; fi
 
 # check if we are a docker host
-fuCHECKS "Check if we are a docker host"
+print_check "Check if we are a docker host"
 dockerhost=$(docker --version 2>/dev/null ; docker ps -a 2>/dev/null)
-if [ "$dockerhost" ]; then fuOK && echo "$dockerhost"; else fuNOTOK; fi
+if [ "$dockerhost" ]; then print_ok && echo "$dockerhost"; else print_notok; fi
 
 # check if we are member of a docker group
-fuCHECKS "Check if we are member of a docker group"
+print_check "Check if we are member of a docker group"
 dockergroup=$(id | grep -i docker 2>/dev/null)
-if [ "$dockergroup" ]; then fuOK && echo "$dockergroup"; else fuNOTOK; fi
+if [ "$dockergroup" ]; then print_ok && echo "$dockergroup"; else print_notok; fi
 
 # look for any docker files
-fuCHECKS "Check if there are any docker files"
+print_check "Check if there are any docker files"
 dockerfiles=$(find / -iname *Dockerfile* 2>/dev/null ; find / -iname *docker-compose* 2>/dev/null)
-if [ "$dockerfiles" ]; then fuOK && echo "$dockerfiles"; else fuNOTOK; fi
+if [ "$dockerfiles" ]; then print_ok && echo "$dockerfiles"; else print_notok; fi
 
 # LXC Container
 # check if we are in a lxc container
-fuCHECKS "Check if we are in a lxc container"
+print_check "Check if we are in a lxc container"
 lxccontainer=$(grep -qa container=lxc /proc/1/environ 2>/dev/null || grep -i lxc /proc/1/cgroup 2>/dev/null)
-if [ "$lxccontainer" ]; then fuOK && echo "$lxccontainer"; else fuNOTOK; fi
+if [ "$lxccontainer" ]; then print_ok && echo "$lxccontainer"; else print_notok; fi
 
 # check if we are member of a lxc/lxd group
-fuCHECKS "Check if we are member of a lxc/lxd group"
+print_check "Check if we are member of a lxc/lxd group"
 lxcgroup=$(id | grep -i "lxc\|lxd" 2>/dev/null)
-if [ "$lxcgroup" ]; then fuOK && echo "$lxcgroup"; else fuNOTOK; fi
+if [ "$lxcgroup" ]; then print_ok && echo "$lxcgroup"; else print_notok; fi
 
 }
 
@@ -733,7 +733,7 @@ container_info | tee $myCONTAINERFILE
 if [ ! "$SERVE" ]; then 
   run_all | tee ${hostname}_all_info.txt
   echo
-  fuINFO "Internal Recon complete"
+  print_info "Internal Recon complete"
   echo
 fi
 
@@ -744,7 +744,7 @@ fi
 
 if [ "$SERVE" ]; then
   
-  fuTITLE "Serving a local web server on port 8000 ..."
+  print_title "Serving a local web server on port 8000 ..."
 
   if command -v python3 1>/dev/null 2>&1; then
     python3 -m http.server 8000
@@ -762,34 +762,34 @@ fi
 # Summarize Results #
 #####################
 
-fuTITLE "Output in following files:"
+print_title "Output in following files:"
 
 if [ -s "$mySYSTEMFILE" ]; then
-  fuRESULT "System information written to: $BYELLOW$mySYSTEMFILE$NC"
+  print_result "System information written to: $BYELLOW$mySYSTEMFILE$NC"
 fi
 if [ -s "$myNETWFILE" ]; then
-  fuRESULT "Network information written to: $BYELLOW$myNETWFILE$NC"
+  print_result "Network information written to: $BYELLOW$myNETWFILE$NC"
 fi
 if [ -s "$myUSERFILE" ]; then
-  fuRESULT "User information written to: $BYELLOW$myUSERFILE$NC"
+  print_result "User information written to: $BYELLOW$myUSERFILE$NC"
 fi
 if [ -s "$myJOBSFILE" ]; then
-  fuRESULT "Jobs / Tasks information written to: $BYELLOW$myJOBSFILE$NC"
+  print_result "Jobs / Tasks information written to: $BYELLOW$myJOBSFILE$NC"
 fi
 if [ -s "$mySERVICESFILE" ]; then
-  fuRESULT "Service / Process information written to: $BYELLOW$mySERVICESFILE$NC"
+  print_result "Service / Process information written to: $BYELLOW$mySERVICESFILE$NC"
 fi
 if [ -s "$mySOFTWAREFILE" ]; then
-  fuRESULT "Software information written to: $BYELLOW$mySOFTWAREFILE$NC"
+  print_result "Software information written to: $BYELLOW$mySOFTWAREFILE$NC"
 fi
 if [ -s "$myINTERESTFILE" ]; then
-  fuRESULT "Information about interesting files written to: $BYELLOW$myINTERESTFILE$NC"
+  print_result "Information about interesting files written to: $BYELLOW$myINTERESTFILE$NC"
 fi
 if [ -s "$myCONTAINERFILE" ]; then
-  fuRESULT "Information about containers written to: $BYELLOW$myCONTAINERFILE$NC"
+  print_result "Information about containers written to: $BYELLOW$myCONTAINERFILE$NC"
 fi
 if [ -s "${hostname}_all_info.txt" ]; then
-  fuRESULT "Report (all information together) written to: $BYELLOW${hostname}_all_info.txt$NC"
+  print_result "Report (all information together) written to: $BYELLOW${hostname}_all_info.txt$NC"
 fi
 
 echo
@@ -809,8 +809,8 @@ if [ ! "$QUIET" ]; then echo "
 "
 fi
 
-fuSTEPS "Checkout the found information in one of the files created in the current directory."
-fuSTEPS "Now, that you've got information about the current host/system, run lateral movement to gain information about systems around you."
+print_step "Checkout the found information in one of the files created in the current directory."
+print_step "Now, that you've got information about the current host/system, run lateral movement to gain information about systems around you."
 # more to do
 
 echo
