@@ -39,9 +39,11 @@ PORTRANGE=""
 ########################
 # Spoofing and Evasion #
 ########################
+# CHANGEMAC=[1, 0]
 # NETDEVICE=[eth0]
 # Source IP Manipulation
 # Source Port Manipulation
+CHANGEMAC=
 NETDEVICE=""
 SOURCEIP=""
 SOURCEPORT=""
