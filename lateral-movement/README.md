@@ -37,7 +37,8 @@ Usage: lateral-movement.sh [options]
 Options:
 -h               Show this help message
 -p <IP address>  Do a port scan of the given IP address
--w               Serves an local web server for transferring files
+
+-w               Serves a local web server for transferring files
 
 Output:
 -c               No colours. Without colours, the output can probably be read better
