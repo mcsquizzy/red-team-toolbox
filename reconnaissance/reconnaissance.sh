@@ -273,6 +273,7 @@ if [ "$CHANGEMAC" ]; then
 fi
 sleep 2
 
+
 ######################
 # Validate variables #
 ######################
