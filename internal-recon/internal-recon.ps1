@@ -43,10 +43,9 @@ Write-Output "BIOS settings:"
 Get-CimInstance -ClassName Win32_BIOS
 
 # List installed hotfixes
-$hotfixes = Get-CimInstance -ClassName Win32_QuickFixEngineering
 Write-Output ""
 Write-Output "Installed hotfixes:"
-Write-Output $hotfixes
+Get-CimInstance -ClassName Win32_QuickFixEngineering
 
 }
 
