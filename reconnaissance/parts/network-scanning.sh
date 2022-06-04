@@ -21,50 +21,50 @@ myUPORTFILE="output/network-infos/uport-findings.txt"
 #############
 
 # NMAP Scans
-function fuNmapTCPScan {
-  fuTITLE "Nmap TCP SYN scan of $* ..."
+function nmap_tcp_scan {
+  print_title "Nmap TCP SYN scan of $* ..."
   if [ "$IAMROOT" ]; then
     nmap -sS -Pn -oN $myPORTFILE $SPOOFINGPARAMETERS $*
   else
-    fuERROR "You're not root. TCP SYN scan needs root privileges. Try \"sudo $0\""
+    print_error "You're not root. TCP SYN scan needs root privileges. Try \"sudo $0\""
   fi
 }
 
-function fuNmapTCPScanIPRANGE {
-  fuTITLE "Nmap TCP SYN scan of $* ... (might take some time)"
+function nmap_tcp_scan_iprange {
+  print_title "Nmap TCP SYN scan of $* ... (might take some time)"
   if [ "$IAMROOT" ]; then
     nmap -sS -T4 --min-hostgroup=64 -oN $myPORTFILE -oG ip-grepable.txt $SPOOFINGPARAMETERS $*
   else
-    fuERROR "You're not root. TCP SYN scan needs root privileges. Try \"sudo $0\""
+    print_error "You're not root. TCP SYN scan needs root privileges. Try \"sudo $0\""
   fi
 }
 
-function fuNmapUDPScan {
-  fuTITLE "Nmap UDP scan of $* ..."
+function nmap_udp_scan {
+  print_title "Nmap UDP scan of $* ..."
   if [ "$IAMROOT" ]; then
     nmap -sU -Pn -sV --version-light -T4 -oN $myUPORTFILE $SPOOFINGPARAMETERS $* --host-timeout 120s
   else
-    fuERROR "You're not root. UDP scan needs root privileges. Try \"sudo $0\""
+    print_error "You're not root. UDP scan needs root privileges. Try \"sudo $0\""
   fi
 }
 
-function fuNmapUDPScanIPRANGE {
-  fuTITLE "Nmap UDP scan of $* ... (might take some time)"
+function nmap_udp_scan_iprange {
+  print_title "Nmap UDP scan of $* ... (might take some time)"
   if [ "$IAMROOT" ]; then
     nmap -sU -sV --version-light -T5 -oN $myPORTFILE --append-output -oG ip-grepable.txt $SPOOFINGPARAMETERS $* --host-timeout 120s
   else
-    fuERROR "You're not root. UDP scan needs root privileges. Try \"sudo $0\""
+    print_error "You're not root. UDP scan needs root privileges. Try \"sudo $0\""
   fi
 }
 
 # neak through certain non-stateful firewalls and packet filtering routers
-function fuNmapExoticScan {
+function nmap_exotic_scan {
   if grep -q -w filtered $myPORTFILE; then
-    fuINFO "Target might be behind a firewall, trying Exotic Scan Flags"
+    print_info "Target might be behind a firewall, trying Exotic Scan Flags"
     if [ "$IAMROOT" ]; then
-      fuNmapFINScan $*
+      nmap_fin_scan $*
     else
-      fuERROR "You're not root. Exotic scan needs root privileges. Try \"sudo $0\""
+      print_error "You're not root. Exotic scan needs root privileges. Try \"sudo $0\""
     fi
   fi
 }
@@ -72,41 +72,41 @@ function fuNmapExoticScan {
 # FIN scan (-sF), Sets just the TCP FIN bit.
 # open|filtered = No response received, port might be open
 # IDS and IPS Evasion (https://book.hacktricks.xyz/pentesting/pentesting-network/ids-evasion)
-function fuNmapFINScan {
-  fuTITLE "Nmap FIN scan of $* ..."
+function nmap_fin_scan {
+  print_title "Nmap FIN scan of $* ..."
   nmap -sF -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $* --data-length 25 -f
 }
 
 # Null scan (-sN), Does not set any bits (TCP flag header is 0)
-function fuNmapNULLScan {
-  fuTITLE "Nmap NULL scan of $* ..."
+function nmap_null_scan {
+  print_title "Nmap NULL scan of $* ..."
   nmap -sN -Pn -oN $myPORTFILE --append-output $SPOOFINGPARAMETERS $* --data-length 25 -f
 }
 
 
 # Print scan result to usable list
-function fuPrepareTargetIP {
-  fuINFO "Write IP list of result to targetIP.txt ..."
+function prepare_target_ip {
+  print_info "Write IP list of result to targetIP.txt ..."
   cat ip-grepable.txt | awk '/open/ {print $2}' | cat > targetIP.txt && rm ip-grepable.txt
-  fuINFO "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
+  print_info "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
-function fuPrepareTargetIPAppend {
-  fuINFO "Write IP list of result to targetIP.txt ..."
+function prepare_target_ip_append {
+  print_info "Write IP list of result to targetIP.txt ..."
   cat ip-grepable.txt | awk '/open/ {print $2}' | cat >> targetIP.txt && rm ip-grepable.txt
-  fuINFO "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
+  print_info "Found $(cat targetIP.txt | wc -l) IP address(es) with status \"Up\""
 }
 
-function fuPrepareTargetPort {
-  fuINFO "Prepare scan result ..."
+function prepare_target_port {
+  print_info "Prepare scan result ..."
   cat $1 | awk '/ open / {print $1}' | awk -F\/ '{print $1}' | cat > targetPort.txt
-  fuINFO "Found $(cat targetPort.txt | wc -l) open port(s)"
+  print_info "Found $(cat targetPort.txt | wc -l) open port(s)"
 }
 
-function fuPrepareTargetPortAppend {
-  fuINFO "Prepare scan result ..."
+function prepare_target_port_append {
+  print_info "Prepare scan result ..."
   cat $1 | awk '/ open / {print $1}' | awk -F\/ '{print $1}' | cat >> targetPort.txt
-  fuINFO "Found $(cat targetPort.txt | wc -l) open port(s)"
+  print_info "Found $(cat targetPort.txt | wc -l) open port(s)"
 }
 
 
@@ -115,9 +115,9 @@ function fuPrepareTargetPortAppend {
 ################################
 
 if [ "$IAMROOT" ] && [ "$INET" ]; then
-  fuGET_DEPS
+  install_deps
 else
-  fuMESSAGE "Installation of dependencies skipped."
+  print_message "Installation of dependencies skipped."
 fi
 
 
@@ -126,7 +126,7 @@ fi
 ###########################
 
 if [ ! -d "output/network-infos" ]; then
-  fuINFO "Creating \"./output/network-infos\" directory"
+  print_info "Creating \"./output/network-infos\" directory"
   mkdir -p output/network-infos && echo "[ OK ]"
   echo
 fi
@@ -139,28 +139,32 @@ fi
 # Passive Reconnaissance
 # WHOIS
 if [ "$DOMAIN" != "" ]; then
-  fuTITLE "Searching for whois information of $DOMAIN ..."
+  print_title "Searching for whois information of $DOMAIN ..."
   whois $DOMAIN | tee $myWHOISFILE
+  # nmap
+  # nmap --script whois-domain -Pn -sn
 
 elif [ "$IP" != "" ]; then
-  fuTITLE "Searching for whois information of $IP ..."
+  print_title "Searching for whois information of $IP ..."
   whois $IP | tee -a $myWHOISFILE
+  # nmap
+  # nmap --script whois-ip -Pn -sn
 fi
 
 # Active Reconnaissance
 # DNS enumeration
 # dnsenum
 if [ "$DOMAIN" != "" ]; then
-  fuTITLE "Searching DNS information (host addresses, nameservers, subdomains, ...) about $DOMAIN ..."
+  print_title "Searching DNS information (host addresses, nameservers, subdomains, ...) about $DOMAIN ..."
   dnsenum $DOMAIN --nocolor | tee -a $myDNSFILE
 fi
 
 # AMASS
 #if [ "$DOMAIN" != "" ]; then
-#  fuTITLE "Searching subdomains for $DOMAIN ..."
+#  print_title "Searching subdomains for $DOMAIN ..."
 #  amass enum -ipv4 -brute -d $DOMAIN | tee -a $myDNSFILE
 #elif [ "$DOMAIN" != "" ] && [ "$NETDEVICE" != "" ]; then
-#  fuTITLE "Searching subdomains for $DOMAIN through $NETDEVICE ..."
+#  print_title "Searching subdomains for $DOMAIN through $NETDEVICE ..."
 #  amass enum -ipv4 -brute -d $DOMAIN -iface $NETDEVICE | tee -a $myDNSFILE
 #fi
 
@@ -171,7 +175,7 @@ fi
 
 # ARP scan (Link Layer)
 # netdiscover !!!Network range must be 0.0.0.0/8 , /16 or /24 !!!
-fuTITLE "Discover network addresses using ARP requests ..."
+print_title "Discover network addresses using ARP requests ..."
 if [ "$IAMROOT" ]; then
   if [ "$IPRANGE" != "" ] && [ "$NETDEVICE" == "" ]; then
     netdiscover -r$IPRANGE -P | tee $myNETADDRFILE
@@ -180,10 +184,8 @@ if [ "$IAMROOT" ]; then
     netdiscover -r$IPRANGE -i$NETDEVICE -P | tee $myNETADDRFILE
   fi
 else
-  fuERROR "You're not root. Netdiscover needs root privileges. Try \"sudo $0\""
+  print_error "You're not root. Netdiscover needs root privileges. Try \"sudo $0\""
 fi
-
-# traceroute, check if needed?
 
 
 ################
@@ -193,19 +195,19 @@ fi
 # ICMP Scan (Network Layer)
 # fping
 if [ "$IP" != "" ] && [ "$NETDEVICE" == "" ]; then
-  fuTITLE "ICMP check if IP address $IP is reachable ..."
+  print_title "ICMP check if IP address $IP is reachable ..."
   fping -s $IP | tee -a $myNETADDRFILE
 
 elif [ "$IP" != "" ] && [ "$NETDEVICE" != "" ]; then
-  fuTITLE "ICMP check if IP address $IP is reachable ..."
+  print_title "ICMP check if IP address $IP is reachable ..."
   fping -s $IP -I $NETDEVICE | tee -a $myNETADDRFILE
 
 elif [ "$IP" == "" ] && [ "$NETDEVICE" != "" ] && [ "$IPRANGE" != "" ]; then
-  fuTITLE "ICMP check which IP addresses of range $IPRANGE are reachable ..."
+  print_title "ICMP check which IP addresses of range $IPRANGE are reachable ..."
   fping -asgq $IPRANGE -I $NETDEVICE | tee -a $myNETADDRFILE
 
 elif [ "$IP" == "" ] && [ "$NETDEVICE" == "" ] && [ "$IPRANGE" != "" ]; then
-  fuTITLE "ICMP check which IP addresses of range $IPRANGE are reachable ..."
+  print_title "ICMP check which IP addresses of range $IPRANGE are reachable ..."
   fping -asgq $IPRANGE | tee -a $myNETADDRFILE
 fi
 
@@ -217,22 +219,22 @@ fi
 # identifies and fingerprints Web Application Firewall (WAF)
 # wafw00f
 if [ "$DOMAIN" != "" ]; then
-  fuTITLE "Identifying Web Application Firewalls in front of $DOMAIN using HTTP requests ..."
+  print_title "Identifying Web Application Firewalls in front of $DOMAIN using HTTP requests ..."
   wafw00f -a $DOMAIN -o $mySECAPPLFILE
 fi
 
 # nmap
 # waf detection with nmap --script http-waf-detect
 if [ "$IP" != "" ]; then
-  fuTITLE "Nmap HTTP WAF scan of $IP ..."
+  print_title "Nmap HTTP WAF scan of $IP ..."
   nmap -Pn --script http-waf-detect $IP -oN $mySECAPPLFILE $SPOOFINGPARAMETERS | awk -v RS= '/^Nmap.*waf.*/'
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ]; then
-  fuTITLE "Nmap HTTP WAF scan of $DOMAIN ..."
+  print_title "Nmap HTTP WAF scan of $DOMAIN ..."
   nmap -Pn --script http-waf-detect $DOMAIN -oN $mySECAPPLFILE --append-output $SPOOFINGPARAMETERS | awk -v RS= '/^Nmap.*waf.*/'
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ]; then
-  fuTITLE "Nmap HTTP WAF scan of $IPRANGE ..."
+  print_title "Nmap HTTP WAF scan of $IPRANGE ..."
   nmap --script http-waf-detect $IPRANGE -oN $mySECAPPLFILE $SPOOFINGPARAMETERS | awk -v RS= '/^Nmap.*waf.*/'
 fi
 
@@ -245,11 +247,11 @@ fi
 # DHCP Scanning #
 #################
 
-fuTITLE "Nmap DHCP discover scan, DHCP request to broadcast 255.255.255.255 ..."
+print_title "Nmap DHCP discover scan, DHCP request to broadcast 255.255.255.255 ..."
 if [ "$IAMROOT" ]; then
   nmap --script broadcast-dhcp-discover -oN $myDHCPFILE $SPOOFINGPARAMETERS
 else
-  fuERROR "You're not root. Script \"broadcast-dhcp-discover\" needs root privileges. Try \"sudo $0\""
+  print_error "You're not root. Script \"broadcast-dhcp-discover\" needs root privileges. Try \"sudo $0\""
 fi
 
 
@@ -261,96 +263,96 @@ fi
 # Maybe Exotic Scan Flags
 # nmap
 if [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
-  fuNmapTCPScan $IP
-  fuPrepareTargetPort $myPORTFILE
-  fuNmapExoticScan $IP
+  nmap_tcp_scan $IP
+  prepare_target_port $myPORTFILE
+  nmap_exotic_scan $IP
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-  fuNmapTCPScan $IP -p- -T5
-  fuPrepareTargetPort $myPORTFILE
-  fuNmapExoticScan $IP -p- -T5
+  nmap_tcp_scan $IP -p- -T5
+  prepare_target_port $myPORTFILE
+  nmap_exotic_scan $IP -p- -T5
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" != "" ]; then
-  fuNmapTCPScan $IP -p$TCPPORT
-  fuPrepareTargetPort $myPORTFILE
-  fuNmapExoticScan $IP -p$TCPPORT
+  nmap_tcp_scan $IP -p$TCPPORT
+  prepare_target_port $myPORTFILE
+  nmap_exotic_scan $IP -p$TCPPORT
 
 elif [ "$IP" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapTCPScan $IP -p$PORTRANGE
-  fuPrepareTargetPort $myPORTFILE
-  fuNmapExoticScan $IP -p$PORTRANGE
+  nmap_tcp_scan $IP -p$PORTRANGE
+  prepare_target_port $myPORTFILE
+  nmap_exotic_scan $IP -p$PORTRANGE
 
 
 # TCP Scan IP range
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
-  fuNmapTCPScanIPRANGE $IPRANGE
-  fuPrepareTargetIP
-  fuNmapExoticScan $IPRANGE
+  nmap_tcp_scan_iprange $IPRANGE
+  prepare_target_ip
+  nmap_exotic_scan $IPRANGE
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-  fuNmapTCPScanIPRANGE $IPRANGE -p- -T5
-  fuPrepareTargetIP
-  fuNmapExoticScan $IPRANGE -p- -T5
+  nmap_tcp_scan_iprange $IPRANGE -p- -T5
+  prepare_target_ip
+  nmap_exotic_scan $IPRANGE -p- -T5
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" != "" ]; then
-  fuNmapTCPScanIPRANGE $IPRANGE -p$TCPPORT
-  fuPrepareTargetIP
-  fuNmapExoticScan $IPRANGE -p$TCPPORT
+  nmap_tcp_scan_iprange $IPRANGE -p$TCPPORT
+  prepare_target_ip
+  nmap_exotic_scan $IPRANGE -p$TCPPORT
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapTCPScanIPRANGE $IPRANGE -p$PORTRANGE
-  fuPrepareTargetIP
-  fuNmapExoticScan $IPRANGE -p$PORTRANGE
+  nmap_tcp_scan_iprange $IPRANGE -p$PORTRANGE
+  prepare_target_ip
+  nmap_exotic_scan $IPRANGE -p$PORTRANGE
 
 
 # TCP Scan Domain
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" != true ]; then
-  fuNmapTCPScan $DOMAIN
-  fuPrepareTargetPort $myPORTFILE
-  fuNmapExoticScan $DOMAIN
+  nmap_tcp_scan $DOMAIN
+  prepare_target_port $myPORTFILE
+  nmap_exotic_scan $DOMAIN
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" == "" ] && [ "$ALLPORTS" == true ]; then
-  fuNmapTCPScan $DOMAIN -p- -T5
-  fuPrepareTargetPort $myPORTFILE
-  fuNmapExoticScan $DOMAIN -p- -T5
+  nmap_tcp_scan $DOMAIN -p- -T5
+  prepare_target_port $myPORTFILE
+  nmap_exotic_scan $DOMAIN -p- -T5
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" != "" ]; then
-  fuNmapTCPScan $DOMAIN -p$TCPPORT
-  fuPrepareTargetPort $myPORTFILE
-  fuNmapExoticScan $DOMAIN -p$TCPPORT
+  nmap_tcp_scan $DOMAIN -p$TCPPORT
+  prepare_target_port $myPORTFILE
+  nmap_exotic_scan $DOMAIN -p$TCPPORT
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-  fuNmapTCPScan $DOMAIN -p$PORTRANGE
-  fuPrepareTargetPort $myPORTFILE
-  fuNmapExoticScan $DOMAIN -p$PORTRANGE
+  nmap_tcp_scan $DOMAIN -p$PORTRANGE
+  prepare_target_port $myPORTFILE
+  nmap_exotic_scan $DOMAIN -p$PORTRANGE
 fi
 
 # UDP scan
 # nmap
 if [ "$UDP" ]; then
   if [ "$IP" != "" ] && [ "$UDPPORT" != "" ]; then
-    fuNmapUDPScan $IP -p$UDPPORT
-    fuPrepareTargetPort $myUPORTFILE
+    nmap_udp_scan $IP -p$UDPPORT
+    prepare_target_port $myUPORTFILE
 
   elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" == "" ]; then
-    fuNmapUDPScan $IP
-    fuPrepareTargetPortAppend $myUPORTFILE
+    nmap_udp_scan $IP
+    prepare_target_port_append $myUPORTFILE
 
   elif [ "$IP" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-    fuNmapUDPScan $IP -p$PORTRANGE
-    fuPrepareTargetPortAppend $myUPORTFILE
+    nmap_udp_scan $IP -p$PORTRANGE
+    prepare_target_port_append $myUPORTFILE
 
   elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ] && [ "$UDPPORT" != "" ]; then
-    fuNmapUDPScanIPRANGE $IPRANGE -p$UDPPORT
-    fuPrepareTargetIPAppend
+    nmap_udp_scan_iprange $IPRANGE -p$UDPPORT
+    prepare_target_ip_append
 
   elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" != "" ]; then
-    fuNmapUDPScan $DOMAIN -p$UDPPORT
-    fuPrepareTargetPort $myUPORTFILE
+    nmap_udp_scan $DOMAIN -p$UDPPORT
+    prepare_target_port $myUPORTFILE
 
   elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ] && [ "$UDPPORT" == "" ] && [ "$TCPPORT" == "" ] && [ "$PORTRANGE" != "" ]; then
-    fuNmapUDPScan $DOMAIN -p$PORTRANGE
-    fuPrepareTargetPortAppend $myUPORTFILE
+    nmap_udp_scan $DOMAIN -p$PORTRANGE
+    prepare_target_ip_append $myUPORTFILE
   fi
 fi
 
@@ -359,31 +361,31 @@ fi
 # Summarize results #
 #####################
 
-fuTITLE "Findings in following files:"
+print_title "Findings in following files:"
 
 if [ -s $myDNSFILE ]; then
-  fuRESULT "DNS information: $myDNSFILE"
+  print_result "DNS information: $myDNSFILE"
 fi
 if [ -s $myNETADDRFILE ]; then
-  fuRESULT "Network address information: $myNETADDRFILE"
+  print_result "Network address information: $myNETADDRFILE"
 fi
 if [ -s "$mySECAPPLFILE" ]; then
-  fuRESULT "Security Appliances information: $mySECAPPLFILE"
+  print_result "Security Appliances information: $mySECAPPLFILE"
 fi
 if [ -s "$myDHCPFILE" ]; then
-  fuRESULT "DHCP information: $myDHCPFILE"
+  print_result "DHCP information: $myDHCPFILE"
 fi
 if [ -s "$myPORTFILE" ]; then
-  fuRESULT "Port information: $myPORTFILE"
+  print_result "Port information: $myPORTFILE"
 fi
 if [ -s "targetPort.txt" ]; then
-  fuRESULT "List of all open ports: targetPort.txt"
+  print_result "List of all open ports: targetPort.txt"
 fi
 if [ -s "targetIP.txt" ]; then
-  fuRESULT "List of all IP addresses with open ports: targetIP.txt"
+  print_result "List of all IP addresses with open ports: targetIP.txt"
 fi
 
 if [ ! -s $myDNSFILE ] && [ ! -s $myNETADDRFILE ] && [ ! -s "$mySECAPPLFILE" ] && [ ! -s "$myDHCPFILE" ] && [ ! -s "$myPORTFILE" ]; then
-  fuERROR "No network information found."
+  print_error "No network information found."
 fi
 echo
