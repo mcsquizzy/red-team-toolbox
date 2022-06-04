@@ -25,7 +25,7 @@ NORMAL='\033[0;39m'
 #############
 
 # Print banner
-fuBANNER() {
+print_banner() {
 # http://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something
 echo "
   _     _                    ____       _       _ _                   _____               _       _   _             
@@ -38,7 +38,7 @@ echo "
 }
 
 # Print title
-fuTITLE() {
+print_title() {
   echo
   for i in $(seq 80); do
     echo -n "$BBLUE═$NC"
@@ -52,31 +52,31 @@ fuTITLE() {
 }
 
 # Print info line
-fuINFO() {
+print_info() {
   echo
   echo "$BBLUE═══$BGREEN $1 $NC"
 }
 
 # Print error line
-fuERROR() {
+print_error() {
   echo
   echo "$BBLUE═══$BRED $1 $NC"
 }
 
 # Print results line
-fuRESULT() {
+print_result() {
   echo
   echo "$BBLUE═══$BYELLOW $1 $NC"
 }
 
 # Print next steps line
-fuSTEPS() {
+print_step() {
   echo
   echo "$BBLUE[X]$NC $1 $NC"
 }
 
 # Print message line
-fuMESSAGE() {
+print_message() {
   echo "$BBLUE---$NC $1 $NC"
 }
 
@@ -85,7 +85,7 @@ fuMESSAGE() {
 # Banner #
 ##########
 
-fuBANNER
+print_banner
 sleep 1
 
 
@@ -93,7 +93,7 @@ sleep 1
 # linPEAS #
 ###########
 
-fuTITLE "Execute LinPEAS from carlospolop/PEASS-ng GitHub repo ..."
+print_title "Execute LinPEAS from carlospolop/PEASS-ng GitHub repo ..."
 
 # copied from https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS and deactivated the network scanning parts
 
@@ -4828,9 +4828,8 @@ echo "
                                       |_|                                          
 "
 
-fuSTEPS "Check the output of this script an look for possible privilege escalation vectors. These vectors are colored depending on the probability of success"
-fuMESSAGE "Checkout the description at: https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS#colors"
+print_step "Check the output of this script an look for possible privilege escalation vectors. These vectors are colored depending on the probability of success"
+print_message "Checkout the description at: https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS#colors"
 
-fuSTEPS "If you successfully extended your privileges, continue in the attack lifecycle or improve/secure your persistence"
-
+print_step "If you successfully extended your privileges, continue in the attack lifecycle or improve/secure your persistence"
 echo
