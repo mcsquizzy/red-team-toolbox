@@ -129,6 +129,7 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo "Options:"
         echo "-h               Show this help message"
         echo "-p <IP address>  Do a port scan of the given IP address"
+        echo 
         echo "-w               Serves a local web server for transferring files"
         echo
         echo "Output:"
@@ -339,15 +340,17 @@ if ! ( [ "$etchosts" ] || [ "$knownhosts" ] ); then fuMESSAGE "Nothing found"; f
 # Run parts #
 #############
 
-netw_neighbours | tee $myNEIGHBOURSFILE
-reachable_ips | tee $myIPFILE
-if [ "$PORTSCAN" ]; then port_scan $IP | tee $myPORTSFILE; fi
-ssh_info | tee $mySSHFILE
-
-echo
-fuINFO "Lateral Movement Scan complete"
-echo
-
+if [ ! "$SERVE" ]; then
+  
+  netw_neighbours | tee $myNEIGHBOURSFILE
+  reachable_ips | tee $myIPFILE
+  if [ "$PORTSCAN" ]; then port_scan $IP | tee $myPORTSFILE; fi
+  ssh_info | tee $mySSHFILE
+  
+  echo
+  fuINFO "Lateral Movement Scan complete"
+  echo
+fi
 
 ##########################
 # Serve local web server #
