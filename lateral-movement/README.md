@@ -56,13 +56,45 @@ The script uses /bin/sh syntax and is fully POSIX compatible so can run on most 
 
 ## Additional Information
 
-### Pivoting with Proxychains
+### Pivoting and Proxychains
 
-Todo...
+Pivoting can be described as a method or technique that allows an already compromised system (also called a "plant" or "foothold") to be used to move into other systems on the same network. This can be used to bypass restrictions on a network (a firewall, for example).
 
-Pivoting: 
-proxychains
-todooo
-and so on...
+#### Pivoting with SSH
+Local forwarding: make a port of the target locally reachable:
+````sh
+ssh -L <local port>:<remote host>:<remote port> [<jumphost>]
+````
+Remote forwarding: Make a local port externally accessible:
+````sh
+ssh -R <remote port>:<localhost>:<local port> [<jumphost>]
+````
+Dynamic forwarding: Make all ports of the target locally accessible as SOCKS proxy:
+````sh
+ssh -D <local port> <jump host>
+````
 
+#### ProxyChains
 
+Proxychains is a tool that forces any TCP connection of any application through one or more proxy servers (for example SOCKS4/5 or HTTP(S) proxy).  
+With proxychains and port forwarding, it is possible to forward a connection through device B to device C.
+
+````sh
+# syntax:
+proxychains <application> <argument>
+
+# example:
+proxychains nmap -sS 10.0.2.16 -p 80
+````
+The nmap scan is routed through the proxy servers defined in the configuration file.
+
+ProxyChains configuration file: /etc/proxychains.conf
+````sh
+# syntax:
+<typ> <IP> <port> <user> <password>
+# examples:
+socks4 127.0.0.1 9000
+socks5 192.168.89.45 4567 user pass
+````
+
+Thus it is possible to disguise the source IP, as the destination will only receive the IP of the last proxy as source.
