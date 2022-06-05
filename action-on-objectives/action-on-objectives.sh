@@ -121,10 +121,8 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo 
         echo "Options:"
         echo "-h                    Show this help message"
-        echo "-a <file, files or directory>"
-        echo "                      Archive and compress given files or directory"
+        echo "-a <file, directory>  Archive and compress given files or directory"
         echo "                      Specify directories without the last /"
-        echo "                      More than one file in quotes \"\""
         echo "-u <archive.tar.gz>   Extract the given tar archive"
         echo "-e <file, directory>  Encrypt given file or directory (symmetric encryption with password)"
         echo "-d <file>             Decrypt given file"
@@ -217,25 +215,30 @@ sleep 1
 
 tar_archive() {
 
-print_title "Create archive and compress \"$*\" ..."
+print_title "Create archive and compress \"$1\" ..."
 sleep 1
 
 # check if remove files after adding them to archive
 if [ "$REMOVE" ]; then RF="--remove-files"; else RF=""; fi
 
-if [ "$(command -v tar 2>/dev/null)" ]; then
-  if tar czvf $1.tar.gz $* $RF 1>/dev/null 2>&1; then
-    ARCHIVEOK="1"
-    CREATEDARCHIVE="$1.tar.gz"
-    print_message "Archive $1.tar.gz created"
-    print_message "Archive $1.tar.gz has following content:"
-    tar tvf $1.tar.gz 2>/dev/null
-    if [ "$REMOVE" ]; then print_info "Data \"$*\" deleted."; fi
+if [ -f "$1" ] || [ -d "$1" ]; then
+  if [ "$(command -v tar 2>/dev/null)" ]; then
+    if tar czvf $1.tar.gz $1 $RF 1>/dev/null 2>&1; then
+      ARCHIVEOK="1"
+      CREATEDARCHIVE="$1.tar.gz"
+      print_message "Archive $1.tar.gz created"
+      print_message "Archive $1.tar.gz has following content:"
+      tar tvf $1.tar.gz 2>/dev/null
+      if [ "$REMOVE" ]; then print_info "Data \"$*\" deleted."; fi
+    else
+      ARCHIVEOK="" && print_error "Archive not created. Check if \"$1\" exists."
+    fi
   else
-    ARCHIVEOK="" && print_error "Archive not created. Check if \"$*\" exists."
+    print_error "command \"tar\" not found"
   fi
 else
-  print_error "command \"tar\" not found"
+  # file or directory does not exist
+  print_error "File or directory \"$1\" does not exist"
 fi
 
 }
@@ -250,8 +253,7 @@ tar_extract() {
 print_title "Extract and decompress archive \"$1\" ..."
 sleep 1
 
-if [ -e "$1" ]; then
-  # file exists
+if [ -f "$1" ]; then
   if [ "$(command -v tar 2>/dev/null)" ]; then
     if tar xzvf $1 2>/dev/null; then
       EXTRACTOK="1"
@@ -282,7 +284,7 @@ print_title "Symmetric encryption of \"$1\" with AES256 ..."
 sleep 1
 
 if [ "$(command -v gpg 2>/dev/null)" ]; then
-  # check if file
+  # check if its a file
   if [ -f "$1" ]; then
     if gpg -c --cipher-algo AES256 $1 2>/dev/null; then
       ENCRYPTOK="1"
@@ -297,7 +299,7 @@ if [ "$(command -v gpg 2>/dev/null)" ]; then
       rm -rdv $1
     fi
 
-  # check if directory
+  # check if its a directory
   elif [ -d "$1" ]; then
     print_message "Given file is a directory"
     tar_archive $1
@@ -309,7 +311,7 @@ if [ "$(command -v gpg 2>/dev/null)" ]; then
       ENCRYPTOK="" && print_error "File \"$CREATEDARCHIVE\" could not be encrypted"
     fi
   else
-    print_error "File \"$1\" does not exist"
+    print_error "File or directory \"$1\" does not exist"
   fi
 
 else
@@ -328,7 +330,7 @@ if [ ! "$SERVE" ]; then
   if [ "$ARCHIVE" ]; then tar_archive $DATATOARCHIVE; fi
   if [ "$EXTRACT" ]; then tar_extract $DATATOEXTRACT; fi
   if [ "$ENCRYPT" ]; then encrypt $DATATOENCRYPT; fi
-    
+
 fi
 
 
