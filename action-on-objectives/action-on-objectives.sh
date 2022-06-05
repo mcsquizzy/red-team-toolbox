@@ -113,35 +113,36 @@ fi
 
 PASSED_ARGS=$@
 if [ "$PASSED_ARGS" != "" ]; then
-  while getopts "h?a:u:e:d:wcq" opt; do
+  while getopts "h?a:u:e:d:rwcq" opt; do
     case "$opt" in
       h|\?)
         echo
         echo "Usage: $0 [options]"
         echo 
         echo "Options:"
-        echo "-h               Show this help message"
+        echo "-h                    Show this help message"
         echo "-a <file, files or directory>"
-        echo "                 Archive and compress given files or directory"
-        echo "                 Specify directories without the last /"
-        echo "                 More than one file in quotes \"\""
-        echo "-u <archive.tar.gz>"
-        echo "                 Extract the given tar archive"
-        echo "-e <file>        Encrypt given file"
-        echo "-d <file>        Decrypt given file"
+        echo "                      Archive and compress given files or directory"
+        echo "                      Specify directories without the last /"
+        echo "                      More than one file in quotes \"\""
+        echo "-u <archive.tar.gz>   Extract the given tar archive"
+        echo "-e <file, directory>  Encrypt given file or directory (symmetric encryption with password)"
+        echo "-d <file>             Decrypt given file"
+        echo "-r                    Remove the original files"
         echo
-        echo "-w               Serves a local web server for transferring files"
+        echo "-w                    Serves a local web server for transferring files"
         echo
         echo "Output:"
-        echo "-c               No colours. Without colours, the output can probably be read better"
-        echo "-q               Quiet. No banner and no advisory displayed"
+        echo "-c                    No colours. Without colours, the output can probably be read better"
+        echo "-q                    Quiet. No banner and no advisory displayed"
         echo
         exit;;
       c) NOCOLOUR="1";;
-      a) ARCHIVE="1";DATA=$OPTARG;;
+      a) ARCHIVE="1";DATATOARCHIVE=$OPTARG;;
       u) EXTRACT="1";DATATOEXTRACT=$OPTARG;;
-      e) ENCRYPT="1";FILETOENCRYPT=$OPTARG;;
+      e) ENCRYPT="1";DATATOENCRYPT=$OPTARG;;
       d) DECRYPT="1";FILETODECRYPT=$OPTARG;;
+      r) REMOVE="1";;
       w) SERVE="1";QUIET="1";;
       q) QUIET="1";;
       esac
@@ -169,10 +170,32 @@ fi
 # Validate parameters #
 #######################
 
-if [ "$DATATOEXTRACT" != "" ] && ! expr "${DATATOEXTRACT}" : '^.*\.tar\.gz$' 1>/dev/null 2>&1; then
-  print_error "Aborting. Given file not a tar archive (.tar.gz), see -h"
+# if no actions selected:
+if [ ! "$ARCHIVE" ] && [ ! "$EXTRACT" ] && [ ! "$ENCRYPT" ] && [ ! "$DECRYPT" ] && [ ! "$SERVE" ]; then
+  print_error "Aborting. No actions selected (-a, -u, -e, -d, -w), see -h."
   echo
   exit
+fi
+
+if [ "$DATATOEXTRACT" != "" ] && ! expr "$DATATOEXTRACT" : '^.*\.tar\.gz$' 1>/dev/null 2>&1; then
+  print_error "Aborting. Given file not a tar archive (.tar.gz), see -h."
+  echo
+  exit
+fi
+
+if [ "$FILETODECRYPT" != "" ] && ! expr "$FILETODECRYPT" : '^.*\.gpg$' 1>/dev/null 2>&1; then
+  print_error "Aborting. Given file not a gpg encrypted file (.gpg)."
+  echo
+  exit
+fi
+
+if [ "$REMOVE" ]; then
+  echo
+  print_attention "ATTENTION! You're about to remove files."
+  echo
+  echo "Do you want to continue and probably remove files permanently? [y/n]"
+  read answer
+  if [ "$answer" != "${answer#[Nn]}" ]; then exit; fi
 fi
 
 
@@ -188,24 +211,28 @@ fi
 sleep 1
 
 
-####################
-# File compression #
-####################
+##################
+# Create archive #
+##################
 
 tar_archive() {
 
 print_title "Create archive and compress \"$*\" ..."
 sleep 1
 
+# check if remove files after adding them to archive
+if [ "$REMOVE" ]; then RF="--remove-files"; else RF=""; fi
+
 if [ "$(command -v tar 2>/dev/null)" ]; then
-  if tar czvf $1.tar.gz $* 1>/dev/null 2>&1; then
+  if tar czvf $1.tar.gz $* $RF 1>/dev/null 2>&1; then
     ARCHIVEOK="1"
     CREATEDARCHIVE="$1.tar.gz"
     print_message "Archive $1.tar.gz created"
     print_message "Archive $1.tar.gz has following content:"
     tar tvf $1.tar.gz 2>/dev/null
+    if [ "$REMOVE" ]; then print_info "Data \"$*\" deleted."; fi
   else
-    ARCHIVEOK="" && print_error "Archive not created"
+    ARCHIVEOK="" && print_error "Archive not created. Check if \"$*\" exists."
   fi
 else
   print_error "command \"tar\" not found"
@@ -227,16 +254,17 @@ if [ -e "$1" ]; then
   # file exists
   if [ "$(command -v tar 2>/dev/null)" ]; then
     if tar xzvf $1 2>/dev/null; then
-      print_message "Archive $1 extracted"
+      EXTRACTOK="1"
+      print_message "Archive \"$1\" extracted"
     else
-      print_error "Archive $1 could not be extracted"
+      EXTRACTOK="" && print_error "Archive $1 could not be extracted"
     fi
   else
     print_error "command \"tar\" not found"
   fi
 else
   # file does not exist
-  print_error "File $1 does not exist"
+  print_error "File \"$1\" does not exist"
 fi
 
 }
@@ -263,8 +291,11 @@ if [ "$(command -v gpg 2>/dev/null)" ]; then
     else
       ENCRYPTOK="" && print_error "File \"$1\" could not be encrypted"
     fi
-    #remove original file
-    # todo
+    # remove original file
+    if [ "$REMOVE" ]; then
+      print_info "Remove \"$1\""
+      rm -rdv $1
+    fi
 
   # check if directory
   elif [ -d "$1" ]; then
@@ -278,7 +309,7 @@ if [ "$(command -v gpg 2>/dev/null)" ]; then
       ENCRYPTOK="" && print_error "File \"$CREATEDARCHIVE\" could not be encrypted"
     fi
   else
-    print_error "File $1 does not exist"
+    print_error "File \"$1\" does not exist"
   fi
 
 else
@@ -294,9 +325,9 @@ fi
 
 if [ ! "$SERVE" ]; then
   
-  if [ "$ARCHIVE" ]; then tar_archive $DATA; fi
+  if [ "$ARCHIVE" ]; then tar_archive $DATATOARCHIVE; fi
   if [ "$EXTRACT" ]; then tar_extract $DATATOEXTRACT; fi
-  if [ "$ENCRYPT" ]; then encrypt $FILETOENCRYPT; fi
+  if [ "$ENCRYPT" ]; then encrypt $DATATOENCRYPT; fi
     
 fi
 
@@ -330,11 +361,14 @@ print_title "Following parts where successful:"
 if [ "$ARCHIVEOK" ]; then
   print_result "Archive $BYELLOW\"$CREATEDARCHIVE\"$NC created"
 fi
+if [ "$EXTRACTOK" ]; then
+  print_result "Archive $BYELLOW\"$DATATOEXTRACT\"$NC extracted"
+fi
 if [ "$ENCRYPTOK" ]; then
   print_result "Given file encrypted to $BYELLOW\"$ENCRYPTEDFILE\"$NC"
 fi
 
-sleep 1
+sleep 2
 echo
 
 
@@ -352,6 +386,11 @@ if [ ! "$QUIET" ]; then echo "
 "
 fi
 
+
+#In order to encrypt and remove files, search for backup files on this system. Use internal-recon.sh 
+
+#if [ "$REMOVE" ]; then
+#Note that after you deleted files with `rm`, it might be possible to recover some of its contents (see `rm --help``). You may consider using `shred` to overwrite files (see `shred --help``).) 
 
 
 echo
