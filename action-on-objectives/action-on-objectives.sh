@@ -123,9 +123,9 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo "-h                    Show this help message"
         echo "-a <file, directory>  Archive and compress given files or directory"
         echo "                      Specify directories without the last /"
-        echo "-u <file>.tar.gz      Extract the given tar archive"
+        echo "-u <file.tar.gz>      Extract the given tar archive"
         echo "-e <file, directory>  Encrypt given file or directory (symmetric encryption with password)"
-        echo "-d <file>.gpg         Decrypt given file"
+        echo "-d <file.gpg>         Decrypt given file"
         echo "-r                    Remove the original files"
         echo
         echo "-w                    Serves a local web server for transferring files"
@@ -191,9 +191,22 @@ if [ "$REMOVE" ]; then
   echo
   print_attention "ATTENTION! You're about to remove files."
   echo
-  echo "Do you want to continue and probably remove files permanently? [y/n]"
-  read answer
-  if [ "$answer" != "${answer#[Nn]}" ]; then exit; fi
+  while true; do
+    read -p "Do you want to continue and probably remove files permanently? [y/n] " yn
+    case $yn in
+        [Yy]* ) break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+  done
+  while true; do
+    read -p "Are you sure? [y/n] " yn
+    case $yn in
+        [Yy]* ) break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+  done
 fi
 
 
@@ -229,7 +242,7 @@ if [ -f "$1" ] || [ -d "$1" ]; then
       print_message "Archive $1.tar.gz created"
       print_message "Archive $1.tar.gz has following content:"
       tar tvf $1.tar.gz 2>/dev/null
-      if [ "$REMOVE" ]; then print_message "Data \"$*\" deleted"; fi
+      if [ "$REMOVE" ]; then echo && print_message "Data \"$*\" deleted"; fi
     else
       ARCHIVEOK="" && print_error "Archive not created. Check if \"$1\" exists."
     fi
@@ -299,8 +312,8 @@ if [ "$(command -v gpg 2>/dev/null)" ]; then
       ENCRYPTOK="" && print_error "File \"$1\" could not be encrypted. Try with sudo."
     fi
     # remove original file
-    if [ "$REMOVE" ]; then
-      if rm -rdv $1 1>/dev/null; then
+    if [ "$REMOVE" ] && [ "$ENCRYPTOK" ]; then
+      if rm -f $1 1>/dev/null; then
         print_message "File \"$1\" deleted"
       fi
     fi
@@ -310,6 +323,7 @@ if [ "$(command -v gpg 2>/dev/null)" ]; then
     print_message "Given file is a directory"
     # create a tar archive from given directory
     tar_archive $1
+    echo
     if gpg -c --cipher-algo AES256 $CREATEDARCHIVE 2>/dev/null; then
       ENCRYPTOK="1"
       echo && print_message "Directory \"$CREATEDARCHIVE\" encrypted to \"$CREATEDARCHIVE.gpg\""
@@ -323,9 +337,9 @@ if [ "$(command -v gpg 2>/dev/null)" ]; then
       ENCRYPTOK="" && print_error "Directory \"$CREATEDARCHIVE\" could not be encrypted. Try with sudo."
     fi
     # remove original directory
-    if [ "$REMOVE" ]; then
-      if rm -rdv $1 1>/dev/null; then
-        print_message "Directory \"$1\" deleted"
+    if [ "$REMOVE" ] && [ "$ENCRYPTOK" ]; then
+      if rm -rdf $CREATEDARCHIVE 1>/dev/null; then
+        print_message "Directory \"$CREATEDARCHIVE\" deleted"
       fi
     fi
 
@@ -340,6 +354,40 @@ fi
 }
 
 
+###################
+# File decryption #
+###################
+
+
+decrypt() {
+
+# decrypt with gpg
+print_title "Decryption of \"$1\" ..."
+sleep 1
+
+if [ -f "$1" ]; then
+  if [ "$(command -v gpg 2>/dev/null)" ]; then
+    if gpg $1 2>/dev/null; then
+      DECRYPTOK="1"
+      echo && print_message "File \"$1\" decrypted"
+    # error messages because of permissions
+    elif ! ([ -f /usr/bin/id ] && [ "$(/usr/bin/id -u)" -eq "0" ]) || [ "`whoami 2>/dev/null`" = "root" ]; then
+      DECRYPTOK="1"
+      echo && print_message "File \"$1\" decrypted"
+    else
+      DECRYPTOK="" && print_error "File $1 could not be decrypted."
+    fi
+  else
+    print_error "command \"gpg\" not found"
+  fi
+else
+  # file does not exist
+  print_error "File \"$1\" does not exist"
+fi
+
+}
+
+
 #############
 # Run parts #
 #############
@@ -349,6 +397,7 @@ if [ ! "$SERVE" ]; then
   if [ "$ARCHIVE" ]; then tar_archive $DATATOARCHIVE; fi
   if [ "$EXTRACT" ]; then tar_extract $DATATOEXTRACT; fi
   if [ "$ENCRYPT" ]; then encrypt $DATATOENCRYPT; fi
+  if [ "$DECRYPT" ]; then decrypt $FILETODECRYPT; fi
 
 fi
 
@@ -388,6 +437,9 @@ fi
 if [ "$ENCRYPTOK" ]; then
   print_result "Given file encrypted to $BYELLOW\"$ENCRYPTEDFILE\"$NC"
 fi
+if [ "$DECRYPTOK" ]; then
+  print_result "Encrypted file \"$FILETODECRYPT\" decrypted$NC"
+fi
 
 sleep 2
 echo
@@ -407,11 +459,10 @@ if [ ! "$QUIET" ]; then echo "
 "
 fi
 
+print_step "If you want to encrypt and remove files, search for backup files on this system. Use \"internal-recon.sh\" script from this toolbox." 
 
-#In order to encrypt and remove files, search for backup files on this system. Use internal-recon.sh 
-
-#if [ "$REMOVE" ]; then
-#Note that after you deleted files with `rm`, it might be possible to recover some of its contents (see `rm --help``). You may consider using `shred` to overwrite files (see `shred --help``).) 
-
+if [ "$REMOVE" ]; then
+  print_step "Note that after you deleted files with `rm`, it might be possible to recover some of its contents (see `rm --help`). You may consider using `shred` to overwrite files (see `shred --help`)."
+fi
 
 echo
