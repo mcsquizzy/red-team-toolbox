@@ -123,9 +123,9 @@ if [ "$PASSED_ARGS" != "" ]; then
         echo "-h                    Show this help message"
         echo "-a <file, directory>  Archive and compress given files or directory"
         echo "                      Specify directories without the last /"
-        echo "-u <archive.tar.gz>   Extract the given tar archive"
+        echo "-u <file>.tar.gz      Extract the given tar archive"
         echo "-e <file, directory>  Encrypt given file or directory (symmetric encryption with password)"
-        echo "-d <file>             Decrypt given file"
+        echo "-d <file>.gpg         Decrypt given file"
         echo "-r                    Remove the original files"
         echo
         echo "-w                    Serves a local web server for transferring files"
@@ -229,7 +229,7 @@ if [ -f "$1" ] || [ -d "$1" ]; then
       print_message "Archive $1.tar.gz created"
       print_message "Archive $1.tar.gz has following content:"
       tar tvf $1.tar.gz 2>/dev/null
-      if [ "$REMOVE" ]; then print_info "Data \"$*\" deleted."; fi
+      if [ "$REMOVE" ]; then print_message "Data \"$*\" deleted"; fi
     else
       ARCHIVEOK="" && print_error "Archive not created. Check if \"$1\" exists."
     fi
@@ -290,26 +290,45 @@ if [ "$(command -v gpg 2>/dev/null)" ]; then
       ENCRYPTOK="1"
       print_message "File \"$1\" encrypted to \"$1.gpg\""
       ENCRYPTEDFILE="$1.gpg"
+    # in case of any errors but it sill worked
+    elif [ -f "$1.gpg" ]; then
+      ENCRYPTOK="1"
+      print_message "File \"$1\" encrypted to \"$1.gpg\""
+      ENCRYPTEDFILE="$1.gpg"
     else
-      ENCRYPTOK="" && print_error "File \"$1\" could not be encrypted"
+      ENCRYPTOK="" && print_error "File \"$1\" could not be encrypted. Try with sudo."
     fi
     # remove original file
     if [ "$REMOVE" ]; then
-      print_info "Remove \"$1\""
-      rm -rdv $1
+      if rm -rdv $1 1>/dev/null; then
+        print_message "File \"$1\" deleted"
+      fi
     fi
 
   # check if its a directory
   elif [ -d "$1" ]; then
     print_message "Given file is a directory"
+    # create a tar archive from given directory
     tar_archive $1
     if gpg -c --cipher-algo AES256 $CREATEDARCHIVE 2>/dev/null; then
       ENCRYPTOK="1"
-      echo && print_message "File \"$CREATEDARCHIVE\" encrypted to \"$CREATEDARCHIVE.gpg\""
+      echo && print_message "Directory \"$CREATEDARCHIVE\" encrypted to \"$CREATEDARCHIVE.gpg\""
+      ENCRYPTEDFILE="$CREATEDARCHIVE.gpg"
+    # in case of any errors but it sill worked
+    elif [ -f "$CREATEDARCHIVE.gpg" ]; then
+      ENCRYPTOK="1"
+      echo && print_message "Directory \"$CREATEDARCHIVE\" encrypted to \"$CREATEDARCHIVE.gpg\""
       ENCRYPTEDFILE="$CREATEDARCHIVE.gpg"
     else
-      ENCRYPTOK="" && print_error "File \"$CREATEDARCHIVE\" could not be encrypted"
+      ENCRYPTOK="" && print_error "Directory \"$CREATEDARCHIVE\" could not be encrypted. Try with sudo."
     fi
+    # remove original directory
+    if [ "$REMOVE" ]; then
+      if rm -rdv $1 1>/dev/null; then
+        print_message "Directory \"$1\" deleted"
+      fi
+    fi
+
   else
     print_error "File or directory \"$1\" does not exist"
   fi
