@@ -29,7 +29,7 @@ sh persistence.sh -h
 
 ### Parameters
 
-```sh
+```
 sh persistence.sh -h
 
 Usage: persistence.sh [options]

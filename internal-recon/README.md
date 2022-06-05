@@ -22,7 +22,7 @@ sh internal-recon.sh
 
 ### Parameters
 
-```sh
+```
 sh internal-recon.sh -h
 
 Usage: internal-recon.sh [options]

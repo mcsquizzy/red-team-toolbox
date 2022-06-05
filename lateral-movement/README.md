@@ -29,7 +29,7 @@ sh lateral-movement.sh -h
 
 ### Parameters
 
-```sh
+```
 sh lateral-movement.sh -h
 
 Usage: lateral-movement.sh [options]
