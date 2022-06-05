@@ -652,16 +652,15 @@ print_check "Files with .plan extension"
 planfiles=$(find / -iname *.plan -exec ls -la {} 2>/dev/null \;)
 if [ "$planfiles" ]; then print_ok && echo "$planfiles"; else print_notok; fi
 
-# bak files
-print_check "Files with .bak extension"
-bakfiles=$(find / -name *.bak -type f 2>/dev/null)
+# backup files
+print_check "Backup files"
+bakfiles=$(find / -regex ".*\.\(backup\|bak\|bkp\)" -o -iname *backup* -type f 2>/dev/null)
 if [ "$bakfiles" ]; then print_ok && echo "$bakfiles"; else print_notok; fi
 
 # mail
 print_check "Accessible mail files"
 mails=$(ls -la /var/mail 2>/dev/null)
 if [ "$mails" ]; then print_ok && echo "$mails"; else print_notok; fi
-
 
 # List Mozilla Firefox Bookmark Database Files on Linux
 print_check "Are there firefox bookmarks?"
