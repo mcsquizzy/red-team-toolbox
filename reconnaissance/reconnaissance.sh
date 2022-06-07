@@ -198,7 +198,7 @@ if [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
 	  echo "Aborting. Config file \"$myCONF_FILE\" not a reconnaissance configuration file."
     echo
     exit
-fi
+  fi
 elif ! [ -s "$myCONF_FILE" ] && [ "$myCONF_FILE" != "" ]; then
   echo "Aborting. Config file \"$myCONF_FILE\" not found."
   echo
@@ -352,9 +352,9 @@ fi
 if [ "$VULN" ]; then
   print_banner "Gather Vulnerability Information ..."
   if [ "$IP" != "" ] || [ "$DOMAIN" != "" ]; then
-    if [ ! "$NETWORK" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
+    if [ ! -s "targetPort.txt" ] && [ "$TCPPORT" == "" ] && [ "$UDPPORT" == "" ]; then
       echo
-      print_attention "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"NETWORK\" variable set to true. Don't run Vulnerability Scanning without Network Scanning or without a specified port, unless you've already run it once. The Vuln Scanning takes data from the Network Scanning about open ports."
+      print_attention "Attention! Neither a port is specified in \"$myCONF_FILE\" nor the \"targetPort.txt\" file exists. Don't run Vulnerability Scanning without Network Scanning or without a specified port. The Vuln Scanning takes data from the Network Scanning about open ports."
       echo
     fi
     source ./parts/vulnerability-scanning.sh
