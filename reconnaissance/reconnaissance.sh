@@ -154,6 +154,7 @@ function change_mac {
     if macchanger -r $NETDEVICE; then
       print_info "MAC address changed successfully"
       print_attention "Attention, after changing the MAC address, there could be connection problems"
+      print_message "To reset the MAC to the original, permanent hardware MAC, type: macchanger -p <device>"
     fi
   fi
 }
