@@ -227,15 +227,15 @@ fi
 # waf detection with nmap --script http-waf-detect
 if [ "$IP" != "" ]; then
   print_title "Nmap HTTP WAF scan of $IP ..."
-  nmap -Pn --script http-waf-detect $IP -oN $mySECAPPLFILE $SPOOFINGPARAMETERS | awk -v RS= '/^Nmap.*waf.*/'
+  nmap -Pn --script http-waf-detect $IP -oN $mySECAPPLFILE $SPOOFINGPARAMETERS --host-timeout 60s | awk -v RS= '/^Nmap.*waf.*/'
 
 elif [ "$IP" == "" ] && [ "$DOMAIN" != "" ]; then
   print_title "Nmap HTTP WAF scan of $DOMAIN ..."
-  nmap -Pn --script http-waf-detect $DOMAIN -oN $mySECAPPLFILE --append-output $SPOOFINGPARAMETERS | awk -v RS= '/^Nmap.*waf.*/'
+  nmap -Pn --script http-waf-detect $DOMAIN -oN $mySECAPPLFILE --append-output $SPOOFINGPARAMETERS --host-timeout 60s | awk -v RS= '/^Nmap.*waf.*/'
 
 elif [ "$IP" == "" ] && [ "$IPRANGE" != "" ]; then
   print_title "Nmap HTTP WAF scan of $IPRANGE ..."
-  nmap --script http-waf-detect $IPRANGE -oN $mySECAPPLFILE $SPOOFINGPARAMETERS | awk -v RS= '/^Nmap.*waf.*/'
+  nmap --script http-waf-detect $IPRANGE -oN $mySECAPPLFILE $SPOOFINGPARAMETERS --host-timeout 60s | awk -v RS= '/^Nmap.*waf.*/'
 fi
 
 # load balancing detection
