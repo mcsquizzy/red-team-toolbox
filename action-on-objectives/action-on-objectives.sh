@@ -429,16 +429,16 @@ fi
 print_title "Following parts where successful:"
 
 if [ "$ARCHIVEOK" ]; then
-  print_result "Archive $BYELLOW\"$CREATEDARCHIVE\"$NC created"
+  print_result "Creation of archive $BYELLOW\"$CREATEDARCHIVE\"$NC"
 fi
 if [ "$EXTRACTOK" ]; then
-  print_result "Archive $BYELLOW\"$DATATOEXTRACT\"$NC extracted"
+  print_result "Extraction of archive $BYELLOW\"$DATATOEXTRACT\"$NC"
 fi
 if [ "$ENCRYPTOK" ]; then
-  print_result "Given file encrypted to $BYELLOW\"$ENCRYPTEDFILE\"$NC"
+  print_result "File encryption to $BYELLOW\"$ENCRYPTEDFILE\"$NC"
 fi
 if [ "$DECRYPTOK" ]; then
-  print_result "Encrypted file \"$FILETODECRYPT\" decrypted$NC"
+  print_result "Decryption of file \"$FILETODECRYPT\"$NC"
 fi
 
 sleep 2
@@ -462,7 +462,7 @@ fi
 print_step "If you want to encrypt and remove files, search for backup files on this system. Use \"internal-recon.sh\" script from this toolbox." 
 
 if [ "$REMOVE" ]; then
-  print_step "Note that after you deleted files with `rm`, it might be possible to recover some of its contents (see `rm --help`). You may consider using `shred` to overwrite files (see `shred --help`)."
+  print_step "Note that after you deleted files with \"rm\", it might be possible to recover some of its contents (see \"rm --help\"). You may consider using \"shred\" to overwrite files (see \"shred --help\")."
 fi
 
 echo
