@@ -206,7 +206,7 @@ sleep 1
 system_info() {
 
 print_title "System information"
-sleep 1
+sleep 2
 
 # current username
 user=$(id -nu 2>/dev/null || whoami 2>/dev/null || echo $USER 2>/dev/null)
@@ -292,7 +292,7 @@ if [ "$pwpolicy" ]; then print_ok && echo "$pwpolicy"; else print_notok; fi
 network_info() {
 
 print_title "Network information"
-sleep 1
+sleep 2
 
 # current IP(s)
 print_check "Current IP(s)"
@@ -335,7 +335,7 @@ if [ "$udplisten" ]; then print_ok && echo "$udplisten"; else print_notok; fi
 user_info() {
 
 print_title "User information"
-sleep 1
+sleep 2
 
 # current user info
 print_check "Current user info"
@@ -443,7 +443,7 @@ if [ "$whosudo" ]; then print_ok && echo "$whosudo"; else print_notok; fi
 jobs_info() {
 
 print_title "Information about (cron)jobs and tasks"
-sleep 1
+sleep 2
 
 # list all cronjobs configured
 print_check "Are there any cronjobs configured?"
@@ -491,7 +491,7 @@ if [ "$systemdtimers" ]; then print_ok && echo "$systemdtimers"; else print_noto
 services_info() {
 
 print_title "Information about processes and services"
-sleep 1
+sleep 2
 
 # all running processes
 print_check "Running processes"
@@ -544,7 +544,7 @@ if [ "$localrcd" ]; then print_ok && echo "$localrcd"; else print_notok; fi
 software_info() {
 
 print_title "Information about installed software and possible versions"
-sleep 1
+sleep 2
 
 # software packages
 print_check "List installed software packages and versions"
@@ -591,7 +591,7 @@ if [ "$flatpak" ]; then print_ok && echo "$flatpak"; fi
 interesting_files() {
 
 print_title "Interesting files"
-sleep 1
+sleep 2
 
 # useful binaries
 print_check "Useful tools / binaries for further investigation"
@@ -677,7 +677,7 @@ if [ "$firefox" ]; then print_ok && echo "$firefox"; else print_notok; fi
 container_info() {
 
 print_title "Information about containers"
-sleep 1
+sleep 2
 
 # Docker
 # check if we are in a docker container
