@@ -14,7 +14,6 @@ This environment variables controlled bash script serves as a tool for receiving
 - Spoofing: All nmap scans can be provided with obfuscation/spoofing technique
 - Bypassing Firewall Rules: Network scan tries Nmap exotic scan flags if ports are filtered
 - Run as root or non-root: Both is possible, but some scans are not executed without root
-- 
 
 ## Usage
 

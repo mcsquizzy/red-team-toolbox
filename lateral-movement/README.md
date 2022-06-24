@@ -63,7 +63,7 @@ The script uses /bin/sh syntax and is fully POSIX compatible so can run on most 
 
 Pivoting can be described as a method or technique that allows an already compromised system (also called a "plant" or "foothold") to be used to move into other systems on the same network. This can be used to bypass restrictions on a network (a firewall, for example).
 
-#### Pivoting with SSH
+#### Pivoting with SSH
 
 Local forwarding: make a port of the target locally reachable:
 ````sh
