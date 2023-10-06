@@ -22,6 +22,9 @@ GCC=$(command -v gcc 2>/dev/null)
 CHOWN=$(command -v chown 2>/dev/null)
 CHMOD=$(command -v chmod 2>/dev/null)
 
+# check if gcc exists
+if [ "$GCC" ]; then echo "$GCC exists"; else fuERROR "gcc missing on this host, try to install it..."; fi
+
 # check if /bin/bash exists
 if [ -f "/bin/bash" ]; then BASH="1"; else BASH=""; fi
 
